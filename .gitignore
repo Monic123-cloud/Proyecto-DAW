@@ -1,0 +1,11 @@
+# No subir carpetas de dependencias
+node_modules/
+vendor/
+
+# No subir archivos de configuración local (contraseñas)
+.env
+
+# No subir archivos temporales de Windows o IDEs
+.DS_Store
+.vscode/
+.idea/
