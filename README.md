@@ -4,9 +4,9 @@ Este es el repositorio central para el desarrollo de nuestra aplicación.
 
 ## 👥 Equipo y Contacto
 
-- **Mónica** - _**Git** Pendiente_
-- **Iván** - _Pendiente_
-- **Javi** - _Pendiente_
+- **Mónica** - 
+- **Iván** -
+- **Javi** -
 
 ## Guía de Comandos Rápidos
 
