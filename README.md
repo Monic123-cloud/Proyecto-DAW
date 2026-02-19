@@ -1,6 +1,6 @@
 # 🚀 Proyecto DAW: AppComercios
 
-Este es el repositorio central para el desarrollo de nuestra aplicación.
+Aplicación de contactos de usuarios, comercios y productores de Proximidad
 
 ## 👥 Equipo y Contacto
 
@@ -29,12 +29,12 @@ Creamos acciones sociales de voluntariado para aquellos vecinos que más lo nece
 ![Tablero Scrum](./img/DAFO.png)
 
 ## Objetivos:
-• Objetivo General:
-Crear un espacio donde dispongas de todos los servicios que necesitas a tu alcance
-• Objetivos específicos:
-o Relacionar y poner en contacto consumidores, empresas y productores locales
-o Diseñar una interfaz sencilla y amigable con todas las funcionalidades necesarias para los usuarios
-o Desarrollar un sistema CRUD completo, que sea robusto y seguro
+    • Objetivo General:
+    Crear un espacio donde dispongas de todos los servicios que necesitas a tu alcance
+    • Objetivos específicos:
+    o Relacionar y poner en contacto consumidores, empresas y productores locales
+    o Diseñar una interfaz sencilla y amigable con todas las funcionalidades necesarias para los usuarios
+    o Desarrollar un sistema CRUD completo, que sea robusto y seguro
 
 • Scrum board
 
@@ -48,51 +48,50 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
 ## Producto mínimo viable
 
 • Requisitos:
-o Una web sencilla, visual y multidispositivo
-o Se puede registrar un usuario
-o Se registra un comercio
-o Se registra los productores locales
-o Opción Pedir domicilio
-o Un usuario, un comercio y un productor tiene la opción de modificar y eliminar su registro
-o Tiene buscador por zona y distancia
-o Tiene un buscador de comercios
-o Opción de visualizar en mapa
-o Si no es usuario aparece Google Maps
-o Si es usuario aparece Google maps y la propia de la web con datos y descuento
-o Se puede seleccionar por CP, municipio o ciudad y km
-o Menú por secciones
-o Opción de descuento por ser usuario
-o Ofrecer tus servicios
-o Tener un check para participar en voluntariado
-o Tienen valoraciones (estrellas)
-o Sólo valoran usuarios registrados
-o Disponer de buzón sugerencias ante falta de negocios o servicios
-o Aplicación Responsive
-o Disponer de la opción de enviar mensajes a los comercios
-o Disponer de dashboard y métricas de entradas por sección  
-de administrador
-o Disponer de dashboard y métricas de entradas como comercio registrado
-o Seguridad
-o Disponer de servidores
-o Disponer de dockers
-o Página en inglés
-o Página compatible para personas sordomudas
+    o  Una web sencilla, visual y multidispositivo
+    o  Se puede registrar un usuario
+    o  Se registra un comercio
+    o  Se registra los productores locales
+    o  Opción Pedir domicilio
+    o  Un usuario, un comercio y un productor tiene la opción de modificar y eliminar su registro
+    o  Tiene buscador por zona y distancia
+    o  Tiene un buscador de comercios
+    o  Opción de visualizar en mapa
+    o  Si no es usuario aparece Google Maps
+    o  Si es usuario aparece Google maps y la propia de la web con datos y descuento
+    o  Se puede seleccionar por CP, municipio o ciudad y km
+    o  Menú por secciones
+    o  Opción de descuento por ser usuario
+    o  Ofrecer tus servicios
+    o  Tener un check para participar en voluntariado
+    o  Tienen valoraciones (estrellas)
+    o  Sólo valoran usuarios registrados
+    o  Disponer de buzón sugerencias ante falta de negocios o servicios
+    o  Aplicación Responsive
+    o  Disponer de la opción de enviar mensajes a los comercios
+    o  Disponer de dashboard y métricas de entradas por sección de administrador
+    o  Disponer de dashboard y métricas de entradas como comercio registrado
+    o  Seguridad
+    o  Disponer de servidores
+    o  Disponer de dockers
+    o  Página en inglés
+    o  Página compatible para personas sordomudas
 
 ## Metodología
 
 Estamos trabajando en el proyecto en Agile con estructura ligera estilo Scrum
-
-• Nos permite dividir el trabajo en partes pequeñas y funcionales
-• Flexibilidad y adaptación ante cualquier cambio necesario
-• Cada entrega es funcional, por tanto el avance del proyecto es significativo
-• Esto hace que cada tarea sea un progreso visible en el proyecto, lo que confirma que avanza y es más motivador
-• Podemos detectar los errores según vayamos avanzando y no dejarlos para el final
+    
+    •  Nos permite dividir el trabajo en partes pequeñas y funcionales
+    •  Flexibilidad y adaptación ante cualquier cambio necesario
+    •  Cada entrega es funcional, por tanto el avance del proyecto es significativo
+    •  Esto hace que cada tarea sea un progreso visible en el proyecto, lo que confirma que avanza y es más motivador
+    •  Podemos detectar los errores según vayamos avanzando y no dejarlos para el final
 
 La forma de trabajo que estamos teniendo es la siguiente:
 
-• Dividimos en tareas pequeñas y concretas
-• Tareas de 1-3 días
-• Trabajamos en sprints de 1 semana
-• Lista priorizada de todo lo que hay que hacer a nivel técnico en el proyecto
-• Utilizando Git con ramas y commits frecuentes.
-• Priorizaciones
+    •  Dividimos en tareas pequeñas y concretas
+    •  Tareas de 1-3 días
+    •  Trabajamos en sprints de 1 semana
+    •  Lista priorizada de todo lo que hay que hacer a nivel técnico en el proyecto
+    •  Utilizando Git con ramas y commits frecuentes.
+    •  Priorizaciones
