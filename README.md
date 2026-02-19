@@ -28,7 +28,7 @@ Creamos acciones sociales de voluntariado para aquellos vecinos que más lo nece
 
 ![Tablero Scrum](./img/DAFO.png)
 
-##Objetivos:
+## Objetivos:
 • Objetivo General:
 Crear un espacio donde dispongas de todos los servicios que necesitas a tu alcance
 • Objetivos específicos:
@@ -45,7 +45,7 @@ o Desarrollar un sistema CRUD completo, que sea robusto y seguro
 
 https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0zckgzdVJRMk5laC84MXdFV1lrN2c2bGRaNW5qWS8wdUFlVUpXN1cvRVpSZ3M4SENGWTJDenVhOXJYVE9oVlFTc2IvUDZ1RzVLdklYM29sak5TY2YzRDVzbW5DU01Bd044SHFHaVlWYWk0d3NxeHNmeG9BPT0hdjE=?share_link_id=920105413377
 
-##Producto mínimo viable
+## Producto mínimo viable
 
 • Requisitos:
 o Una web sencilla, visual y multidispositivo
