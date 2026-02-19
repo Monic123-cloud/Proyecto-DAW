@@ -49,33 +49,61 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
 
 • Requisitos:
         o  Una web sencilla, visual y multidispositivo
+        
         o  Se puede registrar un usuario
+        
         o  Se registra un comercio
+        
         o  Se registra los productores locales
+        
         o  Opción Pedir domicilio
+        
         o  Un usuario, un comercio y un productor tiene la opción de modificar y eliminar su registro
+        
         o  Tiene buscador por zona y distancia
+        
         o  Tiene un buscador de comercios
+        
         o  Opción de visualizar en mapa
+        
         o  Si no es usuario aparece Google Maps
+        
         o  Si es usuario aparece Google maps y la propia de la web con datos y descuento
+        
         o  Se puede seleccionar por CP, municipio o ciudad y km
+        
         o  Menú por secciones
+        
         o  Opción de descuento por ser usuario
+        
         o  Ofrecer tus servicios
+            
         o  Tener un check para participar en voluntariado
+        
         o  Tienen valoraciones (estrellas)
+        
         o  Sólo valoran usuarios registrados
+        
         o  Disponer de buzón sugerencias ante falta de negocios o servicios
+        
         o  Aplicación Responsive
+        
         o  Disponer de la opción de enviar mensajes a los comercios
+        
         o  Disponer de dashboard y métricas de entradas por sección de administrador
+        
         o  Disponer de dashboard y métricas de entradas como comercio registrado
+        
         o  Seguridad
+        
         o  Disponer de servidores
+        
         o  Disponer de dockers
+        
         o  Página en inglés
+        
         o  Página compatible para personas sordomudas
+        
 
 ## Metodología
 
