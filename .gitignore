@@ -1,11 +1,22 @@
-# No subir carpetas de dependencias
-node_modules/
-vendor/
 
 # No subir archivos de configuración local (contraseñas)
 .env
 
-# No subir archivos temporales de Windows o IDEs
-.DS_Store
+# Python & Django
+__pycache__/
+*.pyc
+db.sqlite3
+.venv/
+venv/
+env/
+
+
+# Frontend y dependencias
+node_modules/
+vendor/
+
+# IDEs y Sistema
 .vscode/
 .idea/
+.DS_Store
+*.log
