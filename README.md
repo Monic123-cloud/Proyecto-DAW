@@ -81,12 +81,15 @@ o Página compatible para personas sordomudas
 ## Metodología
 
 Estamos trabajando en el proyecto en Agile con estructura ligera estilo Scrum
+
 • Nos permite dividir el trabajo en partes pequeñas y funcionales
 • Flexibilidad y adaptación ante cualquier cambio necesario
 • Cada entrega es funcional, por tanto el avance del proyecto es significativo
 • Esto hace que cada tarea sea un progreso visible en el proyecto, lo que confirma que avanza y es más motivador
 • Podemos detectar los errores según vayamos avanzando y no dejarlos para el final
+
 La forma de trabajo que estamos teniendo es la siguiente:
+
 • Dividimos en tareas pequeñas y concretas
 • Tareas de 1-3 días
 • Trabajamos en sprints de 1 semana
