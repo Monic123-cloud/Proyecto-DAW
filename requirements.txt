@@ -1,0 +1,14 @@
+#librerias para buscador
+
+django>=4.2,<5.0
+djangorestframework
+#Para que Django pueda leer .env (API Key Google Maps)
+django-environ
+#librerias para geolocalizacion convierte dirección en coordenadas
+geopy
+#libreria para hacer peticiones HTTP
+requests
+#para que Railway arranque la web
+gunicorn
+#para que funcione en Railway con BBDD PostgreSQL
+psycopg2-binary
