@@ -16,6 +16,7 @@ Aplicación de contactos de usuarios, comercios y productores de Proximidad
         Objetivos específicos
     Producto mínimo viable
     Metodología
+    Diseño BBDD
 
 ## Justificación del proyecto:
 
@@ -123,3 +124,13 @@ La forma de trabajo que estamos teniendo es la siguiente:
     •  Lista priorizada de todo lo que hay que hacer a nivel técnico en el proyecto
     •  Utilizando Git con ramas y commits frecuentes.
     •  Priorizaciones
+
+## Diseño BBDD
+
+Diseño Modelo Relacional
+
+![Modelo Relacional](./img/modelo_relacional.png)
+
+Diseño Modelo Tablas Relacionales
+
+![Tablas Relacionales](./img/tablas_relacionales.png)
