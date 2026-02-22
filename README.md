@@ -133,4 +133,4 @@ Diseño Modelo Relacional
 
 Diseño Modelo Tablas Relacionales
 
-![Tablas Relacionales](./img/Modelos_Tablas_Relacionales.png)
+![Tablas Relacionales](./img/Modelos_Tablas_relacionales.png)
