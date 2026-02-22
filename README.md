@@ -129,8 +129,8 @@ La forma de trabajo que estamos teniendo es la siguiente:
 
 Diseño Modelo Relacional
 
-![Modelo Relacional](./img/modelo_relacional.png)
+![Modelo Relacional](./img/Modelo_Relacionales.png)
 
 Diseño Modelo Tablas Relacionales
 
-![Tablas Relacionales](./img/tablas_relacionales.png)
+![Tablas Relacionales](./img/Modelos_Tablas_Relacionales.png)
