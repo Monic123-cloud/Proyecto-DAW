@@ -139,3 +139,49 @@ Diseño Modelo Tablas Relacionales
 ## Diagrama de Gannt
 
 ![Diagrama_Gannt](./img/Gannt_Diagram.png)
+
+
+## Diseño App (UI)
+
+    •	Página principal
+    
+![Main_Page](./img/Main_Page.png)
+
+
+    •	Pagina para que se den alta usuarios y comerciantes
+
+![User_Page](./img/User_Page.png)
+
+    •	Interfaz la App (Versión 1)
+    
+
+![UI_App_V1(./img/UI_App_V1.png)
+
+    •	Interfaz la App (Versión 2)
+    
+
+![UI_App_V2](./img/UI_App_V2.png)
+
+
+    •	Diseño del header
+
+![Header](./img/header.png)
+
+
+    •	Menús desplegables del header
+
+![Menu_Header](./img/Menu_Header.png)
+
+
+## Paleta de color de la App
+
+    •	La armonía de los colores corporativos de la App se basa en una triada de color en tonos pastel:
+
+        o	Menta (Mint): Transmite una conexión clara con la naturaleza y el bienestar. (Código HEX - #B2D8B2)
+
+        o	Lavanda (Lavender): Transmite conexión con la comunidad y la creatividad. (Código HEX - #D1B3FF)
+
+        o	Melocotón (Peach): Transmite acción y cercanía con una calidez optimista. (Código HEX – #FFCCAC)
+
+
+
