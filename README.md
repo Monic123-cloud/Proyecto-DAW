@@ -104,7 +104,42 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
         o  Página en inglés
         
         o  Página compatible para personas sordomudas
-        
+
+    • User Story:
+        o Como usuario Quiero poder registrarme Para acceder a todas las funcionalidades.
+        o Como usuario registrado Quiero iniciar sesion para acceder a mi cuenta.
+        o Como usuario registrado Quiero editar o eliminar mi cuenta Para tener control sobre mi información personal.
+        o Como comercio local Quiero editar o eliminar mi negocio Para tener control sobre mi negocio y poder ofrecer mis servicios o productos adecuadamente.
+        o Como comercio local Quiero registrar mi comercio Para poder ofrecer mis productos o servicios.
+        o Como comercio local Quiero registrar y editar mis productos o servicios Para poder actualizarme según las necesidades del mercado.
+        o Como usuario Quiero buscar servicios cerca de mi Para satisfacer mis necesidades.
+        o Como usuario Quiero ver servicios y comercios en un mapa Para saber su ubicación fácilmente.
+        o Como usuario registrado Quiero poder valorar un comercio o servicio Para poder ayudar a otros.
+        o Como usuario registrado Quiero poder enviar mensajes a comercios Para obtener información.
+        o Como administrador Quiero ver métricas de uso Para mejorar el rendimiento de la plataforma.
+        o Como comercio Quiero ver métricas de mi negocio Para ajustar mi negocio en base a estas.
+        o Como usuario registrado Quiero comunicar mi deseo de participar en voluntariados Para colaborar con mi comunidad.
+        o Como usuario registrado Quiero poder apuntarme a voluntariados Para poder colaborar con mi comunidad.
+
+## Tecnologías Empleadas
+    • Visual Studio Code: Es el editor de código abierto elegido para desarrollar todo el código fuente de nuestra aplicación. Esta decisión se debe a su compatibilidad con la mayoría de lenguajes de programación, y para nuestro caso todos los lenguajes que hemos decidido utilizar. Además, su control de versiones compatible con Git y Github.
+        o Código Fuente
+            • Frontend
+                o HTML
+                o CSS/Boostrap
+                o Ts/React
+            • Backend
+                o Python/Django
+                o SQL
+    • GitHub: es nuestro repositorio central remoto en la nube para realizar un trabajo colaborativo y tener un control de versiones. En conjunto con Git y un desarrollo mediante ramas y commits para llevar el control de versiones y un desarrollo incremental mediante sprints.
+    • Git: Es el software de código abierto que realizará el seguimiento de los cambios en nuestros archivos locales del proyecto para luego añadirlo a nuestro repositorio remoto en Github.
+    • XAMPP: Software gratuito para la gestión de bases de datos a través de Apache, generando un servidor web local.
+    • LucidChart: Aplicación web que usaremos para crear nuestros diagramas de manera colaborativa.
+    • Google Drive: Almacenamiento seguro en la nube donde trabajaremos documentos de texto de forma colaborativa y compartiremos recursos bibliográficos.
+    • Vercel: Es la plataforma que usaremos para el despliegue de nuestra aplicación, esta orientada en la nube y nos permite integrar nuestro repositorio Git.
+    • phpMyAdmin: Utilizaremos está herramienta para la administración de nuestra base de datos y realizar nuestras consultas SQL.
+    • Figma: Es la herramienta que vamos a usar para el diseño de interfaces y para realizar nuestros prototipos.
+
 
 ## Metodología
 
