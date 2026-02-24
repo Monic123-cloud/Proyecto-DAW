@@ -134,3 +134,8 @@ Diseño Modelo Relacional
 Diseño Modelo Tablas Relacionales
 
 ![Tablas Relacionales](./img/Modelo_Tablas_relacionales.png)
+
+
+## Diagrama de Gannt
+
+![Diagrama_Gannt](./img/Gannt_Diagram.png)
