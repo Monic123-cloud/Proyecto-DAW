@@ -165,7 +165,7 @@ Diseño Modelo Tablas Relacionales
 
     •	Diseño del header
 
-![Header](./img/header.png)
+![Header](./img/Header.png)
 
 
     •	Menús desplegables del header
