@@ -154,19 +154,15 @@ Diseño Modelo Tablas Relacionales
 
     •	Interfaz la App (Versión 1)
     
-
-![UI_App_V1(./img/UI_App_V1.png)
+![UI_App_V1](./img/UI_App_V1.png)
 
     •	Interfaz la App (Versión 2)
     
-
 ![UI_App_V2](./img/UI_App_V2.png)
-
 
     •	Diseño del header
 
 ![Header](./img/Header.png)
-
 
     •	Menús desplegables del header
 
