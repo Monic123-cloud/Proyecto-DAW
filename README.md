@@ -175,6 +175,14 @@ Diseño Modelo Tablas Relacionales
 
 ![Diagrama_Gannt](./img/Gannt_Diagram.png)
 
+## Diagrama de flujo
+
+![Diagrama_Flujo](./img/Diagrama_Flujo.png)
+
+## Diagrama de Casos de Uso
+
+![Diagrama_Casos_Uso](./img/Diagrama_Casos_Uso.png)
+
 
 ## Diseño App (UI)
 
