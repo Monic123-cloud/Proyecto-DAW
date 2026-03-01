@@ -16,6 +16,7 @@ Aplicación de contactos de usuarios, comercios y productores de Proximidad
         Objetivos específicos
     Producto mínimo viable
     Metodología
+    Diseño BBDD
 
 ## Justificación del proyecto:
 
@@ -103,7 +104,42 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
         o  Página en inglés
         
         o  Página compatible para personas sordomudas
-        
+
+    • User Story:
+        o Como usuario Quiero poder registrarme Para acceder a todas las funcionalidades.
+        o Como usuario registrado Quiero iniciar sesion para acceder a mi cuenta.
+        o Como usuario registrado Quiero editar o eliminar mi cuenta Para tener control sobre mi información personal.
+        o Como comercio local Quiero editar o eliminar mi negocio Para tener control sobre mi negocio y poder ofrecer mis servicios o productos adecuadamente.
+        o Como comercio local Quiero registrar mi comercio Para poder ofrecer mis productos o servicios.
+        o Como comercio local Quiero registrar y editar mis productos o servicios Para poder actualizarme según las necesidades del mercado.
+        o Como usuario Quiero buscar servicios cerca de mi Para satisfacer mis necesidades.
+        o Como usuario Quiero ver servicios y comercios en un mapa Para saber su ubicación fácilmente.
+        o Como usuario registrado Quiero poder valorar un comercio o servicio Para poder ayudar a otros.
+        o Como usuario registrado Quiero poder enviar mensajes a comercios Para obtener información.
+        o Como administrador Quiero ver métricas de uso Para mejorar el rendimiento de la plataforma.
+        o Como comercio Quiero ver métricas de mi negocio Para ajustar mi negocio en base a estas.
+        o Como usuario registrado Quiero comunicar mi deseo de participar en voluntariados Para colaborar con mi comunidad.
+        o Como usuario registrado Quiero poder apuntarme a voluntariados Para poder colaborar con mi comunidad.
+
+## Tecnologías Empleadas
+    • Visual Studio Code: Es el editor de código abierto elegido para desarrollar todo el código fuente de nuestra aplicación. Esta decisión se debe a su compatibilidad con la mayoría de lenguajes de programación, y para nuestro caso todos los lenguajes que hemos decidido utilizar. Además, su control de versiones compatible con Git y Github.
+        o Código Fuente
+            • Frontend
+                o HTML
+                o CSS/Boostrap
+                o Ts/React
+            • Backend
+                o Python/Django
+                o SQL
+    • GitHub: es nuestro repositorio central remoto en la nube para realizar un trabajo colaborativo y tener un control de versiones. En conjunto con Git y un desarrollo mediante ramas y commits para llevar el control de versiones y un desarrollo incremental mediante sprints.
+    • Git: Es el software de código abierto que realizará el seguimiento de los cambios en nuestros archivos locales del proyecto para luego añadirlo a nuestro repositorio remoto en Github.
+    • XAMPP: Software gratuito para la gestión de bases de datos a través de Apache, generando un servidor web local.
+    • LucidChart: Aplicación web que usaremos para crear nuestros diagramas de manera colaborativa.
+    • Google Drive: Almacenamiento seguro en la nube donde trabajaremos documentos de texto de forma colaborativa y compartiremos recursos bibliográficos.
+    • Vercel: Es la plataforma que usaremos para el despliegue de nuestra aplicación, esta orientada en la nube y nos permite integrar nuestro repositorio Git.
+    • phpMyAdmin: Utilizaremos está herramienta para la administración de nuestra base de datos y realizar nuestras consultas SQL.
+    • Figma: Es la herramienta que vamos a usar para el diseño de interfaces y para realizar nuestros prototipos.
+
 
 ## Metodología
 
@@ -123,3 +159,68 @@ La forma de trabajo que estamos teniendo es la siguiente:
     •  Lista priorizada de todo lo que hay que hacer a nivel técnico en el proyecto
     •  Utilizando Git con ramas y commits frecuentes.
     •  Priorizaciones
+
+## Diseño BBDD
+
+Diseño Modelo Relacional
+
+![Modelo Relacional](./img/Modelo_Relacionales.png)
+
+Diseño Modelo Tablas Relacionales
+
+![Tablas Relacionales](./img/Modelo_Tablas_relacionales.png)
+
+
+## Diagrama de Gannt
+
+![Diagrama_Gannt](./img/Gannt_Diagram.png)
+
+## Diagrama de flujo
+
+![Diagrama_Flujo](./img/Diagrama_Flujo.png)
+
+## Diagrama de Casos de Uso
+
+![Diagrama_Casos_Uso](./img/Diagrama_Casos_Uso.png)
+
+
+## Diseño App (UI)
+
+    •	Página principal
+    
+![Main_Page](./img/Main_Page.png)
+
+
+    •	Pagina para que se den alta usuarios y comerciantes
+
+![User_Page](./img/User_Page.png)
+
+    •	Interfaz la App (Versión 1)
+    
+![UI_App_V1](./img/UI_App_V1.png)
+
+    •	Interfaz la App (Versión 2)
+    
+![UI_App_V2](./img/UI_App_V2.png)
+
+    •	Diseño del header
+
+![Header](./img/Header.png)
+
+    •	Menús desplegables del header
+
+![Menu_Header](./img/Menu_Header.png)
+
+
+## Paleta de color de la App
+
+    •	La armonía de los colores corporativos de la App se basa en una triada de color en tonos pastel:
+
+        o	Menta (Mint): Transmite una conexión clara con la naturaleza y el bienestar. (Código HEX - #B2D8B2)
+
+        o	Lavanda (Lavender): Transmite conexión con la comunidad y la creatividad. (Código HEX - #D1B3FF)
+
+        o	Melocotón (Peach): Transmite acción y cercanía con una calidez optimista. (Código HEX – #FFCCAC)
+
+
+
