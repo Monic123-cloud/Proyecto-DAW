@@ -12,7 +12,7 @@ from django.conf import settings
 
 
 class DetallePedido(models.Model):
-    id_detalle = models.AutoField(primary_key=True, blank=True, null=True)
+    id_detalle = models.AutoField(primary_key=True)
     id_pedido = models.ForeignKey(
         "Pedido", models.DO_NOTHING, db_column="id_pedido", blank=True, null=True
     )
@@ -25,12 +25,12 @@ class DetallePedido(models.Model):
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "detalle_pedido"
 
 
 class Establecimiento(models.Model):
-    id_establecimiento = models.AutoField(primary_key=True, blank=True, null=True)
+    id_establecimiento = models.AutoField(primary_key=True)
     nombre_comercio = models.CharField()
     categoria = models.CharField(blank=True, null=True)
     telefono = models.CharField(blank=True, null=True)
@@ -49,7 +49,7 @@ class Establecimiento(models.Model):
     url_web = models.CharField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "establecimiento"
 
     def save(self, *args, **kwargs):
@@ -79,7 +79,7 @@ class Establecimiento(models.Model):
 
 
 class Evento(models.Model):
-    id_evento = models.AutoField(primary_key=True, blank=True, null=True)
+    id_evento = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
     nombre_evento = models.CharField()
     categoria = models.CharField(blank=True, null=True)
@@ -89,12 +89,12 @@ class Evento(models.Model):
     rol_evento = models.CharField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "evento"
 
 
 class Pedido(models.Model):
-    id_pedido = models.AutoField(primary_key=True, blank=True, null=True)
+    id_pedido = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
         models.DO_NOTHING,
@@ -102,9 +102,7 @@ class Pedido(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey(
-        "Usuario", models.DO_NOTHING, db_column="id_usuario", blank=True, null=True
-    )
+    id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
@@ -117,12 +115,12 @@ class Pedido(models.Model):
     estado = models.CharField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "pedido"
 
 
 class Producto(models.Model):
-    id_producto = models.AutoField(primary_key=True, blank=True, null=True)
+    id_producto = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
         models.DO_NOTHING,
@@ -138,12 +136,12 @@ class Producto(models.Model):
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "producto"
 
 
 class Servicio(models.Model):
-    id_servicio = models.AutoField(primary_key=True, blank=True, null=True)
+    id_servicio = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
     descripcion = models.TextField(blank=True, null=True)
     categoria = models.CharField(blank=True, null=True)
@@ -155,12 +153,12 @@ class Servicio(models.Model):
     )  # This field type is a guess.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "servicio"
 
 
 class Usuario(models.Model):
-    id_usuario = models.AutoField(primary_key=True, blank=True, null=True)
+    id_usuario = models.AutoField(primary_key=True)
     nombre = models.CharField()
     apellidos = models.CharField()
     correo = models.CharField(unique=True)
@@ -183,12 +181,12 @@ class Usuario(models.Model):
     )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "usuario"
 
 
 class Valoracion(models.Model):
-    id_valoracion = models.AutoField(primary_key=True, blank=True, null=True)
+    id_valoracion = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
         models.DO_NOTHING,
@@ -204,5 +202,5 @@ class Valoracion(models.Model):
     comentario = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "valoracion"
