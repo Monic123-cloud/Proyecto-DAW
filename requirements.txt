@@ -16,3 +16,5 @@ psycopg2-binary
 djangorestframework
 djangorestframework-simplejwt  # <--- CRÍTICO para los Tokens JWT
 django-cors-headers           # <--- CRÍTICO para que Vercel conecte
+#leer configuraciones de seguridad desde .env
+python-dotenv
