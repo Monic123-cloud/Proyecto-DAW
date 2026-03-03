@@ -2,6 +2,21 @@
 
 Aplicación de contactos de usuarios, comercios y productores de Proximidad
 
+## 🛠️ Instalación y Configuración Local
+
+Para que el proyecto funcione en tu ordenador con las nuevas librerías de **CORS** y **JWT**, sigue estos pasos:
+
+1. **Clonar la rama `monica`** (o hacer pull de los cambios):
+   ```bash
+   git pull origin monica
+   ```
+2. **Instalar las nuevas dependencias**
+   pip install -r requirements.txt
+3. **archivo .env.example**
+   Duplicar ese archivo y cambiarle el nombre a solo .env.
+
+   Rellenar los huecos con las contraseñas que os pase por privado
+
 ## 👥 Equipo y Contacto
 
 - \*\*Mónica Blanco -- 224J5496
