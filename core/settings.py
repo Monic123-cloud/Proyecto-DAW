@@ -15,9 +15,10 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
     environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Pongo los datos de mi fichero .env
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+RAILWAY_KEY = env("RAILWAY_SECRET_KEY", default=None)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
