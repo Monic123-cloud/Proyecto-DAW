@@ -19,3 +19,4 @@ django-cors-headers           # <--- CRÍTICO para que Vercel conecte
 #leer configuraciones de seguridad desde .env
 python-dotenv
 googlemaps
+dj-database-url
