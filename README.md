@@ -17,6 +17,11 @@ Aplicación de contactos de usuarios, comercios y productores de Proximidad
     Producto mínimo viable
     Metodología
     Diseño BBDD
+    Arquitectura del diseño
+    Diagrama de Gannt
+    Diagrma de flujo
+    Diagrama de Casos de Uso
+    Diseño App (UI)
 
 ## Justificación del proyecto:
 
@@ -30,6 +35,7 @@ Creamos acciones sociales de voluntariado para aquellos vecinos que más lo nece
 ![Tablero Scrum](./img/DAFO.png)
 
 ## Objetivos:
+
     • Objetivo General:
     Crear un espacio donde dispongas de todos los servicios que necesitas a tu alcance
     • Objetivos específicos:
@@ -49,60 +55,60 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
 ## Producto mínimo viable
 
 • Requisitos:
-        o  Una web sencilla, visual y multidispositivo
-        
+o Una web sencilla, visual y multidispositivo
+
         o  Se puede registrar un usuario
-        
+
         o  Se registra un comercio
-        
+
         o  Se registra los productores locales
-        
+
         o  Opción Pedir domicilio
-        
+
         o  Un usuario, un comercio y un productor tiene la opción de modificar y eliminar su registro
-        
+
         o  Tiene buscador por zona y distancia
-        
+
         o  Tiene un buscador de comercios
-        
+
         o  Opción de visualizar en mapa
-        
+
         o  Si no es usuario aparece Google Maps
-        
+
         o  Si es usuario aparece Google maps y la propia de la web con datos y descuento
-        
+
         o  Se puede seleccionar por CP, municipio o ciudad y km
-        
+
         o  Menú por secciones
-        
+
         o  Opción de descuento por ser usuario
-        
+
         o  Ofrecer tus servicios
-            
+
         o  Tener un check para participar en voluntariado
-        
+
         o  Tienen valoraciones (estrellas)
-        
+
         o  Sólo valoran usuarios registrados
-        
+
         o  Disponer de buzón sugerencias ante falta de negocios o servicios
-        
+
         o  Aplicación Responsive
-        
+
         o  Disponer de la opción de enviar mensajes a los comercios
-        
+
         o  Disponer de dashboard y métricas de entradas por sección de administrador
-        
+
         o  Disponer de dashboard y métricas de entradas como comercio registrado
-        
+
         o  Seguridad
-        
+
         o  Disponer de servidores
-        
+
         o  Disponer de dockers
-        
+
         o  Página en inglés
-        
+
         o  Página compatible para personas sordomudas
 
     • User Story:
@@ -122,6 +128,7 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
         o Como usuario registrado Quiero poder apuntarme a voluntariados Para poder colaborar con mi comunidad.
 
 ## Tecnologías Empleadas
+
     • Visual Studio Code: Es el editor de código abierto elegido para desarrollar todo el código fuente de nuestra aplicación. Esta decisión se debe a su compatibilidad con la mayoría de lenguajes de programación, y para nuestro caso todos los lenguajes que hemos decidido utilizar. Además, su control de versiones compatible con Git y Github.
         o Código Fuente
             • Frontend
@@ -140,11 +147,10 @@ https://miro.com/welcomeonboard/QlptZDU1ZXl1SWJDeUp0RGtESlhlTU1aVk5zZHh6Snp4ak0z
     • phpMyAdmin: Utilizaremos está herramienta para la administración de nuestra base de datos y realizar nuestras consultas SQL.
     • Figma: Es la herramienta que vamos a usar para el diseño de interfaces y para realizar nuestros prototipos.
 
-
 ## Metodología
 
 Estamos trabajando en el proyecto en Agile con estructura ligera estilo Scrum
-    
+
     •  Nos permite dividir el trabajo en partes pequeñas y funcionales
     •  Flexibilidad y adaptación ante cualquier cambio necesario
     •  Cada entrega es funcional, por tanto el avance del proyecto es significativo
@@ -170,6 +176,30 @@ Diseño Modelo Tablas Relacionales
 
 ![Tablas Relacionales](./img/Modelo_Tablas_relacionales.png)
 
+## Arquitectura del Proyecto
+
+![Arquitectura del Proyecto](img/arquitectura_appcomercio.png)
+
+# Arquitectura del Sistema:
+
+    Frontend (Cliente )
+    •	Framework: React.js (SPA).
+    •	Hosting: Vercel.
+    •	Integraciones: Google Maps SDK para geolocalización de comercios.
+    •	Seguridad: Manejo de sesiones mediante Tokens JWT almacenados de forma segura.
+    Backend (Servidor)
+    •	Framework: Django + Django REST Framework (DRF).
+    •	Contenedor: Desplegado mediante Docker en Railway.
+    •	Seguridad: Configuración de CORS Headers para permitir peticiones exclusivas desde el dominio de Vercel.
+    Base de Datos
+    •	Motor: PostgreSQL.
+    •	Infraestructura: Instancia independiente en Railway.
+    •	Comunicación: Consultas optimizadas mediante el adaptador psycopg2.
+    Flujo de Comunicación
+    La interacción entre componentes se realiza mediante:
+    1.	Protocolo: HTTPS para todas las transferencias.
+    2.	Formato de datos: JSON vía REST API.
+    3.	Auth: El frontend envía el Authorization: Bearer <token> en cada petición protegida.
 
 ## Diagrama de Gannt
 
@@ -183,24 +213,22 @@ Diseño Modelo Tablas Relacionales
 
 ![Diagrama_Casos_Uso](./img/Diagrama_Casos_Uso.png)
 
-
 ## Diseño App (UI)
 
     •	Página principal
-    
-![Main_Page](./img/Main_Page.png)
 
+![Main_Page](./img/Main_Page.png)
 
     •	Pagina para que se den alta usuarios y comerciantes
 
 ![User_Page](./img/User_Page.png)
 
     •	Interfaz la App (Versión 1)
-    
+
 ![UI_App_V1](./img/UI_App_V1.png)
 
     •	Interfaz la App (Versión 2)
-    
+
 ![UI_App_V2](./img/UI_App_V2.png)
 
     •	Diseño del header
@@ -211,7 +239,6 @@ Diseño Modelo Tablas Relacionales
 
 ![Menu_Header](./img/Menu_Header.png)
 
-
 ## Paleta de color de la App
 
     •	La armonía de los colores corporativos de la App se basa en una triada de color en tonos pastel:
@@ -221,6 +248,3 @@ Diseño Modelo Tablas Relacionales
         o	Lavanda (Lavender): Transmite conexión con la comunidad y la creatividad. (Código HEX - #D1B3FF)
 
         o	Melocotón (Peach): Transmite acción y cercanía con una calidez optimista. (Código HEX – #FFCCAC)
-
-
-
