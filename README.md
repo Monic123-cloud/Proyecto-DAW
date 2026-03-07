@@ -2,6 +2,21 @@
 
 Aplicación de contactos de usuarios, comercios y productores de Proximidad
 
+## 🛠️ Instalación y Configuración Local
+
+Para que el proyecto funcione en tu ordenador con las nuevas librerías de **CORS** y **JWT**, sigue estos pasos:
+
+1. **Clonar la rama `monica`** (o hacer pull de los cambios):
+   ```bash
+   git pull origin monica
+   ```
+2. **Instalar las nuevas dependencias**
+   pip install -r requirements.txt
+3. **archivo .env.example**
+   Duplicar ese archivo y cambiarle el nombre a solo .env.
+
+   Rellenar los huecos con las contraseñas que os pase por privado
+
 ## 👥 Equipo y Contacto
 
 - \*\*Mónica Blanco -- 224J5496
@@ -19,7 +34,7 @@ Aplicación de contactos de usuarios, comercios y productores de Proximidad
     Diseño BBDD
     Arquitectura del diseño
     Diagrama de Gannt
-    Diagrma de flujo
+    Diagrama de flujo
     Diagrama de Casos de Uso
     Diseño App (UI)
 
@@ -200,6 +215,25 @@ Diseño Modelo Tablas Relacionales
     1.	Protocolo: HTTPS para todas las transferencias.
     2.	Formato de datos: JSON vía REST API.
     3.	Auth: El frontend envía el Authorization: Bearer <token> en cada petición protegida.
+
+## Arquitectura del proyecto
+
+![Arquitectura del Proyecto](./arquitectura_appcomercio.png)
+
+Basada la arquitectura en:
+
+- **Frontend: React SPA alojada en **Vercel\*\*.
+- **Backend:** Django API en **Railway** (Docker).
+- **Seguridad:** Autenticación mediante **Tokens JWT**.
+- **Base de Datos:** PostgreSQL independiente en Railway.
+
+Frontend (Vercel): React.js con manejo de tokens JWT y Google Maps SDK.
+
+Backend (Railway + Docker): Django + DRF configurado con CORS Headers para permitir la conexión desde Vercel.
+
+Persistencia: Base de datos PostgreSQL alojada en Railway.
+
+Comunicación mediante HTTPS / JSON (REST API) y consultas SQL vía psycopg2.
 
 ## Diagrama de Gannt
 
