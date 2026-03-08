@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ivang/Documents/GitHub/Proyecto-DAW/components/card.tsx"],"sourcesContent":["import React from 'react';\r\n\r\n\r\nexport default function Navbar() {\r\n    return (\r\n        <div className=\"card\">\r\n            <div className=\"card-body\">\r\n                This is some text within a card body.\r\n            </div>\r\n        </div>\r\n    );\r\n}"],"names":[],"mappings":";;;;;;AAGe,SAAS;IACpB,qBACI,8OAAC;QAAI,WAAU;kBACX,cAAA,8OAAC;YAAI,WAAU;sBAAY;;;;;;;;;;;AAKvC"}},
+    {"offset": {"line": 41, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ivang/Documents/GitHub/Proyecto-DAW/app/page.tsx"],"sourcesContent":["import Card from \"../components/card\"\r\n\r\nexport default function Page() {\r\n  return (\r\n    <div>\r\n      \r\n      <div className=\"container mt-4\">\r\n        <h1>Proyecto DAW</h1>\r\n        <p>Next.js funcionando correctamente.</p>\r\n      </div>\r\n      <Card />\r\n    </div>\r\n  )\r\n}"],"names":[],"mappings":";;;;;AAAA;;;AAEe,SAAS;IACtB,qBACE,8OAAC;;0BAEC,8OAAC;gBAAI,WAAU;;kCACb,8OAAC;kCAAG;;;;;;kCACJ,8OAAC;kCAAE;;;;;;;;;;;;0BAEL,8OAAC,8HAAI;;;;;;;;;;;AAGX"}}]
+}
