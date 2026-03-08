@@ -14,6 +14,10 @@ env/
 # Frontend y dependencias
 node_modules/
 vendor/
+.next/
+out/
+dist/
+*.log
 
 # IDEs y Sistema
 .vscode/
