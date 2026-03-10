@@ -8,8 +8,8 @@ export const API_BASE_URL = isLocalhost
   : "https://proyecto-daw-production.up.railway.app"; 
 
 export const ENDPOINTS = {
-
-    BUSCADOR: `${API_BASE_URL}/buscar/`,
-    GEOLOCALIZAR: `${API_BASE_URL}/geolocalizar/`,
-    GOOGLE_PROXY: `${API_BASE_URL}/google-maps/`, 
+    // Añadimos el prefijo 'api/buscador' que Django está usando
+    BUSCADOR: `${API_BASE_URL}/api/buscador/buscar/`,
+    GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
+    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`, 
 };
