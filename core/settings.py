@@ -14,7 +14,7 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Pongo los datos de mi fichero .env
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
@@ -46,10 +46,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://tu-proyecto-en-vercel.vercel.app",
+]
 
-CORS_ALLOWED_ORIGINS = env.list(
-    "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"]
-)
 ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
