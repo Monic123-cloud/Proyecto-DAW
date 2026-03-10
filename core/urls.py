@@ -10,13 +10,8 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    # Panel de Administración de Django
     path("admin/", admin.site.urls),
-    # Rutas para la autenticación JWT
-    # Login: Envías user/pass y recibes el Access Token
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    # Refresh: Para renovar el token sin volver a loguearte
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # Rutas de la app buscador
-    path("api/buscador/", include("buscador.urls")),
+    path("", include("buscador.urls")),
 ]
