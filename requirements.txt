@@ -26,6 +26,10 @@ googlemaps==4.10.0
 # Necesaria para que las peticiones a Google sean seguras
 requests==2.32.5
 
+# Para la API y autenticación (el error actual)
+djangorestframework
+djangorestframework-simplejwt
+
 # --- UTILIDADES ---
 asgiref==3.11.1
 sqlparse==0.5.5
