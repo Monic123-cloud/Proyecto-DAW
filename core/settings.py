@@ -74,21 +74,19 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
 
-if os.getenv("DATABASE_URL"):
+if env("DATABASE_URL", default=None):
     DATABASES = {
-        "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL"), conn_max_age=600
-        )
+        "default": dj_database_url.config(default=env("DATABASE_URL"), conn_max_age=600)
     }
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT"),
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT"),
         }
     }
 
