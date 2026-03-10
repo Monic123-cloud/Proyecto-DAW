@@ -16,7 +16,7 @@ interface Punto {
 export default function Mapa({ puntos }: { puntos: Punto[] }) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "TU_API_KEY_DE_GOOGLE_AQUI" // <-- RECUERDA PONER TU KEY
+    googleMapsApiKey:process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
