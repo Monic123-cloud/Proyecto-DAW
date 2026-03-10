@@ -1,35 +1,39 @@
 # --- NÚCLEO Y API ---
+# El framework principal
 Django==5.2.11
+# Para crear la API (REST)
 djangorestframework==3.16.1
-# Para leer variables .env
-python-dotenv
-#las traduce a django, para que se puedan usar en settings.py
- dj-database-url
-# Permite que Vercel se conecte al Backend
+# Para el sistema de login seguro con Tokens
+djangorestframework-simplejwt
+# Permite que el Frontend (ej. Vercel) conecte con el Backend
 django-cors-headers
 
-# --- DESPLIEGUE EN RAILWAY ---
-# El servidor profesional (imprescindible)
-gunicorn==23.0.0
-# Para que los estilos CSS se vean en la nube
-whitenoise==6.12.0
-# Para conectar la base de datos de Railway
-dj-database-url==3.1.2
-# Para leer la API Key de Google de forma segura
+# --- CONFIGURACIÓN Y ENTORNO ---
+# Lee el archivo .env en local
+python-dotenv
+# Gestiona variables de entorno de forma segura
 django-environ==0.13.0
-# Para que Django hable con PostgreSQL
-psycopg2-binary==2.9.11
+# Traduce la URL de la base de datos de Railway para Django
+dj-database-url==3.1.2
 
-# --- CONEXIÓN CON GOOGLE MAPS ---
-# La librería que hace la búsqueda de comercios
+# --- BASE DE DATOS Y DESPLIEGUE ---
+# Driver necesario para conectar con PostgreSQL
+psycopg2-binary==2.9.11
+# Servidor profesional para ejecutar Django en la nube
+gunicorn==23.0.0
+# Gestiona los archivos estáticos (CSS, JS) en producción
+whitenoise==6.12.0
+
+# --- SERVICIOS EXTERNOS (GOOGLE & MAPAS) ---
+# Librería oficial para usar servicios de Google Maps
 googlemaps==4.10.0
-# Necesaria para que las peticiones a Google sean seguras
+# Herramienta de geolocalización (la que daba el último error)
+geopy
+# Permite que Python haga peticiones a internet de forma segura
 requests==2.32.5
 
-# Para la API y autenticación (el error actual)
-djangorestframework
-djangorestframework-simplejwt
-
-# --- UTILIDADES ---
+# --- UTILIDADES INTERNAS ---
+# Manejo de tareas asíncronas en Django
 asgiref==3.11.1
+# Formateador y procesador de consultas SQL
 sqlparse==0.5.5
