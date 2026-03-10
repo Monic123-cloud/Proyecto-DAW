@@ -1,8 +1,12 @@
 # --- NÚCLEO Y API ---
 Django==5.2.11
 djangorestframework==3.16.1
+# Para leer variables .env
+python-dotenv
+#las traduce a django, para que se puedan usar en settings.py
+ dj-database-url
 # Permite que Vercel se conecte al Backend
-django-cors-headers==4.9.0
+django-cors-headers
 
 # --- DESPLIEGUE EN RAILWAY ---
 # El servidor profesional (imprescindible)
