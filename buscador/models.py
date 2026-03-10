@@ -1,10 +1,3 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 import requests
 import googlemaps
 from django.db import models
@@ -20,9 +13,7 @@ class DetallePedido(models.Model):
         "Producto", models.DO_NOTHING, db_column="id_producto", blank=True, null=True
     )
     cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(
-        max_digits=10, decimal_places=5
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=5)
 
     class Meta:
         managed = True
@@ -31,49 +22,44 @@ class DetallePedido(models.Model):
 
 class Establecimiento(models.Model):
     id_establecimiento = models.AutoField(primary_key=True)
-    nombre_comercio = models.CharField()
-    categoria = models.CharField(blank=True, null=True)
-    telefono = models.CharField(blank=True, null=True)
-    correo = models.CharField(blank=True, null=True)
-    direccion = models.CharField(blank=True, null=True)
-    numero = models.CharField(blank=True, null=True)
-    municipio = models.CharField(blank=True, null=True)
-    provincia = models.CharField(blank=True, null=True)
-    cp = models.CharField(blank=True, null=True)
+    nombre_comercio = models.CharField(max_length=255)
+    categoria = models.CharField(max_length=100, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    correo = models.CharField(max_length=100, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+    numero = models.CharField(max_length=10, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(max_length=100, blank=True, null=True)
+    cp = models.CharField(max_length=10, blank=True, null=True)
     latitud = models.DecimalField(
         max_digits=12, decimal_places=9, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+    )
     longitud = models.DecimalField(
         max_digits=12, decimal_places=9, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
-    url_web = models.CharField(blank=True, null=True)
+    )
+    url_web = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = True
         db_table = "establecimiento"
 
     def save(self, *args, **kwargs):
-        # Si tenemos dirección y CP, pero no coordenadas, las buscamos
         if (self.direccion or self.cp) and not (self.latitud and self.longitud):
             self.geocodificar()
         super().save(*args, **kwargs)
 
     def geocodificar(self):
-        gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-        direccion_completa = (
-            f"{self.direccion}, {self.numero}, {self.cp}, {self.municipio}, España"
-        )
-
         try:
-            # Llamada oficial a la API de geocodificación
-            result = gmaps.geocode(direccion_completa)
-            print(
-                f"Éxito: {self.nombre_comercio} ubicado en {self.latitud}, {self.longitud}"
+            gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
+            direccion_completa = (
+                f"{self.direccion}, {self.numero}, {self.cp}, {self.municipio}, España"
             )
+            result = gmaps.geocode(direccion_completa)
             if result:
                 location = result[0]["geometry"]["location"]
                 self.latitud = location["lat"]
                 self.longitud = location["lng"]
+                print(f"Éxito geocodificando: {self.nombre_comercio}")
         except Exception as e:
             print(f"Error con Google Maps API: {e}")
 
@@ -81,12 +67,12 @@ class Establecimiento(models.Model):
 class Evento(models.Model):
     id_evento = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
-    nombre_evento = models.CharField()
-    categoria = models.CharField(blank=True, null=True)
+    nombre_evento = models.CharField(max_length=255)
+    categoria = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
-    lugar = models.CharField(blank=True, null=True)
-    publico_objetivo = models.CharField(blank=True, null=True)
-    rol_evento = models.CharField(blank=True, null=True)
+    lugar = models.CharField(max_length=255, blank=True, null=True)
+    publico_objetivo = models.CharField(max_length=255, blank=True, null=True)
+    rol_evento = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = True
@@ -105,14 +91,14 @@ class Pedido(models.Model):
     id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
-    fecha = models.TextField(blank=True, null=True)  # This field type is a guess.
-    metodo_pago = models.CharField(blank=True, null=True)
+    )
+    fecha = models.TextField(blank=True, null=True)
+    metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     descuento = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
-    metodo_entrega = models.CharField(blank=True, null=True)
-    estado = models.CharField(blank=True, null=True)
+    )
+    metodo_entrega = models.CharField(max_length=50, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = True
@@ -128,12 +114,10 @@ class Producto(models.Model):
         blank=True,
         null=True,
     )
-    tipo_producto = models.CharField(blank=True, null=True)
-    producto = models.CharField()
+    tipo_producto = models.CharField(max_length=100, blank=True, null=True)
+    producto = models.CharField(max_length=255)
     stock = models.IntegerField(blank=True, null=True)
-    precio = models.DecimalField(
-        max_digits=10, decimal_places=5
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+    precio = models.DecimalField(max_digits=10, decimal_places=5)
 
     class Meta:
         managed = True
@@ -144,13 +128,11 @@ class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
     descripcion = models.TextField(blank=True, null=True)
-    categoria = models.CharField(blank=True, null=True)
+    categoria = models.CharField(max_length=100, blank=True, null=True)
     precio_hora = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
-    fecha_creacion = models.TextField(
-        blank=True, null=True
-    )  # This field type is a guess.
+    )
+    fecha_creacion = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = True
@@ -159,26 +141,26 @@ class Servicio(models.Model):
 
 class Usuario(models.Model):
     id_usuario = models.AutoField(primary_key=True)
-    nombre = models.CharField()
-    apellidos = models.CharField()
-    correo = models.CharField(unique=True)
-    auth_id = models.CharField(unique=True)
-    sexo = models.CharField(blank=True, null=True)
+    nombre = models.CharField(max_length=100)
+    apellidos = models.CharField(max_length=100)
+    correo = models.CharField(unique=True, max_length=150)
+    auth_id = models.CharField(unique=True, max_length=255)
+    sexo = models.CharField(max_length=20, blank=True, null=True)
     fecha_nacimiento = models.DateField(blank=True, null=True)
-    telefono = models.CharField(blank=True, null=True)
-    direccion = models.CharField(blank=True, null=True)
-    numero = models.CharField(blank=True, null=True)
-    piso = models.CharField(blank=True, null=True)
-    letra = models.CharField(blank=True, null=True)
-    municipio = models.CharField(blank=True, null=True)
-    provincia = models.CharField(blank=True, null=True)
-    cp = models.CharField(blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+    numero = models.CharField(max_length=10, blank=True, null=True)
+    piso = models.CharField(max_length=10, blank=True, null=True)
+    letra = models.CharField(max_length=10, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(max_length=100, blank=True, null=True)
+    cp = models.CharField(max_length=10, blank=True, null=True)
     latitud = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+        max_digits=12, decimal_places=9, blank=True, null=True
+    )
     longitud = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
-    )  # max_digits and decimal_places have been guessed, as this database handles decimal fields as float
+        max_digits=12, decimal_places=9, blank=True, null=True
+    )
 
     class Meta:
         managed = True
@@ -198,7 +180,7 @@ class Valoracion(models.Model):
         Usuario, models.DO_NOTHING, db_column="id_usuario", blank=True, null=True
     )
     puntuacion = models.IntegerField(blank=True, null=True)
-    fecha = models.TextField(blank=True, null=True)  # This field type is a guess.
+    fecha = models.TextField(blank=True, null=True)
     comentario = models.TextField(blank=True, null=True)
 
     class Meta:

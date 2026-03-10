@@ -191,6 +191,31 @@ Diseño Modelo Tablas Relacionales
 
 ![Tablas Relacionales](./img/Modelo_Tablas_relacionales.png)
 
+## Arquitectura del Proyecto
+
+![Arquitectura del Proyecto](img/arquitectura_appcomercio.png)
+
+# Arquitectura del Sistema:
+
+    Frontend (Cliente )
+    •	Framework: React.js (SPA).
+    •	Hosting: Vercel.
+    •	Integraciones: Google Maps SDK para geolocalización de comercios.
+    •	Seguridad: Manejo de sesiones mediante Tokens JWT almacenados de forma segura.
+    Backend (Servidor)
+    •	Framework: Django + Django REST Framework (DRF).
+    •	Contenedor: Desplegado mediante Docker en Railway.
+    •	Seguridad: Configuración de CORS Headers para permitir peticiones exclusivas desde el dominio de Vercel.
+    Base de Datos
+    •	Motor: PostgreSQL.
+    •	Infraestructura: Instancia independiente en Railway.
+    •	Comunicación: Consultas optimizadas mediante el adaptador psycopg2.
+    Flujo de Comunicación
+    La interacción entre componentes se realiza mediante:
+    1.	Protocolo: HTTPS para todas las transferencias.
+    2.	Formato de datos: JSON vía REST API.
+    3.	Auth: El frontend envía el Authorization: Bearer <token> en cada petición protegida.
+
 ## Arquitectura del proyecto
 
 ![Arquitectura del Proyecto](./arquitectura_appcomercio.png)
