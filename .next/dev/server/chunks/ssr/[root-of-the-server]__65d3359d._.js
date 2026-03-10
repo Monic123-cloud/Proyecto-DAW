@@ -18,9 +18,10 @@ __turbopack_context__.s([
 const isLocalhost = ("TURBOPACK compile-time value", "undefined") !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 const API_BASE_URL = ("TURBOPACK compile-time falsy", 0) ? "TURBOPACK unreachable" : "https://proyecto-daw-production.up.railway.app";
 const ENDPOINTS = {
-    BUSCADOR: `${API_BASE_URL}/buscar/`,
-    GEOLOCALIZAR: `${API_BASE_URL}/geolocalizar/`,
-    GOOGLE_PROXY: `${API_BASE_URL}/google-maps/`
+    // Añadimos el prefijo 'api/buscador' que Django está usando
+    BUSCADOR: `${API_BASE_URL}/api/buscador/buscar/`,
+    GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
+    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`
 };
 }),
 "[project]/components/Mapa.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
