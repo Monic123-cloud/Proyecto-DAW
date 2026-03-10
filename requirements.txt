@@ -20,3 +20,5 @@ djangorestframework-simplejwt
 dj-database-url
 #libreria para servir archivos estáticos en producción (railway)
 whitenoise
+googlemaps
+
