@@ -1,24 +1,36 @@
-#librerias
-python-dotenv
-django>=4.2,<5.0
-djangorestframework
-#Para que Django pueda leer .env (API Key Google Maps)
-django-environ
-#librerias para geolocalizacion convierte dirección en coordenadas
-geopy
-#libreria para hacer peticiones HTTP
-requests
-#para que Railway arranque la web
-gunicorn
-#para que funcione en Railway con BBDD PostgreSQL
-psycopg2-binary
-#libreria para manejar CORS (vercel lo necesita para que el frontend pueda hacer peticiones al backend)
-django-cors-headers
-#libreria para manejar autenticación con JWT
-djangorestframework-simplejwt
-#libreria para manejar URLs de bases de datos (railway permite Django para leer BBDD en PostgreSQL)
-dj-database-url
-#libreria para servir archivos estáticos en producción (railway)
-whitenoise
-googlemaps
-
+asgiref==3.11.1
+certifi==2026.2.25
+charset-normalizer==3.4.4
+contourpy==1.3.2
+cycler==0.12.1
+dj-database-url==3.1.2
+Django==5.2.11
+django-cors-headers==4.9.0
+django-environ==0.13.0
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+fonttools==4.59.2
+geographiclib==2.1
+geopy==2.4.1
+googlemaps==4.10.0
+idna==3.11
+kiwisolver==1.4.9
+matplotlib==3.10.6
+numpy==2.2.6
+packaging==25.0
+pandas==2.3.2
+pillow==11.3.0
+psycopg2-binary==2.9.11
+PyJWT==2.11.0
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.1
+pytz==2025.2
+requests==2.32.5
+seaborn==0.13.2
+six==1.17.0
+sqlparse==0.5.5
+typing_extensions==4.15.0
+tzdata==2025.2
+urllib3==2.6.3
+whitenoise==6.12.0

@@ -4,14 +4,14 @@ import environ
 import dj_database_url
 import os
 
-load_dotenv()
-GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+if os.path.exists(os.path.join(BASE_DIR, ".env")):
+    environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+
 
 # Pongo los datos de mi fichero .env
 SECRET_KEY = env("DJANGO_SECRET_KEY")
@@ -130,6 +130,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
