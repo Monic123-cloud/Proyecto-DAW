@@ -1,5 +1,5 @@
 #librerias
-
+python-dotenv
 django>=4.2,<5.0
 djangorestframework
 #Para que Django pueda leer .env (API Key Google Maps)
