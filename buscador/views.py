@@ -109,7 +109,9 @@ class BuscadorAPIView(APIView):
             google_url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query=comercios+en+codigo+postal+{cp_buscado}&key={api_key}"
             try:
                 response = requests.get(google_url)
+                json_data = response.json()
                 print(f"Status de Google: {json_data.get('status')}")
+
                 google_results = response.json().get("results", [])
 
                 for place in google_results:
