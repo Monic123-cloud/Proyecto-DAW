@@ -33,14 +33,14 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@react-google-maps/api/dist/esm.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
-"use client";
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)"); // Para manejar el estado del mapa, el punto seleccionado y la carga del mapa
+"use client"; //Indica que este componente se ejecuta en el navegador
 ;
 ;
 ;
 const containerStyle = {
-    width: '100%',
-    height: '100%'
+    width: "100%",
+    height: "400px"
 };
 const defaultCenter = {
     lat: 40.4167,
@@ -48,12 +48,13 @@ const defaultCenter = {
 };
 function Mapa({ puntos }) {
     const { isLoaded } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useJsApiLoader"])({
-        id: 'google-map-script',
-        googleMapsApiKey: "TU_API_KEY_DE_GOOGLE_AQUI" // <-- RECUERDA PONER TU KEY
+        id: "google-map-script",
+        googleMapsApiKey: ("TURBOPACK compile-time value", "AIzaSyB-PYUy3N7UoCC_d0mWkqGrBAzMmEyojA8")
     });
     const [map, setMap] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     // Estado para saber qué marcador se ha pulsado
     const [selected, setSelected] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    // Calculamos el centro del mapa usando useMemo para evitar recalcularlo en cada renderizado
     const center = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
         if (puntos && puntos.length > 0) {
             return {
@@ -61,10 +62,11 @@ function Mapa({ puntos }) {
                 lng: Number(puntos[0].longitud)
             };
         }
-        return defaultCenter;
+        return defaultCenter; // Si no hay puntos, centramos en Madrid por defecto
     }, [
         puntos
     ]);
+    // Cada vez que cambian los puntos o el mapa, ajustamos el zoom para que se vean todos los marcadores
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (map && puntos.length > 1) {
             const bounds = new window.google.maps.LatLngBounds();
@@ -83,8 +85,8 @@ function Mapa({ puntos }) {
         children: "Cargando mapa..."
     }, void 0, false, {
         fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 42,
-        columnNumber: 25
+        lineNumber: 55,
+        columnNumber: 7
     }, this);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["GoogleMap"], {
         mapContainerStyle: containerStyle,
@@ -105,7 +107,7 @@ function Mapa({ puntos }) {
                     onClick: ()=>setSelected(p)
                 }, p.id_establecimiento, false, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 54,
+                    lineNumber: 70,
                     columnNumber: 9
                 }, this)),
             selected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["InfoWindowF"], {
@@ -122,7 +124,7 @@ function Mapa({ puntos }) {
                             children: selected.nombre_comercio
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 68,
+                            lineNumber: 87,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -130,24 +132,24 @@ function Mapa({ puntos }) {
                             children: selected.direccion
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 69,
+                            lineNumber: 90,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 67,
+                    lineNumber: 86,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/Mapa.tsx",
-                lineNumber: 63,
+                lineNumber: 79,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 45,
+        lineNumber: 61,
         columnNumber: 5
     }, this);
 }
@@ -160,26 +162,28 @@ __turbopack_context__.s([
     ()=>Buscador
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)"); // Para manejar el estado de los comercios, el código postal y la carga
 var __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/app/config.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Mapa$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/Mapa.tsx [app-ssr] (ecmascript)");
-"use client";
+"use client"; //Indica que este componente se ejecuta en el navegador (necesario para usar hooks y eventos)
 ;
 ;
 ;
 ;
 function Buscador() {
     const [comercios, setComercios] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false); // Para mostrar "Cargando..." mientras se obtiene la respuesta
     const [cp, setCp] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    // Función para buscar comercios por código postal o por ubicación actual.Asíncrona para que la web no se congele mientras espera la respuesta
     const buscarComercios = async ()=>{
         if (!cp.trim()) return;
-        setLoading(true);
+        setLoading(true); // Activa el estado de carga para mostrar feedback al usuario
+        // Realiza la petición al backend con el código postal como parámetro
         try {
-            const url = `${__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ENDPOINTS"].BUSCADOR}?cp=${cp}`;
-            const response = await fetch(url);
+            const url = `${__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ENDPOINTS"].BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
+            const response = await fetch(url); //envía la petición HTTP al backend y espera la respuesta
             if (!response.ok) throw new Error("Error en la respuesta");
-            const data = await response.json();
+            const data = await response.json(); // 'data' recibe el JSON convertido en un Array de objetos
             setComercios(data);
         } catch (error) {
             console.error("Error:", error);
@@ -187,6 +191,34 @@ function Buscador() {
         } finally{
             setLoading(false);
         }
+    };
+    //Se dispara cuando el usuario hace clic en el botón del pin. Es una función de flecha que engloba toda la lógica de geolocalización.
+    const obtenerUbicacionActual = ()=>{
+        if (!navigator.geolocation) {
+            // Verifica si el navegador soporta geolocalización
+            alert("Tu navegador no soporta geolocalización.");
+            return;
+        }
+        setLoading(true);
+        //Este es el método oficial de HTML5 para pedir la ubicación actual
+        navigator.geolocation.getCurrentPosition(async (position)=>{
+            //se ejecutará solo si el usuario acepta dar permiso y el navegador logra encontrar la posición.
+            const { latitude, longitude } = position.coords;
+            try {
+                // usamos 'lat' y 'lng' en la URL
+                const url = `http://localhost:8000/api/buscador/buscar/?lat=${latitude}&lng=${longitude}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                setComercios(data);
+            } catch (error) {
+                console.error("Error:", error);
+            } finally{
+                setLoading(false);
+            }
+        }, (error)=>{
+            setLoading(false);
+            alert("Permiso de ubicación denegado.");
+        });
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "w-full max-w-5xl mx-auto p-4 flex flex-col gap-6",
@@ -199,22 +231,38 @@ function Buscador() {
                         children: "🔍 Explorador de Comercios"
                     }, void 0, false, {
                         fileName: "[project]/components/Buscador.tsx",
-                        lineNumber: 45,
+                        lineNumber: 80,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex gap-3 mb-6",
                         children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                type: "button",
+                                onClick: obtenerUbicacionActual,
+                                disabled: loading,
+                                className: "bg-gray-100 hover:bg-gray-200 text-2xl px-5 rounded-2xl transition-all border border-gray-200 disabled:opacity-50",
+                                title: "Usar mi ubicación actual",
+                                children: [
+                                    " ",
+                                    "📍",
+                                    " "
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/Buscador.tsx",
+                                lineNumber: 85,
+                                columnNumber: 11
+                            }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                 type: "text",
                                 placeholder: "Código Postal (ej: 28042)...",
                                 className: "border-2 border-gray-100 p-4 rounded-2xl flex-1 focus:border-blue-500 outline-none transition-all text-black",
                                 value: cp,
                                 onChange: (e)=>setCp(e.target.value),
-                                onKeyDown: (e)=>e.key === 'Enter' && buscarComercios()
+                                onKeyDown: (e)=>e.key === "Enter" && buscarComercios()
                             }, void 0, false, {
                                 fileName: "[project]/components/Buscador.tsx",
-                                lineNumber: 50,
+                                lineNumber: 95,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -224,13 +272,13 @@ function Buscador() {
                                 children: loading ? "..." : "Buscar"
                             }, void 0, false, {
                                 fileName: "[project]/components/Buscador.tsx",
-                                lineNumber: 58,
+                                lineNumber: 103,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/Buscador.tsx",
-                        lineNumber: 49,
+                        lineNumber: 84,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -239,18 +287,18 @@ function Buscador() {
                             puntos: comercios
                         }, void 0, false, {
                             fileName: "[project]/components/Buscador.tsx",
-                            lineNumber: 69,
-                            columnNumber: 12
+                            lineNumber: 114,
+                            columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/Buscador.tsx",
-                        lineNumber: 68,
+                        lineNumber: 113,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/Buscador.tsx",
-                lineNumber: 44,
+                lineNumber: 79,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -263,16 +311,16 @@ function Buscador() {
                                 children: c.nombre_comercio
                             }, void 0, false, {
                                 fileName: "[project]/components/Buscador.tsx",
-                                lineNumber: 78,
-                                columnNumber: 15
+                                lineNumber: 126,
+                                columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-sm text-gray-500 mb-3",
                                 children: c.direccion
                             }, void 0, false, {
                                 fileName: "[project]/components/Buscador.tsx",
-                                lineNumber: 79,
-                                columnNumber: 15
+                                lineNumber: 129,
+                                columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full",
@@ -282,31 +330,31 @@ function Buscador() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Buscador.tsx",
-                                lineNumber: 80,
-                                columnNumber: 15
+                                lineNumber: 130,
+                                columnNumber: 17
                             }, this)
                         ]
                     }, c.id_establecimiento, true, {
                         fileName: "[project]/components/Buscador.tsx",
-                        lineNumber: 77,
-                        columnNumber: 13
+                        lineNumber: 122,
+                        columnNumber: 15
                     }, this)) : !loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border-2 border-dashed border-gray-100",
                     children: "Ingresa un código postal para ver resultados"
                 }, void 0, false, {
                     fileName: "[project]/components/Buscador.tsx",
-                    lineNumber: 87,
-                    columnNumber: 13
+                    lineNumber: 136,
+                    columnNumber: 15
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/Buscador.tsx",
-                lineNumber: 74,
+                lineNumber: 119,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/Buscador.tsx",
-        lineNumber: 42,
+        lineNumber: 77,
         columnNumber: 5
     }, this);
 }
