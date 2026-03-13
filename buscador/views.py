@@ -8,6 +8,7 @@ from rest_framework.response import (
 )  # Se encarga de enviar los datos en formato JSON a React
 from rest_framework.permissions import (
     IsAuthenticated,
+    AllowAny,
 )  # Restringe funciones solo a usuarios registrados
 from django.db.models import (
     F,
@@ -30,10 +31,9 @@ from geopy.geocoders import (
     Nominatim,
 )  # API externa de Google Places para geolocalizar direcciones a coordenadas (lat/lng)
 import requests  # Para hacer peticiones HTTP a la API de Google Maps
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-)  # Permite que cualquiera busque comercios sin loguearse
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -228,3 +228,49 @@ class GoogleMapsProxyView(APIView):
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&key={api_key}"
         response = requests.get(url)
         return Response(response.json())
+
+
+# Formulario de estableciminto
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def gestionar_formulario(request):
+    if request.method == "GET":
+        # Aquí los datos de prueba o de la DB
+        data = {"mensaje": "Listo para recibir el formulario"}
+        return Response(data)
+
+    elif request.method == "POST":
+        # DRF ya procesa el JSON automáticamente en request.data
+        datos = request.data
+
+        try:
+            # 2. Creamos el registro en PostgreSQL
+            nuevo_establecimiento = Establecimiento.objects.create(
+                nombre_comercio=datos.get("nombre_comercio"),
+                tipo_negocio=datos.get(
+                    "tipo_negocio", "comercio"
+                ),  # Guarda si es Comercio/Productor
+                categoria=datos.get("categoria"),
+                subcategoria=datos.get("subcategoria"),  # Guarda el detalle
+                telefono=datos.get("telefono"),
+                correo=datos.get("correo"),
+                direccion=datos.get("direccion"),
+                numero=datos.get("numero"),
+                municipio=datos.get("municipio"),
+                provincia=datos.get("provincia"),
+                cp=datos.get("cp"),
+                # No necesitamos lat/lng aquí si el modelo usa geocodificar() al guardar
+            )
+
+            return Response(
+                {
+                    "status": "Éxito",
+                    "id": nuevo_establecimiento.id_establecimiento,
+                    "mensaje": "Establecimiento creado correctamente",
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+            # Si algo falla (ej: falta un campo), nos avisa
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

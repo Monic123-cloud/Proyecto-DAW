@@ -7,6 +7,7 @@ import {
 } from "@react-google-maps/api";
 import { useMemo, useEffect, useState } from "react"; // Para manejar el estado del mapa, el punto seleccionado y la carga del mapa
 
+const libraries: "places"[] = ["places"];
 const containerStyle = { width: "100%", height: "400px" };
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
 ////define qué debe tener el Punto
@@ -22,6 +23,7 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries,
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -70,7 +72,12 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
         <MarkerF
           key={p.id_establecimiento}
           position={{ lat: Number(p.latitud), lng: Number(p.longitud) }}
-          onClick={() => setSelected(p)} // Al pulsar, lo guardamos en 'selected'
+          onClick={() => setSelected(p)}
+          // CONFIGURACIÓN DEL PUNTO AZUL
+          icon={{
+            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+            scaledSize: new window.google.maps.Size(40, 40), // Tamaño opcional
+          }} // Al pulsar, lo guardamos en 'selected'
         />
       ))}
 

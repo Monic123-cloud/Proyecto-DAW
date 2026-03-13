@@ -15,7 +15,8 @@ const ENDPOINTS = {
     // Añadimos el prefijo 'api/buscador' que Django está usando
     BUSCADOR: `${API_BASE_URL}/api/buscador/buscar/`,
     GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
-    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`
+    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`,
+    ESTABLECIMIENTOS: `${API_BASE_URL}/api/formulario/`
 };
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
@@ -37,6 +38,9 @@ var _s = __turbopack_context__.k.signature();
 "use client"; //Indica que este componente se ejecuta en el navegador
 ;
 ;
+const libraries = [
+    "places"
+];
 const containerStyle = {
     width: "100%",
     height: "400px"
@@ -49,7 +53,8 @@ function Mapa({ puntos }) {
     _s();
     const { isLoaded } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useJsApiLoader"])({
         id: "google-map-script",
-        googleMapsApiKey: ("TURBOPACK compile-time value", "AIzaSyB-PYUy3N7UoCC_d0mWkqGrBAzMmEyojA8")
+        googleMapsApiKey: ("TURBOPACK compile-time value", "AIzaSyB-PYUy3N7UoCC_d0mWkqGrBAzMmEyojA8"),
+        libraries
     });
     const [map, setMap] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     // Estado para saber qué marcador se ha pulsado
@@ -91,7 +96,7 @@ function Mapa({ puntos }) {
         children: "Cargando mapa..."
     }, void 0, false, {
         fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 55,
+        lineNumber: 57,
         columnNumber: 7
     }, this);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GoogleMap"], {
@@ -110,10 +115,15 @@ function Mapa({ puntos }) {
                         lat: Number(p.latitud),
                         lng: Number(p.longitud)
                     },
-                    onClick: ()=>setSelected(p)
+                    onClick: ()=>setSelected(p),
+                    // CONFIGURACIÓN DEL PUNTO AZUL
+                    icon: {
+                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                        scaledSize: new window.google.maps.Size(40, 40)
+                    }
                 }, p.id_establecimiento, false, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 70,
+                    lineNumber: 72,
                     columnNumber: 9
                 }, this)),
             selected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["InfoWindowF"], {
@@ -130,7 +140,7 @@ function Mapa({ puntos }) {
                             children: selected.nombre_comercio
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 87,
+                            lineNumber: 94,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -138,24 +148,24 @@ function Mapa({ puntos }) {
                             children: selected.direccion
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 90,
+                            lineNumber: 97,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 86,
+                    lineNumber: 93,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/Mapa.tsx",
-                lineNumber: 79,
+                lineNumber: 86,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 61,
+        lineNumber: 63,
         columnNumber: 5
     }, this);
 }

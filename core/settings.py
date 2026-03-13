@@ -74,20 +74,23 @@ WSGI_APPLICATION = "core.wsgi.application"  # (Web Server Gateway Interface) es 
 
 
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
+db_from_env = env.db_url("DATABASE_URL", default=None)
 
-if env("DATABASE_URL", default=None):
+if db_from_env:
+    # Si estamos en Railway, esto configura todo automáticamente (host, user, pass...)
     DATABASES = {
         "default": dj_database_url.config(default=env("DATABASE_URL"), conn_max_age=600)
     }
 else:
+    # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("DB_NAME"),
-            "USER": env("DB_USER"),
-            "PASSWORD": env("DB_PASSWORD"),
-            "HOST": env("DB_HOST"),
-            "PORT": env("DB_PORT"),
+            "NAME": env("DB_NAME", default="tu_db_nombre"),
+            "USER": env("DB_USER", default="tu_usuario"),
+            "PASSWORD": env("DB_PASSWORD", default=""),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
         }
     }
 
@@ -139,8 +142,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # Define el tipo de dato p
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
 # Este es el "derecho de admisión" del servidor
 CORS_ALLOWED_ORIGINS = [
@@ -148,4 +152,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://app-comercio-red.vercel.app",
     "https://app-comercio-git-main-monic123-clouds-projects.vercel.app",
+]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# para usar Tokens
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]

@@ -21,7 +21,8 @@ const ENDPOINTS = {
     // Añadimos el prefijo 'api/buscador' que Django está usando
     BUSCADOR: `${API_BASE_URL}/api/buscador/buscar/`,
     GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
-    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`
+    GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`,
+    ESTABLECIMIENTOS: `${API_BASE_URL}/api/formulario/`
 };
 }),
 "[project]/components/Mapa.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
@@ -104,7 +105,12 @@ function Mapa({ puntos }) {
                         lat: Number(p.latitud),
                         lng: Number(p.longitud)
                     },
-                    onClick: ()=>setSelected(p)
+                    onClick: ()=>setSelected(p),
+                    // CONFIGURACIÓN DEL PUNTO AZUL
+                    icon: {
+                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                        scaledSize: new window.google.maps.Size(40, 40)
+                    }
                 }, p.id_establecimiento, false, {
                     fileName: "[project]/components/Mapa.tsx",
                     lineNumber: 70,
@@ -124,7 +130,7 @@ function Mapa({ puntos }) {
                             children: selected.nombre_comercio
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 87,
+                            lineNumber: 92,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -132,18 +138,18 @@ function Mapa({ puntos }) {
                             children: selected.direccion
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 90,
+                            lineNumber: 95,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 86,
+                    lineNumber: 91,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/Mapa.tsx",
-                lineNumber: 79,
+                lineNumber: 84,
                 columnNumber: 9
             }, this)
         ]

@@ -21,9 +21,17 @@ class DetallePedido(models.Model):
 
 
 class Establecimiento(models.Model):
+    TIPO_NEGOCIO_CHOICES = [
+        ("comercio", "Comercio"),
+        ("productor", "Productor Local"),
+    ]
     id_establecimiento = models.AutoField(primary_key=True)
     nombre_comercio = models.CharField(max_length=255)
+    tipo_negocio = models.CharField(
+        max_length=20, choices=TIPO_NEGOCIO_CHOICES, default="comercio"
+    )
     categoria = models.CharField(max_length=100, blank=True, null=True)
+    subcategoria = models.CharField(max_length=100, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     correo = models.CharField(max_length=100, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
