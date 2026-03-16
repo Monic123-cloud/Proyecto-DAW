@@ -20,3 +20,5 @@ vendor/
 .idea/
 .DS_Store
 *.log
+.next
+.env*.local
