@@ -29,17 +29,17 @@ __turbopack_context__.s([
     "default",
     ()=>Mapa
 ]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@react-google-maps/api/dist/esm.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)"); // Para manejar el estado del mapa, el punto seleccionado y la carga del mapa
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
-"use client"; //Indica que este componente se ejecuta en el navegador
+"use client";
 ;
 ;
 const libraries = [
-    "places"
+    "places",
+    "geometry"
 ];
 const containerStyle = {
     width: "100%",
@@ -51,15 +51,8 @@ const defaultCenter = {
 };
 function Mapa({ puntos }) {
     _s();
-    const { isLoaded } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useJsApiLoader"])({
-        id: "google-map-script",
-        googleMapsApiKey: ("TURBOPACK compile-time value", "AIzaSyB-PYUy3N7UoCC_d0mWkqGrBAzMmEyojA8"),
-        libraries
-    });
     const [map, setMap] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    // Estado para saber qué marcador se ha pulsado
     const [selected, setSelected] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    // Calculamos el centro del mapa usando useMemo para evitar recalcularlo en cada renderizado
     const center = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "Mapa.useMemo[center]": ()=>{
             if (puntos && puntos.length > 0) {
@@ -68,15 +61,15 @@ function Mapa({ puntos }) {
                     lng: Number(puntos[0].longitud)
                 };
             }
-            return defaultCenter; // Si no hay puntos, centramos en Madrid por defecto
+            return defaultCenter;
         }
     }["Mapa.useMemo[center]"], [
         puntos
     ]);
-    // Cada vez que cambian los puntos o el mapa, ajustamos el zoom para que se vean todos los marcadores
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "Mapa.useEffect": ()=>{
-            if (map && puntos.length > 1) {
+            // Solo ejecutamos si el mapa existe y window.google está disponible
+            if (map && puntos.length > 1 && window.google) {
                 const bounds = new window.google.maps.LatLngBounds();
                 puntos.forEach({
                     "Mapa.useEffect": (p)=>bounds.extend({
@@ -91,14 +84,16 @@ function Mapa({ puntos }) {
         map,
         puntos
     ]);
-    if (!isLoaded) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "h-full w-full bg-gray-100 animate-pulse flex items-center justify-center text-gray-400",
-        children: "Cargando mapa..."
-    }, void 0, false, {
-        fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 57,
-        columnNumber: 7
-    }, this);
+    // Si por algún motivo llegamos aquí sin la API, mostramos un aviso simple
+    if (("TURBOPACK compile-time value", "object") !== "undefined" && !window.google) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            children: "Esperando a Google Maps..."
+        }, void 0, false, {
+            fileName: "[project]/components/Mapa.tsx",
+            lineNumber: 44,
+            columnNumber: 12
+        }, this);
+    }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GoogleMap"], {
         mapContainerStyle: containerStyle,
         center: center,
@@ -115,15 +110,10 @@ function Mapa({ puntos }) {
                         lat: Number(p.latitud),
                         lng: Number(p.longitud)
                     },
-                    onClick: ()=>setSelected(p),
-                    // CONFIGURACIÓN DEL PUNTO AZUL
-                    icon: {
-                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                        scaledSize: new window.google.maps.Size(40, 40)
-                    }
+                    onClick: ()=>setSelected(p)
                 }, p.id_establecimiento, false, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 72,
+                    lineNumber: 57,
                     columnNumber: 9
                 }, this)),
             selected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["InfoWindowF"], {
@@ -140,7 +130,7 @@ function Mapa({ puntos }) {
                             children: selected.nombre_comercio
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 94,
+                            lineNumber: 75,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -148,32 +138,28 @@ function Mapa({ puntos }) {
                             children: selected.direccion
                         }, void 0, false, {
                             fileName: "[project]/components/Mapa.tsx",
-                            lineNumber: 97,
+                            lineNumber: 78,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/Mapa.tsx",
-                    lineNumber: 93,
+                    lineNumber: 74,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/Mapa.tsx",
-                lineNumber: 86,
+                lineNumber: 67,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/Mapa.tsx",
-        lineNumber: 63,
+        lineNumber: 48,
         columnNumber: 5
     }, this);
 }
-_s(Mapa, "eQ/yLFpD+B8VLkGEixeuGU+VVxY=", false, function() {
-    return [
-        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useJsApiLoader"]
-    ];
-});
+_s(Mapa, "/RwvbMBTFH1Gz1a2ZW5gJUvL+mU=");
 _c = Mapa;
 var _c;
 __turbopack_context__.k.register(_c, "Mapa");

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Autocomplete } from "@react-google-maps/api";
+import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
 
+const libraries: ("places" | "geometry")[] = ["places", "geometry"];
 const ESTRUCTURA = {
   "Educación y Cultura": {
     Academia: ["Idiomas", "Refuerzo Escolar", "Música", "Otros..."],
@@ -83,6 +84,12 @@ const ESTRUCTURA = {
 };
 
 export default function RegistroEstablecimiento() {
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries,
+  });
+
   const [loading, setLoading] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
@@ -100,6 +107,7 @@ export default function RegistroEstablecimiento() {
     cp: "",
     telefono: "",
     correo: "",
+    url_web: "",
     latitud: 0,
     longitud: 0,
   });
@@ -170,13 +178,23 @@ export default function RegistroEstablecimiento() {
       setLoading(false);
     }
   };
-
+  if (!isLoaded)
+    return (
+      <div className="text-white text-center py-5">Cargando buscador...</div>
+    );
   return (
     <div
       className="container py-5"
       style={{
         backgroundColor: "#1a3a3a",
+        backgroundImage: `linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8)), url('/formularios.png')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
         minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
         borderRadius: "15px",
       }}
     >
@@ -194,7 +212,7 @@ export default function RegistroEstablecimiento() {
       <form
         onSubmit={handleSubmit}
         className="mx-auto bg-dark p-4 rounded-4 shadow"
-        style={{ maxWidth: "420px", border: "1px solid #2d4a4a" }} // <-- Más estrecho y con fondo para estilizar
+        style={{ maxWidth: "420px", border: "1px solid #385c5c" }} // <-- Más estrecho y con fondo para estilizar
       >
         {/* NOMBRE */}
         <div className="mb-3">
@@ -391,12 +409,26 @@ export default function RegistroEstablecimiento() {
             required
           />
         </div>
+        <div className="mb-4">
+          <label className="form-label text-white fw-bold small">
+            Página Web (opcional)
+          </label>
+          <input
+            type="url"
+            className={inputClasses}
+            placeholder="https://tuweb.com"
+            value={formData.url_web}
+            onChange={(e) =>
+              setFormData({ ...formData, url_web: e.target.value })
+            }
+          />
+        </div>
 
         <button
           type="submit"
           disabled={loading}
           className="btn btn-warning w-100 fw-bold py-3 text-uppercase shadow-sm"
-          style={{ color: "#1a3a3a" }}
+          style={{ color: "#275656" }}
         >
           {loading ? "Registrando..." : "Finalizar Registro"}
         </button>

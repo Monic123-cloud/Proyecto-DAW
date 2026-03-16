@@ -30,6 +30,7 @@ class Establecimiento(models.Model):
     tipo_negocio = models.CharField(
         max_length=20, choices=TIPO_NEGOCIO_CHOICES, default="comercio"
     )
+    grupo = models.CharField(max_length=100, null=True, blank=True)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     subcategoria = models.CharField(max_length=100, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)

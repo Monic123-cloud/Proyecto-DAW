@@ -230,7 +230,7 @@ class GoogleMapsProxyView(APIView):
         return Response(response.json())
 
 
-# Formulario de estableciminto
+# Formulario de establecimiento
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def gestionar_formulario(request):
@@ -250,6 +250,7 @@ def gestionar_formulario(request):
                 tipo_negocio=datos.get(
                     "tipo_negocio", "comercio"
                 ),  # Guarda si es Comercio/Productor
+                grupo=datos.get("grupo"),
                 categoria=datos.get("categoria"),
                 subcategoria=datos.get("subcategoria"),  # Guarda el detalle
                 telefono=datos.get("telefono"),
@@ -259,7 +260,8 @@ def gestionar_formulario(request):
                 municipio=datos.get("municipio"),
                 provincia=datos.get("provincia"),
                 cp=datos.get("cp"),
-                # No necesitamos lat/lng aquí si el modelo usa geocodificar() al guardar
+                latitud=datos.get("latitud", 0),
+                longitud=datos.get("longitud", 0),
             )
 
             return Response(

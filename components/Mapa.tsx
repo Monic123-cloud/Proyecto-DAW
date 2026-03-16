@@ -1,16 +1,11 @@
-"use client"; //Indica que este componente se ejecuta en el navegador
-import {
-  GoogleMap,
-  useJsApiLoader,
-  MarkerF,
-  InfoWindowF,
-} from "@react-google-maps/api";
-import { useMemo, useEffect, useState } from "react"; // Para manejar el estado del mapa, el punto seleccionado y la carga del mapa
+"use client";
+import { GoogleMap, MarkerF, InfoWindowF } from "@react-google-maps/api";
+import { useMemo, useEffect, useState } from "react";
 
-const libraries: "places"[] = ["places"];
+const libraries: ("places" | "geometry")[] = ["places", "geometry"];
 const containerStyle = { width: "100%", height: "400px" };
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
-////define qué debe tener el Punto
+
 interface Punto {
   id_establecimiento: string | number;
   nombre_comercio: string;
@@ -18,19 +13,11 @@ interface Punto {
   latitud: number;
   longitud: number;
 }
-//componente funcional exportado que recibe un array de puntos y renderiza el mapa con marcadores e info
+
 export default function Mapa({ puntos }: { puntos: Punto[] }) {
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    libraries,
-  });
-
   const [map, setMap] = useState<google.maps.Map | null>(null);
-
-  // Estado para saber qué marcador se ha pulsado
   const [selected, setSelected] = useState<Punto | null>(null);
-  // Calculamos el centro del mapa usando useMemo para evitar recalcularlo en cada renderizado
+
   const center = useMemo(() => {
     if (puntos && puntos.length > 0) {
       return {
@@ -38,12 +25,12 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
         lng: Number(puntos[0].longitud),
       };
     }
-    return defaultCenter; // Si no hay puntos, centramos en Madrid por defecto
+    return defaultCenter;
   }, [puntos]);
 
-  // Cada vez que cambian los puntos o el mapa, ajustamos el zoom para que se vean todos los marcadores
   useEffect(() => {
-    if (map && puntos.length > 1) {
+    // Solo ejecutamos si el mapa existe y window.google está disponible
+    if (map && puntos.length > 1 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
       puntos.forEach((p) =>
         bounds.extend({ lat: Number(p.latitud), lng: Number(p.longitud) }),
@@ -52,12 +39,10 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
     }
   }, [map, puntos]);
 
-  if (!isLoaded)
-    return (
-      <div className="h-full w-full bg-gray-100 animate-pulse flex items-center justify-center text-gray-400">
-        Cargando mapa...
-      </div>
-    );
+  // Si por algún motivo llegamos aquí sin la API, mostramos un aviso simple
+  if (typeof window !== "undefined" && !window.google) {
+    return <div>Esperando a Google Maps...</div>;
+  }
 
   return (
     <GoogleMap
@@ -65,7 +50,7 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
       center={center}
       zoom={14}
       onLoad={(m) => setMap(m)}
-      onClick={() => setSelected(null)} // Cerrar ventana al pulsar fuera
+      onClick={() => setSelected(null)}
       options={{ streetViewControl: false, mapTypeControl: false }}
     >
       {puntos.map((p) => (
@@ -73,15 +58,11 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
           key={p.id_establecimiento}
           position={{ lat: Number(p.latitud), lng: Number(p.longitud) }}
           onClick={() => setSelected(p)}
-          // CONFIGURACIÓN DEL PUNTO AZUL
-          icon={{
-            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-            scaledSize: new window.google.maps.Size(40, 40), // Tamaño opcional
-          }} // Al pulsar, lo guardamos en 'selected'
+          // Nota: He quitado el icono personalizado temporalmente porque la URL
+          // que tenías puede dar error 404 y hacer que no se vea el marcador.
         />
       ))}
 
-      {/* Si hay un punto seleccionado, mostramos la ventanita */}
       {selected && (
         <InfoWindowF
           position={{
