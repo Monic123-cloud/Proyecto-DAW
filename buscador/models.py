@@ -27,6 +27,7 @@ class Establecimiento(models.Model):
     ]
     id_establecimiento = models.AutoField(primary_key=True)
     nombre_comercio = models.CharField(max_length=255)
+    cif_nif = models.CharField(max_length=20, unique=True, verbose_name="CIF/NIF")
     tipo_negocio = models.CharField(
         max_length=20, choices=TIPO_NEGOCIO_CHOICES, default="comercio"
     )
@@ -101,7 +102,7 @@ class Pedido(models.Model):
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )
-    fecha = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     descuento = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
@@ -141,7 +142,7 @@ class Servicio(models.Model):
     precio_hora = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )
-    fecha_creacion = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = True
@@ -189,7 +190,7 @@ class Valoracion(models.Model):
         Usuario, models.DO_NOTHING, db_column="id_usuario", blank=True, null=True
     )
     puntuacion = models.IntegerField(blank=True, null=True)
-    fecha = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -14,5 +14,5 @@ urlpatterns = [
     path("buscar/", BuscadorAPIView.as_view(), name="buscador_propio"),
     path("geolocalizar/", GeolocalizadorAPIView.as_view(), name="geolocalizador"),
     path("google-maps/", GoogleMapsProxyView.as_view(), name="google_maps_proxy"),
-    path("api/formulario/", gestionar_formulario, name="formulario_api"),
+    path("formulario/", gestionar_formulario, name="formulario_api"),
 ]

@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/globals.css"],"sourcesContent":["html, body {\r\n  padding: 0;\r\n  margin: 0;\r\n  background-color: #f8f9fa;\r\n}\r\n\r\n.pac-container {\r\n  border-radius: 10px;\r\n  margin-top: 5px;\r\n  z-index: 10000 !important;\r\n}"],"names":[],"mappings":"AAAA;;;;;;AAMA"}}]
-}

@@ -126,6 +126,7 @@ class BuscadorAPIView(APIView):
             comercios.values(
                 "id_establecimiento",
                 "nombre_comercio",
+                "cif_nif",
                 "latitud",
                 "longitud",
                 "direccion",
@@ -243,13 +244,21 @@ def gestionar_formulario(request):
         # DRF ya procesa el JSON automáticamente en request.data
         datos = request.data
 
+        tipo_raw = datos.get("tipo_negocio", "comercio")
+        mapeo_tipos = {
+            "Comercio": "comercio",
+            "Productor Local": "productor",
+            "comercio": "comercio",
+            "productor": "productor",
+        }
+        tipo_final = mapeo_tipos.get(tipo_raw, "comercio")
+
         try:
             # 2. Creamos el registro en PostgreSQL
             nuevo_establecimiento = Establecimiento.objects.create(
                 nombre_comercio=datos.get("nombre_comercio"),
-                tipo_negocio=datos.get(
-                    "tipo_negocio", "comercio"
-                ),  # Guarda si es Comercio/Productor
+                cif_nif=datos.get("cif_nif"),
+                tipo_negocio=tipo_final,
                 grupo=datos.get("grupo"),
                 categoria=datos.get("categoria"),
                 subcategoria=datos.get("subcategoria"),  # Guarda el detalle

@@ -53,15 +53,24 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
       onClick={() => setSelected(null)}
       options={{ streetViewControl: false, mapTypeControl: false }}
     >
-      {puntos.map((p) => (
-        <MarkerF
-          key={p.id_establecimiento}
-          position={{ lat: Number(p.latitud), lng: Number(p.longitud) }}
-          onClick={() => setSelected(p)}
-          // Nota: He quitado el icono personalizado temporalmente porque la URL
-          // que tenías puede dar error 404 y hacer que no se vea el marcador.
-        />
-      ))}
+      {puntos.map((p) => {
+        // Comprobamos si el ID es un número (de tu BBDD) o un texto (de Google)
+        const esNuestro = typeof p.id_establecimiento === "number";
+
+        return (
+          <MarkerF
+            key={p.id_establecimiento}
+            position={{ lat: Number(p.latitud), lng: Number(p.longitud) }}
+            onClick={() => setSelected(p)}
+            // Aquí está el truco del color:
+            icon={
+              esNuestro
+                ? "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" // azul
+                : "http://maps.google.com/mapfiles/ms/icons/red-dot.png" // rojo
+            }
+          />
+        );
+      })}
 
       {selected && (
         <InfoWindowF

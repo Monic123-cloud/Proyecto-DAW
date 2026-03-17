@@ -95,6 +95,7 @@ export default function RegistroEstablecimiento() {
 
   const [formData, setFormData] = useState({
     nombre_comercio: "",
+    cif_nif: "",
     tipo_negocio: "comercio",
     grupo: "",
     categoria: "",
@@ -102,6 +103,7 @@ export default function RegistroEstablecimiento() {
     categoria_libre: "",
     subcategoria_libre: "",
     direccion: "",
+    numero: "",
     municipio: "",
     provincia: "",
     cp: "",
@@ -227,6 +229,24 @@ export default function RegistroEstablecimiento() {
               setFormData({ ...formData, nombre_comercio: e.target.value })
             }
             placeholder="Ej: Cafetería Central"
+            required
+          />
+        </div>
+        <div className="mb-3">
+          <label className="form-label text-white fw-bold small">
+            CIF / NIF *
+          </label>
+          <input
+            type="text"
+            className={inputClasses}
+            value={formData.cif_nif}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                cif_nif: e.target.value.toUpperCase(),
+              })
+            }
+            placeholder="Ej: B12345678"
             required
           />
         </div>
@@ -373,7 +393,22 @@ export default function RegistroEstablecimiento() {
             />
           </Autocomplete>
         </div>
-
+        {/* NÚMERO DE LA CALLE */}
+        <div className="mb-3">
+          <label className="form-label text-white fw-bold small">
+            Número / Portal *
+          </label>
+          <input
+            type="text"
+            className={inputClasses}
+            value={formData.numero}
+            onChange={(e) =>
+              setFormData({ ...formData, numero: e.target.value })
+            }
+            placeholder="Ej: 12, 3B o S/N"
+            required
+          />
+        </div>
         <div className="row mb-3 g-2">
           <div className="col-8">
             <input
@@ -393,6 +428,21 @@ export default function RegistroEstablecimiento() {
               readOnly
             />
           </div>
+        </div>
+        {/* Campo Código Postal */}
+        <div className="mb-4">
+          {" "}
+          <label className="form-label text-white fw-bold small">
+            Código Postal *
+          </label>
+          <input
+            type="text"
+            placeholder="Ej: 28001"
+            className={inputClasses}
+            value={formData.cp || ""}
+            onChange={(e) => setFormData({ ...formData, cp: e.target.value })}
+            required
+          />
         </div>
 
         <div className="mb-4">
@@ -421,6 +471,22 @@ export default function RegistroEstablecimiento() {
             onChange={(e) =>
               setFormData({ ...formData, url_web: e.target.value })
             }
+          />
+        </div>
+        {/* TELÉFONO */}
+        <div className="mb-3">
+          <label className="form-label text-white fw-bold small">
+            Teléfono de contacto *
+          </label>
+          <input
+            type="tel"
+            className={inputClasses}
+            value={formData.telefono}
+            onChange={(e) =>
+              setFormData({ ...formData, telefono: e.target.value })
+            }
+            placeholder="Ej: 600000000"
+            required
           />
         </div>
 
