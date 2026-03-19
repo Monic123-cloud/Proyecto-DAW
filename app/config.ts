@@ -13,4 +13,5 @@ export const ENDPOINTS = {
     GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
     GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`, 
     ESTABLECIMIENTOS: `${API_BASE_URL}/api/buscador/formulario/`,
+    BUSCAR_CIF: `${API_BASE_URL}/api/buscador/buscar-cif/`,
 };

@@ -34,6 +34,7 @@ import requests  # Para hacer peticiones HTTP a la API de Google Maps
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from django.forms.models import model_to_dict
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -232,9 +233,31 @@ class GoogleMapsProxyView(APIView):
 
 
 # Formulario de establecimiento
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([AllowAny])
-def gestionar_formulario(request):
+def gestionar_formulario(request, pk=None):
+
+    if pk:
+        try:
+            establecimiento = Establecimiento.objects.get(pk=pk)
+        except Establecimiento.DoesNotExist:
+            return Response(
+                {"error": "No encontrado"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if request.method == "PUT":
+            # Actualizamos solo los campos que vengan en el JSON
+            for campo, valor in request.data.items():
+                setattr(establecimiento, campo, valor)
+            establecimiento.save()
+            return Response({"mensaje": "Actualizado correctamente"})
+
+        elif request.method == "DELETE":
+            establecimiento.delete()
+            return Response(
+                {"mensaje": "Eliminado", "id": pk}, status=status.HTTP_200_OK
+            )
+
     if request.method == "GET":
         # Aquí los datos de prueba o de la DB
         data = {"mensaje": "Listo para recibir el formulario"}
@@ -285,3 +308,19 @@ def gestionar_formulario(request):
         except Exception as e:
             # Si algo falla (ej: falta un campo), nos avisa
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def buscar_cif(request, cif):
+    try:
+        # Buscamos el establecimiento por el campo cif_nif
+        cif_limpio = cif.strip().upper()
+        establecimiento = Establecimiento.objects.get(cif_nif=cif.upper())
+
+        return Response(model_to_dict(establecimiento), status=status.HTTP_200_OK)
+    except Establecimiento.DoesNotExist:
+        return Response(
+            {"error": "No se encontró ningún negocio con ese CIF/DNI"},
+            status=status.HTTP_404_NOT_FOUND,
+        )

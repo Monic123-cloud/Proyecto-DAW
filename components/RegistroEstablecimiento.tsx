@@ -3,8 +3,10 @@
 import { useState, useRef } from "react";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
+import { validarDocumentoCompleto, validarCP } from "../app/utils";
 
 const libraries: ("places" | "geometry")[] = ["places", "geometry"];
+
 const ESTRUCTURA = {
   "Educación y Cultura": {
     Academia: ["Idiomas", "Refuerzo Escolar", "Música", "Otros..."],
@@ -90,13 +92,18 @@ export default function RegistroEstablecimiento() {
     libraries,
   });
 
+  const [vista, setVista] = useState<"seleccion" | "busqueda" | "formulario">(
+    "seleccion",
+  );
+  const [editId, setEditId] = useState<number | null>(null);
+  const [cifBusqueda, setCifBusqueda] = useState("");
   const [loading, setLoading] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const [formData, setFormData] = useState({
     nombre_comercio: "",
     cif_nif: "",
-    tipo_negocio: "comercio",
+    tipo_negocio: "Comercio",
     grupo: "",
     categoria: "",
     subcategoria: "",
@@ -116,6 +123,60 @@ export default function RegistroEstablecimiento() {
 
   const inputClasses = "form-control bg-dark text-white border-secondary";
   const selectClasses = "form-select bg-dark text-white border-secondary";
+
+  const buscarMiNegocio = async () => {
+    if (!cifBusqueda) return alert("Por favor, introduce un CIF");
+    setLoading(true);
+    try {
+      const res = await fetch(`${ENDPOINTS.BUSCAR_CIF}${cifBusqueda}/`);
+      const data = await res.json();
+
+      if (res.ok) {
+        const grupoKey = data.grupo as keyof typeof ESTRUCTURA;
+        const catExiste =
+          ESTRUCTURA[grupoKey] &&
+          Object.keys(ESTRUCTURA[grupoKey]).includes(data.categoria);
+
+        setFormData({
+          ...data,
+          categoria: catExiste
+            ? data.categoria
+            : data.categoria
+              ? "Otros..."
+              : "",
+          categoria_libre: catExiste ? "" : data.categoria,
+        });
+
+        setEditId(data.id_establecimiento);
+        setVista("formulario"); // Saltamos al formulario con los datos cargados
+      } else {
+        alert(data.error || "No se encontró ningún negocio con ese CIF/NIF.");
+      }
+    } catch (error) {
+      alert("Error al conectar con el servidor.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const eliminarNegocio = async () => {
+    if (!window.confirm("¿Estás seguro de que quieres borrar este negocio?"))
+      return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("Negocio eliminado.");
+        window.location.reload();
+      }
+    } catch (e) {
+      alert("Error al eliminar");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onPlaceChanged = () => {
     const place = autocompleteRef.current?.getPlace();
@@ -164,16 +225,25 @@ export default function RegistroEstablecimiento() {
           ? formData.subcategoria_libre
           : formData.subcategoria,
     };
+    const url = editId
+      ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
+      : `${ENDPOINTS.ESTABLECIMIENTOS}`;
+
+    const metodo = editId ? "PUT" : "POST";
 
     try {
-      const response = await fetch(`${ENDPOINTS.ESTABLECIMIENTOS}`, {
-        method: "POST",
+      const response = await fetch(url, {
+        method: metodo,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(datosAEnviar),
       });
 
-      if (response.ok) alert("¡Establecimiento registrado!");
-      else alert("Error en el servidor.");
+      if (response.ok) {
+        alert(editId ? "¡Datos actualizados!" : "¡Negocio registrado!");
+        setVista("seleccion");
+      } else {
+        alert("Error en la operación.");
+      }
     } catch (error) {
       alert("Error de conexión.");
     } finally {
@@ -184,6 +254,7 @@ export default function RegistroEstablecimiento() {
     return (
       <div className="text-white text-center py-5">Cargando buscador...</div>
     );
+
   return (
     <div
       className="container py-5"
@@ -200,305 +271,428 @@ export default function RegistroEstablecimiento() {
         borderRadius: "15px",
       }}
     >
-      <div className="text-center mb-5">
-        {/* He reducido el tamaño del logo para que no ocupe tanto espacio */}
+      {/* CABECERA */}
+      <div className="text-center mb-4">
         <div
-          className="bg-white d-inline-block rounded-circle p-3 mb-3"
+          className="bg-white d-inline-block rounded-circle p-3 mb-2"
           style={{ width: "80px", height: "80px" }}
         >
           <img src="/tu-icono.png" alt="logo" style={{ width: "100%" }} />
         </div>
-        <h1 className="text-white fw-bold h2">Registra tu Negocio</h1>
+        <h1 className="text-white fw-bold h3">Gestión de Negocio</h1>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mx-auto bg-dark p-4 rounded-4 shadow"
-        style={{ maxWidth: "420px", border: "1px solid #385c5c" }} // <-- Más estrecho y con fondo para estilizar
-      >
-        {/* NOMBRE */}
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            Nombre del Negocio
-          </label>
-          <input
-            type="text"
-            className={inputClasses}
-            value={formData.nombre_comercio}
-            onChange={(e) =>
-              setFormData({ ...formData, nombre_comercio: e.target.value })
-            }
-            placeholder="Ej: Cafetería Central"
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            CIF / NIF *
-          </label>
-          <input
-            type="text"
-            className={inputClasses}
-            value={formData.cif_nif}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                cif_nif: e.target.value.toUpperCase(),
-              })
-            }
-            placeholder="Ej: B12345678"
-            required
-          />
-        </div>
-
-        {/* TIPO DE NEGOCIO (Nuevo campo) */}
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            Tipo de Negocio
-          </label>
-          <div className="d-flex gap-2">
+      <div className="mx-auto w-100" style={{ maxWidth: "450px" }}>
+        {/* VISTA 1: SELECCIÓN INICIAL */}
+        {vista === "seleccion" && (
+          <div className="bg-dark p-4 rounded-4 shadow text-center border border-secondary">
+            <h4 className="text-white mb-4">Bienvenido</h4>
             <button
-              type="button"
-              className={`btn btn-sm w-50 ${formData.tipo_negocio === "comercio" ? "btn-warning" : "btn-outline-secondary text-white"}`}
-              onClick={() =>
-                setFormData({ ...formData, tipo_negocio: "Comercio" })
-              }
+              className="btn btn-warning w-100 mb-3 py-3 fw-bold"
+              onClick={() => {
+                setEditId(null);
+                setVista("formulario");
+              }}
             >
-              Comercio
+              NUEVO REGISTRO
             </button>
             <button
-              type="button"
-              className={`btn btn-sm w-50 ${formData.tipo_negocio === "Productor Local" ? "btn-warning" : "btn-outline-secondary text-white"}`}
-              onClick={() =>
-                setFormData({ ...formData, tipo_negocio: "Productor Local" })
-              }
+              className="btn btn-outline-light w-100 py-3 fw-bold"
+              onClick={() => setVista("busqueda")}
             >
-              Productor Local
+              YA ESTOY REGISTRADO
             </button>
-          </div>
-        </div>
-
-        <hr className="text-secondary my-4" />
-
-        {/* 1. BLOQUE */}
-        <div className="mb-3">
-          <label
-            className="form-label text-white fw-bold text-uppercase"
-            style={{ fontSize: "0.75rem", letterSpacing: "1px" }}
-          >
-            1. Bloque de Actividad
-          </label>
-          <select
-            className={selectClasses}
-            value={formData.grupo}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                grupo: e.target.value,
-                categoria: "",
-                subcategoria: "",
-              })
-            }
-          >
-            <option value="">Selecciona bloque...</option>
-            {Object.keys(ESTRUCTURA).map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* 2. CATEGORÍA */}
-        {formData.grupo && (
-          <div className="mb-3 animate__animated animate__fadeIn">
-            <label
-              className="form-label text-white fw-bold text-uppercase"
-              style={{ fontSize: "0.75rem" }}
-            >
-              2. Categoría
-            </label>
-            <select
-              className={selectClasses}
-              value={formData.categoria}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  categoria: e.target.value,
-                  subcategoria: "",
-                })
-              }
-            >
-              <option value="">Selecciona categoría...</option>
-              {Object.keys(
-                ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] || {},
-              ).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
           </div>
         )}
 
-        {/* 3. SUBCATEGORÍA */}
-        {formData.categoria &&
-          Array.isArray(
-            (ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any)?.[
-              formData.categoria
-            ],
-          ) && (
-            <div className="mb-3 animate__animated animate__fadeIn">
+        {/* VISTA 2: BUSCADOR POR CIF */}
+        {vista === "busqueda" && (
+          <div className="bg-dark p-4 rounded-4 shadow border border-warning">
+            <h4 className="text-warning mb-3">Buscar mi Ficha</h4>
+            <p className="text-white-50 small">
+              Introduce tu CIF/NIF para editar tus datos:
+            </p>
+            <input
+              type="text"
+              className={inputClasses}
+              placeholder="B12345678"
+              value={cifBusqueda}
+              onChange={(e) => setCifBusqueda(e.target.value.toUpperCase())}
+            />
+            <button
+              className="btn btn-warning w-100 mt-3 py-2 fw-bold"
+              onClick={buscarMiNegocio}
+              disabled={loading}
+            >
+              {loading ? "Buscando..." : "CARGAR DATOS"}
+            </button>
+            <button
+              className="btn btn-link text-white-50 w-100 mt-2"
+              onClick={() => setVista("seleccion")}
+            >
+              Volver
+            </button>
+          </div>
+        )}
+
+        {/* VISTA 3: EL FORMULARIO (Híbrido Registro/Edición) */}
+        {vista === "formulario" && (
+          <form
+            onSubmit={handleSubmit}
+            className="bg-dark p-4 rounded-4 shadow border border-secondary"
+          >
+            <h4 className="text-white mb-4 text-center">
+              {editId ? "Editar Negocio" : "Nuevo Registro"}
+            </h4>
+
+            {/* TIPO DE NEGOCIO */}
+            <div className="mb-3">
+              <label className="form-label text-white-50 small fw-bold">
+                TIPO DE NEGOCIO
+              </label>
+              <div className="d-flex gap-2">
+                {["Comercio", "Productor Local"].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`btn btn-sm w-50 ${formData.tipo_negocio === t ? "btn-warning" : "btn-outline-secondary text-white"}`}
+                    onClick={() =>
+                      setFormData({ ...formData, tipo_negocio: t })
+                    }
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* NOMBRE */}
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Nombre del Negocio
+              </label>
+              <input
+                type="text"
+                className={inputClasses}
+                value={formData.nombre_comercio}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombre_comercio: e.target.value })
+                }
+                placeholder="Ej: Cafetería Central"
+                required
+              />
+            </div>
+
+            {/* CIF / NIF */}
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                CIF / NIF *
+              </label>
+              <input
+                type="text"
+                /* Combinamos tus clases base con 'is-invalid' si la validación falla */
+                className={`${inputClasses} ${
+                  formData.cif_nif &&
+                  !validarDocumentoCompleto(formData.cif_nif)
+                    ? "is-invalid"
+                    : ""
+                }`}
+                value={formData.cif_nif}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    cif_nif: e.target.value.toUpperCase().trim(),
+                  })
+                }
+                required
+                placeholder="Ej: 12345678Z o B12345678"
+              />
+
+              {/* El mensaje de error debe ir fuera del input para que Bootstrap lo muestre */}
+              {formData.cif_nif &&
+                !validarDocumentoCompleto(formData.cif_nif) && (
+                  <div
+                    className="invalid-feedback"
+                    style={{ display: "block" }}
+                  >
+                    El número de identificación no es válido (letra de control o
+                    formato incorrecto).
+                  </div>
+                )}
+            </div>
+
+            <hr className="text-secondary my-4" />
+
+            {/* BLOQUE DE ACTIVIDAD */}
+            <div className="mb-3">
               <label
-                className="form-label text-warning fw-bold text-uppercase"
-                style={{ fontSize: "0.75rem" }}
+                className="form-label text-white fw-bold text-uppercase"
+                style={{ fontSize: "0.75rem", letterSpacing: "1px" }}
               >
-                3. Detalle Especialidad
+                1. Bloque de Actividad
               </label>
               <select
-                className={`${selectClasses} border-warning`}
-                value={formData.subcategoria}
+                className={selectClasses}
+                value={formData.grupo}
                 onChange={(e) =>
-                  setFormData({ ...formData, subcategoria: e.target.value })
+                  setFormData({
+                    ...formData,
+                    grupo: e.target.value,
+                    categoria: "",
+                    subcategoria: "",
+                  })
                 }
               >
-                <option value="">Selecciona detalle...</option>
-                {(ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any)[
-                  formData.categoria
-                ].map((s: string) => (
-                  <option key={s} value={s}>
-                    {s}
+                <option value="">Selecciona bloque...</option>
+                {Object.keys(ESTRUCTURA).map((g) => (
+                  <option key={g} value={g}>
+                    {g}
                   </option>
                 ))}
               </select>
             </div>
-          )}
 
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            Busca tu Dirección *
-          </label>
-          <Autocomplete
-            onLoad={(ref) => (autocompleteRef.current = ref)}
-            onPlaceChanged={onPlaceChanged}
-          >
-            <input
-              type="text"
-              className={inputClasses}
-              placeholder="Calle, número..."
-              value={formData.direccion}
-              onChange={(e) =>
-                setFormData({ ...formData, direccion: e.target.value })
-              }
-            />
-          </Autocomplete>
-        </div>
-        {/* NÚMERO DE LA CALLE */}
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            Número / Portal *
-          </label>
-          <input
-            type="text"
-            className={inputClasses}
-            value={formData.numero}
-            onChange={(e) =>
-              setFormData({ ...formData, numero: e.target.value })
-            }
-            placeholder="Ej: 12, 3B o S/N"
-            required
-          />
-        </div>
-        <div className="row mb-3 g-2">
-          <div className="col-8">
-            <input
-              type="text"
-              className={inputClasses}
-              placeholder="Municipio"
-              value={formData.municipio}
-              readOnly
-            />
-          </div>
-          <div className="col-4">
-            <input
-              type="text"
-              className={inputClasses}
-              placeholder="C.P."
-              value={formData.cp}
-              readOnly
-            />
-          </div>
-        </div>
-        {/* Campo Código Postal */}
-        <div className="mb-4">
-          {" "}
-          <label className="form-label text-white fw-bold small">
-            Código Postal *
-          </label>
-          <input
-            type="text"
-            placeholder="Ej: 28001"
-            className={inputClasses}
-            value={formData.cp || ""}
-            onChange={(e) => setFormData({ ...formData, cp: e.target.value })}
-            required
-          />
-        </div>
+            {/* CATEGORÍA */}
+            {formData.grupo && (
+              <div className="mb-3 animate__animated animate__fadeIn">
+                <label
+                  className="form-label text-white fw-bold text-uppercase"
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  2. Categoría
+                </label>
+                <select
+                  className={selectClasses}
+                  value={formData.categoria}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      categoria: e.target.value,
+                      subcategoria: "",
+                    })
+                  }
+                >
+                  <option value="">Selecciona categoría...</option>
+                  {Object.keys(
+                    ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] || {},
+                  ).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-        <div className="mb-4">
-          <label className="form-label text-white fw-bold small">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            className={inputClasses}
-            value={formData.correo}
-            onChange={(e) =>
-              setFormData({ ...formData, correo: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="form-label text-white fw-bold small">
-            Página Web (opcional)
-          </label>
-          <input
-            type="url"
-            className={inputClasses}
-            placeholder="https://tuweb.com"
-            value={formData.url_web}
-            onChange={(e) =>
-              setFormData({ ...formData, url_web: e.target.value })
-            }
-          />
-        </div>
-        {/* TELÉFONO */}
-        <div className="mb-3">
-          <label className="form-label text-white fw-bold small">
-            Teléfono de contacto *
-          </label>
-          <input
-            type="tel"
-            className={inputClasses}
-            value={formData.telefono}
-            onChange={(e) =>
-              setFormData({ ...formData, telefono: e.target.value })
-            }
-            placeholder="Ej: 600000000"
-            required
-          />
-        </div>
+            {/* SUBCATEGORÍA */}
+            {formData.categoria &&
+              Array.isArray(
+                (
+                  ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any
+                )?.[formData.categoria],
+              ) && (
+                <div className="mb-3 animate__animated animate__fadeIn">
+                  <label
+                    className="form-label text-warning fw-bold text-uppercase"
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    3. Detalle Especialidad
+                  </label>
+                  <select
+                    className={`${selectClasses} border-warning`}
+                    value={formData.subcategoria}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subcategoria: e.target.value })
+                    }
+                  >
+                    <option value="">Selecciona detalle...</option>
+                    {(
+                      ESTRUCTURA[
+                        formData.grupo as keyof typeof ESTRUCTURA
+                      ] as any
+                    )[formData.categoria].map((s: string) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-warning w-100 fw-bold py-3 text-uppercase shadow-sm"
-          style={{ color: "#275656" }}
-        >
-          {loading ? "Registrando..." : "Finalizar Registro"}
-        </button>
-      </form>
+            {/* DIRECCIÓN CON AUTOCOMPLETE */}
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Busca tu Dirección *
+              </label>
+              <Autocomplete
+                onLoad={(ref) => (autocompleteRef.current = ref)}
+                onPlaceChanged={onPlaceChanged}
+              >
+                <input
+                  type="text"
+                  className={inputClasses}
+                  placeholder="Calle, número..."
+                  value={formData.direccion}
+                  onChange={(e) =>
+                    setFormData({ ...formData, direccion: e.target.value })
+                  }
+                />
+              </Autocomplete>
+            </div>
+
+            {/* NÚMERO / PORTAL (El que faltaba) */}
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Número / Portal *
+              </label>
+              <input
+                type="text"
+                className={inputClasses}
+                value={formData.numero}
+                onChange={(e) =>
+                  setFormData({ ...formData, numero: e.target.value })
+                }
+                placeholder="Ej: 12, 3B o S/N"
+                required
+              />
+            </div>
+            {/*MUNICIPIO, CP y Provincia */}
+            <div className="row mb-3 g-2">
+              <div className="col-8">
+                <label className="form-label text-white-50 small">
+                  Municipio
+                </label>
+                <input
+                  type="text"
+                  className={inputClasses}
+                  placeholder="Municipio"
+                  value={formData.municipio}
+                  readOnly
+                />
+              </div>
+              <div className="col-4">
+                <label className="form-label text-white-50 small">C.P.</label>
+                <input
+                  type="text"
+                  className={inputClasses}
+                  placeholder="C.P."
+                  value={formData.cp}
+                  readOnly
+                />
+              </div>
+              <div className="col-4">
+                <label className="form-label text-white-50 small">
+                  Provincia
+                </label>
+                <input
+                  type="text"
+                  className={inputClasses}
+                  value={formData.provincia}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            {/* CONTACTO */}
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Correo electrónico
+              </label>
+              <input
+                type="email"
+                className={inputClasses}
+                value={formData.correo}
+                onChange={(e) =>
+                  setFormData({ ...formData, correo: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Teléfono de contacto *
+              </label>
+              <input
+                type="tel"
+                className={inputClasses}
+                value={formData.telefono}
+                onChange={(e) =>
+                  setFormData({ ...formData, telefono: e.target.value })
+                }
+                placeholder="Ej: 600000000"
+                required
+              />
+            </div>
+
+            {/* BOTONES FINALES */}
+            <div className="d-grid gap-2 mt-4">
+              <button
+                type="submit"
+                /* Se bloquea si está cargando O si el CIF es inválido O si el CP es inválido */
+                disabled={
+                  loading ||
+                  !validarDocumentoCompleto(formData.cif_nif) ||
+                  !validarCP(formData.cp)
+                }
+                className="btn btn-warning fw-bold py-3 text-uppercase shadow-sm w-100 mb-3"
+                style={{
+                  color: "#275656",
+                  cursor:
+                    loading ||
+                    !validarDocumentoCompleto(formData.cif_nif) ||
+                    !validarCP(formData.cp)
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    loading ||
+                    !validarDocumentoCompleto(formData.cif_nif) ||
+                    !validarCP(formData.cp)
+                      ? 0.6
+                      : 1,
+                }}
+              >
+                {loading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Procesando...
+                  </>
+                ) : editId ? (
+                  "Guardar Cambios"
+                ) : (
+                  "Finalizar Registro"
+                )}
+              </button>
+
+              <div className="d-flex justify-content-between align-items-center">
+                {/* BOTÓN ELIMINAR (Solo en modo edición) */}
+                {editId && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger btn-sm border-0"
+                    onClick={eliminarNegocio}
+                  >
+                    <i className="bi bi-trash me-1"></i> Eliminar este negocio
+                  </button>
+                )}
+
+                {/* BOTÓN CANCELAR */}
+                <button
+                  type="button"
+                  className="btn btn-link text-white-50 text-decoration-none"
+                  onClick={() => setVista("seleccion")}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
