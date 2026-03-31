@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
 import { validarDocumentoCompleto, validarCP } from "../app/utils";
+import { authService } from '../services/authService';
 
 const libraries: ("places" | "geometry")[] = ["places", "geometry"];
 
@@ -99,6 +100,7 @@ export default function RegistroEstablecimiento() {
   const [cifBusqueda, setCifBusqueda] = useState("");
   const [loading, setLoading] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [password, setPassword] = useState("");
 
   const [formData, setFormData] = useState({
     nombre_comercio: "",
@@ -121,6 +123,29 @@ export default function RegistroEstablecimiento() {
     longitud: 0,
   });
 
+  useEffect(() => {
+    const cargarDatos = async () => {
+      if (!authService.isAuthenticated()) return;
+
+      try {
+      const response = await fetch(ENDPOINTS.MI_LOCAL, {
+        method: "GET",
+        headers: authService.getAuthHeaders(), 
+      });
+
+        if (response.ok) {
+          const datosExistentes = await response.json();
+          setFormData(datosExistentes);
+          setEditId(datosExistentes.id_establecimiento || datosExistentes.id);
+          setVista("formulario");
+        }
+      } catch (error) {
+        console.error("Error al cargar datos iniciales:", error);
+      }
+    };
+    cargarDatos();
+  }, []);
+
   const inputClasses = "form-control bg-dark text-white border-secondary";
   const selectClasses = "form-select bg-dark text-white border-secondary";
 
@@ -132,6 +157,10 @@ export default function RegistroEstablecimiento() {
       const data = await res.json();
 
       if (res.ok) {
+        authService.setToken(data.access);
+
+        const idReal = data.id_establecimiento || data.id;
+
         const grupoKey = data.grupo as keyof typeof ESTRUCTURA;
         const catExiste =
           ESTRUCTURA[grupoKey] &&
@@ -147,7 +176,7 @@ export default function RegistroEstablecimiento() {
           categoria_libre: catExiste ? "" : data.categoria,
         });
 
-        setEditId(data.id_establecimiento);
+        setEditId(idReal);
         setVista("formulario"); // Saltamos al formulario con los datos cargados
       } else {
         alert(data.error || "No se encontró ningún negocio con ese CIF/NIF.");
@@ -162,17 +191,46 @@ export default function RegistroEstablecimiento() {
   const eliminarNegocio = async () => {
     if (!window.confirm("¿Estás seguro de que quieres borrar este negocio?"))
       return;
+
     setLoading(true);
     try {
       const res = await fetch(`${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`, {
         method: "DELETE",
+        headers: authService.getAuthHeaders(),
       });
       if (res.ok) {
         alert("Negocio eliminado.");
-        window.location.reload();
+        authService.logout();
+        setEditId(null);
+        setVista("seleccion");
+        setFormData({
+          nombre_comercio: "",
+          cif_nif: "",
+          tipo_negocio: "Comercio",
+          grupo: "",
+          categoria: "",
+          subcategoria: "",
+          categoria_libre: "",
+          subcategoria_libre: "",
+          direccion: "",
+          numero: "",
+          municipio: "",
+          provincia: "",
+          cp: "",
+          telefono: "",
+          correo: "",
+          url_web: "",
+          latitud: 0,
+          longitud: 0,
+        });
+
+        // 4. Volvemos a la pantalla de selección
+        setVista("seleccion");
+      } else {
+        alert("No se pudo eliminar el negocio. Inténtalo de nuevo.");
       }
     } catch (e) {
-      alert("Error al eliminar");
+      alert("Error de conexión al intentar eliminar.");
     } finally {
       setLoading(false);
     }
@@ -214,8 +272,19 @@ export default function RegistroEstablecimiento() {
     e.preventDefault();
     setLoading(true);
 
+
+    // Validación: Si editamos, necesitamos el token
+    if (editId && !authService.isAuthenticated()) {
+      alert(
+        "Sesión expirada o no encontrada. Por favor, busca tu negocio de nuevo.",
+      );
+      setLoading(false);
+      return;
+    }
+
     const datosAEnviar = {
       ...formData,
+      password: password,
       categoria:
         formData.categoria === "Otros..."
           ? formData.categoria_libre
@@ -225,31 +294,41 @@ export default function RegistroEstablecimiento() {
           ? formData.subcategoria_libre
           : formData.subcategoria,
     };
+
     const url = editId
       ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
-      : `${ENDPOINTS.ESTABLECIMIENTOS}`;
+      : ENDPOINTS.ESTABLECIMIENTOS;
 
-    const metodo = editId ? "PUT" : "POST";
+    const method = editId ? "PUT" : "POST";
 
     try {
       const response = await fetch(url, {
-        method: metodo,
-        headers: { "Content-Type": "application/json" },
+        method: method,
+        headers: authService.getAuthHeaders(),
         body: JSON.stringify(datosAEnviar),
       });
 
       if (response.ok) {
-        alert(editId ? "¡Datos actualizados!" : "¡Negocio registrado!");
-        setVista("seleccion");
+        alert(
+          editId
+            ? "¡Cambios guardados correctamente!"
+            : "¡Negocio registrado con éxito!",
+        );
+        setVista("seleccion"); // Regresa al menú principal
       } else {
-        alert("Error en la operación.");
+        const errorData = await response.json();
+        alert(
+          `Error: ${errorData.error || "No se pudo procesar la solicitud"}`,
+        );
       }
     } catch (error) {
-      alert("Error de conexión.");
+      console.error("Error en el envío:", error);
+      alert("Error de conexión con el servidor.");
     } finally {
       setLoading(false);
     }
   };
+
   if (!isLoaded)
     return (
       <div className="text-white text-center py-5">Cargando buscador...</div>
@@ -577,7 +656,9 @@ export default function RegistroEstablecimiento() {
                   className={inputClasses}
                   placeholder="C.P."
                   value={formData.cp}
-                  readOnly
+                  onChange={(e) =>
+                    setFormData({ ...formData, cp: e.target.value })
+                  }
                 />
               </div>
               <div className="col-4">
@@ -608,7 +689,19 @@ export default function RegistroEstablecimiento() {
                 required
               />
             </div>
-
+            <div className="mb-3">
+              <label className="form-label text-white fw-bold small">
+                Crea una contraseña para gestionar tu negocio:
+              </label>
+              <input
+                type="password"
+                className={inputClasses} // Añade la variable de clase
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres"
+                required
+              />
+            </div>
             <div className="mb-3">
               <label className="form-label text-white fw-bold small">
                 Teléfono de contacto *

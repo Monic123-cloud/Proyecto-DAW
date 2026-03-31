@@ -5,7 +5,9 @@ const isLocalhost = typeof window !== "undefined" &&
 // La URL base de Railway 
 export const API_BASE_URL = isLocalhost 
   ? "http://127.0.0.1:8000" 
-  : "https://proyecto-daw-production.up.railway.app"; 
+  : "https://proyecto-daw-production.up.railway.app";
+
+export const TOKEN_KEY = 'access_token';
 
 export const ENDPOINTS = {
     // Añadimos el prefijo 'api/buscador' que Django está usando
@@ -14,4 +16,5 @@ export const ENDPOINTS = {
     GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`, 
     ESTABLECIMIENTOS: `${API_BASE_URL}/api/buscador/formulario/`,
     BUSCAR_CIF: `${API_BASE_URL}/api/buscador/buscar-cif/`,
+    MI_LOCAL: `${API_BASE_URL}/api/buscador/establecimiento/mi_local/`,
 };

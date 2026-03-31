@@ -64,6 +64,7 @@ export const validarDocumentoCompleto = (identificador: string): boolean => {
  * @param cp El string del código postal
  * @returns boolean
  */
-export const validarCP = (cp: string): boolean => {
-  return /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/.test(cp.trim());
+export const validarCP = (cp: string | null | undefined): boolean => {
+    if (!cp) return false;
+    return /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/.test(cp.trim());
 };

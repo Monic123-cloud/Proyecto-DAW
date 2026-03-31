@@ -1,4 +1,4 @@
-from pathlib import Path  # Para manejar rutas de archivos
+from pathlib import Path  # Para python manage.py migrate rutas de archivos
 from dotenv import load_dotenv  # busca un archivo secreto llamado .env y lo carga
 import environ  # permite leer variables y decirles qué tipo de dato son
 import dj_database_url  # permite configurar la base de datos usando una URL, útil para despliegues como Railway
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+    "rest_framework_simplejwt",
     "buscador",
 ]
 
@@ -171,3 +172,10 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60), # El token dura 1 hora
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # Permite renovarlo durante 1 día
+    "AUTH_HEADER_TYPES": ("Bearer",),               # El prefijo que usará React
+}

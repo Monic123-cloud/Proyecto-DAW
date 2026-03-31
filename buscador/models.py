@@ -7,10 +7,10 @@ from django.conf import settings
 class DetallePedido(models.Model):
     id_detalle = models.AutoField(primary_key=True)
     id_pedido = models.ForeignKey(
-        "Pedido", models.DO_NOTHING, db_column="id_pedido", blank=True, null=True
+        "Pedido", on_delete=models.CASCADE, db_column="id_pedido", blank=True, null=True
     )
     id_producto = models.ForeignKey(
-        "Producto", models.DO_NOTHING, db_column="id_producto", blank=True, null=True
+        "Producto", models.CASCADE, db_column="id_producto", blank=True, null=True
     )
     cantidad = models.IntegerField()
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=5)
@@ -25,6 +25,10 @@ class Establecimiento(models.Model):
         ("comercio", "Comercio"),
         ("productor", "Productor Local"),
     ]
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
+
     id_establecimiento = models.AutoField(primary_key=True)
     nombre_comercio = models.CharField(max_length=255)
     cif_nif = models.CharField(max_length=20, unique=True, verbose_name="CIF/NIF")
@@ -60,10 +64,19 @@ class Establecimiento(models.Model):
 
     def geocodificar(self):
         try:
+            if not settings.GOOGLE_MAPS_API_KEY:
+                print("Falta la API KEY de Google Maps")
+                return
             gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-            direccion_completa = (
-                f"{self.direccion}, {self.numero}, {self.cp}, {self.municipio}, España"
-            )
+            componentes = [
+                self.direccion or "",
+                self.numero or "",
+                self.cp or "",
+                self.municipio or "",
+                "España",
+            ]
+            direccion_completa = ", ".join([c for c in componentes if c])
+
             result = gmaps.geocode(direccion_completa)
             if result:
                 location = result[0]["geometry"]["location"]
@@ -76,7 +89,7 @@ class Establecimiento(models.Model):
 
 class Evento(models.Model):
     id_evento = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
+    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
     nombre_evento = models.CharField(max_length=255)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
@@ -93,12 +106,12 @@ class Pedido(models.Model):
     id_pedido = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
-        models.DO_NOTHING,
+        models.CASCADE,
         db_column="id_establecimiento",
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
+    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )
@@ -119,7 +132,7 @@ class Producto(models.Model):
     id_producto = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
-        models.DO_NOTHING,
+        models.CASCADE,
         db_column="id_establecimiento",
         blank=True,
         null=True,
@@ -136,7 +149,7 @@ class Producto(models.Model):
 
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="id_usuario")
+    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
     descripcion = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     precio_hora = models.DecimalField(
@@ -181,13 +194,13 @@ class Valoracion(models.Model):
     id_valoracion = models.AutoField(primary_key=True)
     id_establecimiento = models.ForeignKey(
         Establecimiento,
-        models.DO_NOTHING,
+        models.CASCADE,
         db_column="id_establecimiento",
         blank=True,
         null=True,
     )
     id_usuario = models.ForeignKey(
-        Usuario, models.DO_NOTHING, db_column="id_usuario", blank=True, null=True
+        Usuario, models.CASCADE, db_column="id_usuario", blank=True, null=True
     )
     puntuacion = models.IntegerField(blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)

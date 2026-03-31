@@ -8,7 +8,7 @@ class EstablecimientoAdmin(admin.ModelAdmin):
     list_display = ("nombre_comercio", "tipo_negocio", "municipio", "provincia", "cp")
 
     # Permite buscar por nombre o ciudad
-    search_fields = ("nombre_comercio", "municipio")
+    search_fields = ("nombre_comercio", "municipio", "provincia", "cif_nif")
 
     # Añade filtros rápidos a la derecha
     list_filter = ("tipo_negocio", "grupo", "categoria")

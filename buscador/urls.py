@@ -6,6 +6,7 @@ from .views import (
     buscador_mapa,
     gestionar_formulario,
     buscar_cif,
+    ver_mi_local,
 )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path("buscar/", BuscadorAPIView.as_view(), name="buscador_propio"),
     path("geolocalizar/", GeolocalizadorAPIView.as_view(), name="geolocalizador"),
     path("google-maps/", GoogleMapsProxyView.as_view(), name="google_maps_proxy"),
+    path("establecimiento/mi_local/", ver_mi_local, name="ver_mi_local"),
     path("formulario/", gestionar_formulario, name="formulario_api"),
     path(
         "formulario/<int:pk>/", gestionar_formulario, name="formulario_detalle"

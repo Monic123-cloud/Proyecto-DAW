@@ -35,6 +35,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
+from django.contrib.auth.models import User  # Para gestionar usuarios y autenticación
+from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens JWT
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -231,82 +233,129 @@ class GoogleMapsProxyView(APIView):
         response = requests.get(url)
         return Response(response.json())
 
-
 # Formulario de establecimiento
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([AllowAny])
 def gestionar_formulario(request, pk=None):
+    # 1. Bloqueo de seguridad para edición/borrado
+    if request.method in ["PUT", "DELETE"]:
+            if not request.user.is_authenticated:
+                return Response({"error": "Sesión inválida"}, status=401)
 
+    # Lógica con PK (ID específico para GET, PUT, DELETE)
     if pk:
-        try:
-            establecimiento = Establecimiento.objects.get(pk=pk)
-        except Establecimiento.DoesNotExist:
-            return Response(
-                {"error": "No encontrado"}, status=status.HTTP_404_NOT_FOUND
-            )
+            try:
+                establecimiento = Establecimiento.objects.get(pk=pk)
+                
+                if request.method == "GET":
+                    return Response(model_to_dict(establecimiento))
 
-        if request.method == "PUT":
-            # Actualizamos solo los campos que vengan en el JSON
-            for campo, valor in request.data.items():
-                setattr(establecimiento, campo, valor)
-            establecimiento.save()
-            return Response({"mensaje": "Actualizado correctamente"})
+                elif request.method == "PUT":
+                    datos = request.data
+                    campos_prohibidos = ['usuario', 'password', 'access', 'id_establecimiento', 'id']
 
-        elif request.method == "DELETE":
-            establecimiento.delete()
-            return Response(
-                {"mensaje": "Eliminado", "id": pk}, status=status.HTTP_200_OK
-            )
+                    for campo, valor in datos.items():
+                        if hasattr(establecimiento, campo) and campo not in campos_prohibidos:
+                            setattr(establecimiento, campo, valor)
+                    
+                    nuevo_email = datos.get('correo')
+                    if nuevo_email and establecimiento.usuario:
+                        establecimiento.usuario.email = nuevo_email
+                        establecimiento.usuario.username = nuevo_email
+                        establecimiento.usuario.save()
 
+                    establecimiento.save()
+                    return Response({"mensaje": "Actualizado correctamente", "id": establecimiento.id_establecimiento})
+
+                elif request.method == "DELETE":
+                    try:
+                        usuario_a_borrar = establecimiento.usuario
+                        
+                        # 1. Borramos el local
+                        establecimiento.delete()
+                        
+                        # 2. Borramos el usuario asociado para que no queden datos huérfanos
+                        if usuario_a_borrar:
+                            usuario_a_borrar.delete()
+
+                        return Response({"mensaje": "Eliminado correctamente"}, status=200)
+                    
+                    except Exception as e:
+                        print(f"ERROR INTERNO AL BORRAR: {e}") 
+                        return Response({"error": f"Error de base de datos: {str(e)}"}, status=500)
+
+            except Establecimiento.DoesNotExist:
+                return Response({"error": "Establecimiento no encontrado"}, status=404)
+            except Exception as e:
+                return Response({"error": f"Error inesperado: {str(e)}"}, status=500)
+            
+    # GET general (sin ID)
     if request.method == "GET":
-        # Aquí los datos de prueba o de la DB
-        data = {"mensaje": "Listo para recibir el formulario"}
-        return Response(data)
+        return Response({"mensaje": "Listo para recibir el formulario"})
 
+    # POST (Registro de nuevo usuario + local)
     elif request.method == "POST":
-        # DRF ya procesa el JSON automáticamente en request.data
         datos = request.data
+        email = datos.get("correo")
+        password = datos.get("password")
+        cif_nif = datos.get("cif_nif")
 
-        tipo_raw = datos.get("tipo_negocio", "comercio")
-        mapeo_tipos = {
-            "Comercio": "comercio",
-            "Productor Local": "productor",
-            "comercio": "comercio",
-            "productor": "productor",
-        }
-        tipo_final = mapeo_tipos.get(tipo_raw, "comercio")
+        # Validaciones críticas
+        if not cif_nif or not email or not password:
+            return Response({"error": "CIF, Email y Password son obligatorios"}, status=400)
+
+        if Establecimiento.objects.filter(cif_nif__iexact=cif_nif).exists():
+            return Response({"error": "Este CIF/NIF ya está registrado"}, status=400)
+        
+        if User.objects.filter(username=email).exists():
+            return Response({"error": "Este email ya está registrado"}, status=400)
 
         try:
-            # 2. Creamos el registro en PostgreSQL
-            nuevo_establecimiento = Establecimiento.objects.create(
-                nombre_comercio=datos.get("nombre_comercio"),
-                cif_nif=datos.get("cif_nif"),
-                tipo_negocio=tipo_final,
-                grupo=datos.get("grupo"),
-                categoria=datos.get("categoria"),
-                subcategoria=datos.get("subcategoria"),  # Guarda el detalle
-                telefono=datos.get("telefono"),
-                correo=datos.get("correo"),
-                direccion=datos.get("direccion"),
-                numero=datos.get("numero"),
-                municipio=datos.get("municipio"),
-                provincia=datos.get("provincia"),
-                cp=datos.get("cp"),
-                latitud=datos.get("latitud", 0),
-                longitud=datos.get("longitud", 0),
-            )
+            from django.db import transaction
+            with transaction.atomic():
+                # A. Crear Usuario
+                nuevo_usuario = User.objects.create_user(
+                    username=email, email=email, password=password
+                )
+                
+                # B. Mapeo de tipos
+                mapeo_tipos = {
+                    "Comercio": "comercio", "Productor Local": "productor",
+                    "comercio": "comercio", "productor": "productor"
+                }
+                tipo_final = mapeo_tipos.get(datos.get("tipo_negocio"), "comercio")
 
-            return Response(
-                {
-                    "status": "Éxito",
-                    "id": nuevo_establecimiento.id_establecimiento,
-                    "mensaje": "Establecimiento creado correctamente",
-                },
-                status=status.HTTP_201_CREATED,
-            )
+                # C. Crear Establecimiento (DENTRO del bloque atomic)
+                nuevo_establecimiento = Establecimiento.objects.create(
+                    usuario=nuevo_usuario,
+                    nombre_comercio=datos.get("nombre_comercio"),
+                    cif_nif=cif_nif,
+                    tipo_negocio=tipo_final,
+                    grupo=datos.get("grupo"),
+                    categoria=datos.get("categoria"),
+                    subcategoria=datos.get("subcategoria"),
+                    telefono=datos.get("telefono"),
+                    correo=email, 
+                    direccion=datos.get("direccion"),
+                    numero=datos.get("numero"),
+                    municipio=datos.get("municipio"),
+                    provincia=datos.get("provincia"),
+                    cp=datos.get("cp"),
+                    latitud=datos.get("latitud", 0),
+                    longitud=datos.get("longitud", 0),
+                )
+
+                # El return debe estar fuera del 'with' pero dentro del 'try'
+                return Response(
+                    {
+                        "status": "Éxito",
+                        "id": nuevo_establecimiento.id_establecimiento,
+                        "mensaje": "Establecimiento creado correctamente",
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
 
         except Exception as e:
-            # Si algo falla (ej: falta un campo), nos avisa
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -314,13 +363,45 @@ def gestionar_formulario(request, pk=None):
 @permission_classes([AllowAny])
 def buscar_cif(request, cif):
     try:
-        # Buscamos el establecimiento por el campo cif_nif
         cif_limpio = cif.strip().upper()
-        establecimiento = Establecimiento.objects.get(cif_nif=cif.upper())
+        # Buscamos el objeto
+        establecimiento = Establecimiento.objects.filter(cif_nif__iexact=cif_limpio).first()
 
-        return Response(model_to_dict(establecimiento), status=status.HTTP_200_OK)
+        # Si no existe el negocio en la BBDD
+        if not establecimiento:
+            return Response(
+                {"error": "El CIF introducido no figura en nuestra base de datos."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Si existe pero no tiene usuario (le creamos uno o usamos el existente)
+        if not establecimiento.usuario:
+            # Buscamos si ya hay un usuario con ese nombre (CIF) o lo creamos
+            user, _ = User.objects.get_or_create(username=cif_limpio, email=establecimiento.correo)
+            establecimiento.usuario = user
+            establecimiento.save()
+
+        # Generamos el token para React
+        refresh = RefreshToken.for_user(establecimiento.usuario)
+
+        datos = model_to_dict(establecimiento)
+        datos['id_establecimiento'] = establecimiento.id_establecimiento
+        datos['access'] = str(refresh.access_token)
+
+        return Response(datos, status=200)
+
+    except Exception as e:
+        print(f"Error en buscar_cif: {e}")
+        return Response({"error": "Error interno del servidor"}, status=500)
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def ver_mi_local(request):
+    try:
+        # Importante: busca por el campo 'usuario'
+        establecimiento = Establecimiento.objects.get(usuario=request.user)
+        return Response(model_to_dict(establecimiento))
     except Establecimiento.DoesNotExist:
-        return Response(
-            {"error": "No se encontró ningún negocio con ese CIF/DNI"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return Response({"error": "No tienes un establecimiento asociado"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
