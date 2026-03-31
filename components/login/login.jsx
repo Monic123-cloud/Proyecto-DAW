@@ -1,36 +1,96 @@
-import React from "react";
+"use client";
 
+import { Box, Paper, Typography } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import AxiosInstance from '../AxiosInstance'
 
-export class Login extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+import MyTextField from "./forms/MyTextField";
+import MyPassField from "./forms/MyPassField";
+import MyButton from "./forms/MyButton";
 
-  render() {
-    return (
-      <div className="base-container" ref={this.props.containerRef}>
-        <div className="header">Login</div>
-        <div className="content">
-          <div className="image">
-            
-          </div>
-          <div className="form">
-            <div className="form-group">
-              <label htmlFor="username">Username</label>
-              <input type="text" name="username" placeholder="username" />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input type="password" name="password" placeholder="password" />
-            </div>
-          </div>
-        </div>
-        <div className="footer">
-          <button type="button" className="btn">
-            Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-}
+const LoginForm= () =>{
+ const {handleSubmit, control} = useForm()
+ const router = useRouter()
+
+  const submission = (data) => {
+        AxiosInstance.post(`login/`,{
+            email: data.email, 
+            password: data.password,
+        })
+
+        .then((response) => {
+            console.log(response)
+            localStorage.setItem('Token', response.data.token)
+            router.push(`/`)
+        })
+        .catch((error) => {
+            //setShowMessage(true)
+            console.error('Error during login', error)
+        })
+    }
+  
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background:
+          "linear-gradient(135deg, rgb(233,255,235), rgb(250,255,217))",
+        p: 2,
+      }}
+    >
+      <Paper
+        sx={{
+          p: 4,
+          width: "100%",
+          maxWidth: 400,
+          borderRadius: "20px",
+          background: "rgba(255,255,255,0.95)",
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, mb: 2, textAlign: "center" }}
+        >
+          Iniciar sesión
+        </Typography>
+
+        <form onSubmit={handleSubmit(submission)}>
+          <MyTextField
+            label={"Email"}
+            name={"email"}
+            control={control}
+            rules={{
+              required: "El correo es obligatorio",
+              pattern: {
+                value: /^\S+@\S+$/i,
+                message: "Correo inválido",
+              },
+            }}
+          />
+
+          <MyPassField
+            label={"Password"}
+            name={"password"}
+            control={control}
+            rules={{
+              required: "La contraseña es obligatoria",
+            }}
+          />
+
+          <MyButton
+            type={"submit"}
+            label={"Entrar"}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+        </form>
+      </Paper>
+    </Box>
+  );
+  };
+export default LoginForm

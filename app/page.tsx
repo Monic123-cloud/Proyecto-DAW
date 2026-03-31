@@ -1,4 +1,6 @@
 import Buscador from '../components/Buscador';
+import Register from '../components/login/register'
+
 
 export default function Home() {
   return (
@@ -10,6 +12,10 @@ export default function Home() {
         
         {/* Aquí es donde aparece la magia */}
         <Buscador />
+        
+
+
+        
         
       </div>
     </main>

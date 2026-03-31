@@ -1,0 +1,47 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, viewsets, permissions
+from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model, authenticate
+from .serializers import RegisterSerializer, LoginSerializer
+from knox.models import AuthToken
+
+User = get_user_model()
+
+
+class RegisterViewset(viewsets.ViewSet):
+    def create(self, request):
+        serializer = RegisterSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                "message": "Usuario creado correctamente",
+                "user_id": user.id_usuario
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginViewset(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+
+    def create(self, request): 
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(): 
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            user = authenticate(request, email=email, password=password)
+            if user: 
+                _, token = AuthToken.objects.create(user)
+                return Response(
+                    {
+                        "user": self.serializer_class(user).data,
+                        "token": token
+                    }
+                )
+            else: 
+                return Response({"error":"Invalid credentials"}, status=401)    
+        else: 
+            return Response(serializer.errors,status=400)

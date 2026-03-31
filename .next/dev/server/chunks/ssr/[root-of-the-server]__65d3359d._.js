@@ -49,7 +49,7 @@ const defaultCenter = {
 function Mapa({ puntos }) {
     const { isLoaded } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$google$2d$maps$2f$api$2f$dist$2f$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useJsApiLoader"])({
         id: "google-map-script",
-        googleMapsApiKey: ("TURBOPACK compile-time value", "AIzaSyB-PYUy3N7UoCC_d0mWkqGrBAzMmEyojA8")
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     });
     const [map, setMap] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     // Estado para saber qué marcador se ha pulsado
