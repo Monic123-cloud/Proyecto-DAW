@@ -12,6 +12,8 @@ interface Comercio {
   cp: string;
   latitud: number;
   longitud: number;
+  promedio_valoraciones?: number; 
+  numero_valoraciones?: number;
 }
 
 interface Servicio {
@@ -144,6 +146,20 @@ export default function Buscador() {
                 <h3 className="font-bold text-blue-900 text-lg mb-1">
                   {c.nombre_comercio}
                 </h3>
+
+                <div className="flex items-center gap-2 mb-2">
+                <div className="text-yellow-400">
+                  {/* Generamos 5 estrellas: pintamos de amarillo las que correspondan al promedio */}
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} className={star <= (c.promedio_valoraciones || 0) ? "text-yellow-400" : "text-gray-300"}>
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <span className="text-xs text-gray-500 font-medium">
+                  {c.promedio_valoraciones || 0} ({c.numero_valoraciones || 0})
+                </span>
+              </div>
                 <p className="text-sm text-gray-500 mb-3">{c.direccion}</p>
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
                   CP: {c.cp}

@@ -37,7 +37,14 @@ from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User  # Para gestionar usuarios y autenticación
 from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens JWT
-from .serializers import ServicioSerializer
+from .serializers import (
+    ServicioSerializer,
+    EstablecimientoSerializer,
+)  # Para convertir los datos de la base de datos a formato JSON que React entiende
+from .models import (
+    Servicio,
+    Usuario,
+)  # Importamos el modelo de Servicio y Usuario para gestionar
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -126,17 +133,8 @@ class BuscadorAPIView(APIView):
             comercios = comercios.filter(cp=cp_buscado)
 
         # Preparamos los datos locales
-        data_final = list(
-            comercios.values(
-                "id_establecimiento",
-                "nombre_comercio",
-                "cif_nif",
-                "latitud",
-                "longitud",
-                "direccion",
-                "cp",
-            )
-        )
+        serializer = EstablecimientoSerializer(comercios, many=True)
+        data_final = serializer.data
 
         # 2: Busca en EN GOOGLE MAPS
         # Solo llamamos a Google si el usuario ha puesto un CP o coordenadas
@@ -162,6 +160,10 @@ class BuscadorAPIView(APIView):
                             "longitud": place["geometry"]["location"]["lng"],
                             "direccion": place.get("vicinity"),
                             "cp": "Cerca de ti",
+                            "promedio_valoraciones": place.get(
+                                "rating", 0
+                            ),  # Google también da rating
+                            "numero_valoraciones": place.get("user_ratings_total", 0),
                         }
                     )
             except Exception as e:
@@ -240,56 +242,72 @@ class GoogleMapsProxyView(APIView):
 def gestionar_formulario(request, pk=None):
     # 1. Bloqueo de seguridad para edición/borrado
     if request.method in ["PUT", "DELETE"]:
-            if not request.user.is_authenticated:
-                return Response({"error": "Sesión inválida"}, status=401)
+        if not request.user.is_authenticated:
+            return Response({"error": "Sesión inválida"}, status=401)
 
     # Lógica con PK (ID específico para GET, PUT, DELETE)
     if pk:
-            try:
-                establecimiento = Establecimiento.objects.get(pk=pk)
-                
-                if request.method == "GET":
-                    return Response(model_to_dict(establecimiento))
+        try:
+            establecimiento = Establecimiento.objects.get(pk=pk)
 
-                elif request.method == "PUT":
-                    datos = request.data
-                    campos_prohibidos = ['usuario', 'password', 'access', 'id_establecimiento', 'id']
+            if request.method == "GET":
+                return Response(model_to_dict(establecimiento))
 
-                    for campo, valor in datos.items():
-                        if hasattr(establecimiento, campo) and campo not in campos_prohibidos:
-                            setattr(establecimiento, campo, valor)
-                    
-                    nuevo_email = datos.get('correo')
-                    if nuevo_email and establecimiento.usuario:
-                        establecimiento.usuario.email = nuevo_email
-                        establecimiento.usuario.username = nuevo_email
-                        establecimiento.usuario.save()
+            elif request.method == "PUT":
+                datos = request.data
+                campos_prohibidos = [
+                    "usuario",
+                    "password",
+                    "access",
+                    "id_establecimiento",
+                    "id",
+                ]
 
-                    establecimiento.save()
-                    return Response({"mensaje": "Actualizado correctamente", "id": establecimiento.id_establecimiento})
+                for campo, valor in datos.items():
+                    if (
+                        hasattr(establecimiento, campo)
+                        and campo not in campos_prohibidos
+                    ):
+                        setattr(establecimiento, campo, valor)
 
-                elif request.method == "DELETE":
-                    try:
-                        usuario_a_borrar = establecimiento.usuario
-                        
-                        # 1. Borramos el local
-                        establecimiento.delete()
-                        
-                        # 2. Borramos el usuario asociado para que no queden datos huérfanos
-                        if usuario_a_borrar:
-                            usuario_a_borrar.delete()
+                nuevo_email = datos.get("correo")
+                if nuevo_email and establecimiento.usuario:
+                    establecimiento.usuario.email = nuevo_email
+                    establecimiento.usuario.username = nuevo_email
+                    establecimiento.usuario.save()
 
-                        return Response({"mensaje": "Eliminado correctamente"}, status=200)
-                    
-                    except Exception as e:
-                        print(f"ERROR INTERNO AL BORRAR: {e}") 
-                        return Response({"error": f"Error de base de datos: {str(e)}"}, status=500)
+                establecimiento.save()
+                return Response(
+                    {
+                        "mensaje": "Actualizado correctamente",
+                        "id": establecimiento.id_establecimiento,
+                    }
+                )
 
-            except Establecimiento.DoesNotExist:
-                return Response({"error": "Establecimiento no encontrado"}, status=404)
-            except Exception as e:
-                return Response({"error": f"Error inesperado: {str(e)}"}, status=500)
-            
+            elif request.method == "DELETE":
+                try:
+                    usuario_a_borrar = establecimiento.usuario
+
+                    # 1. Borramos el local
+                    establecimiento.delete()
+
+                    # 2. Borramos el usuario asociado para que no queden datos huérfanos
+                    if usuario_a_borrar:
+                        usuario_a_borrar.delete()
+
+                    return Response({"mensaje": "Eliminado correctamente"}, status=200)
+
+                except Exception as e:
+                    print(f"ERROR INTERNO AL BORRAR: {e}")
+                    return Response(
+                        {"error": f"Error de base de datos: {str(e)}"}, status=500
+                    )
+
+        except Establecimiento.DoesNotExist:
+            return Response({"error": "Establecimiento no encontrado"}, status=404)
+        except Exception as e:
+            return Response({"error": f"Error inesperado: {str(e)}"}, status=500)
+
     # GET general (sin ID)
     if request.method == "GET":
         return Response({"mensaje": "Listo para recibir el formulario"})
@@ -303,26 +321,31 @@ def gestionar_formulario(request, pk=None):
 
         # Validaciones críticas
         if not cif_nif or not email or not password:
-            return Response({"error": "CIF, Email y Password son obligatorios"}, status=400)
+            return Response(
+                {"error": "CIF, Email y Password son obligatorios"}, status=400
+            )
 
         if Establecimiento.objects.filter(cif_nif__iexact=cif_nif).exists():
             return Response({"error": "Este CIF/NIF ya está registrado"}, status=400)
-        
+
         if User.objects.filter(username=email).exists():
             return Response({"error": "Este email ya está registrado"}, status=400)
 
         try:
             from django.db import transaction
+
             with transaction.atomic():
                 # A. Crear Usuario
                 nuevo_usuario = User.objects.create_user(
                     username=email, email=email, password=password
                 )
-                
+
                 # B. Mapeo de tipos
                 mapeo_tipos = {
-                    "Comercio": "comercio", "Productor Local": "productor",
-                    "comercio": "comercio", "productor": "productor"
+                    "Comercio": "comercio",
+                    "Productor Local": "productor",
+                    "comercio": "comercio",
+                    "productor": "productor",
                 }
                 tipo_final = mapeo_tipos.get(datos.get("tipo_negocio"), "comercio")
 
@@ -336,7 +359,7 @@ def gestionar_formulario(request, pk=None):
                     categoria=datos.get("categoria"),
                     subcategoria=datos.get("subcategoria"),
                     telefono=datos.get("telefono"),
-                    correo=email, 
+                    correo=email,
                     direccion=datos.get("direccion"),
                     numero=datos.get("numero"),
                     municipio=datos.get("municipio"),
@@ -366,19 +389,23 @@ def buscar_cif(request, cif):
     try:
         cif_limpio = cif.strip().upper()
         # Buscamos el objeto
-        establecimiento = Establecimiento.objects.filter(cif_nif__iexact=cif_limpio).first()
+        establecimiento = Establecimiento.objects.filter(
+            cif_nif__iexact=cif_limpio
+        ).first()
 
         # Si no existe el negocio en la BBDD
         if not establecimiento:
             return Response(
-                {"error": "El CIF introducido no figura en nuestra base de datos."}, 
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "El CIF introducido no figura en nuestra base de datos."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         # Si existe pero no tiene usuario (le creamos uno o usamos el existente)
         if not establecimiento.usuario:
             # Buscamos si ya hay un usuario con ese nombre (CIF) o lo creamos
-            user, _ = User.objects.get_or_create(username=cif_limpio, email=establecimiento.correo)
+            user, _ = User.objects.get_or_create(
+                username=cif_limpio, email=establecimiento.correo
+            )
             establecimiento.usuario = user
             establecimiento.save()
 
@@ -386,15 +413,16 @@ def buscar_cif(request, cif):
         refresh = RefreshToken.for_user(establecimiento.usuario)
 
         datos = model_to_dict(establecimiento)
-        datos['id_establecimiento'] = establecimiento.id_establecimiento
-        datos['access'] = str(refresh.access_token)
+        datos["id_establecimiento"] = establecimiento.id_establecimiento
+        datos["access"] = str(refresh.access_token)
 
         return Response(datos, status=200)
 
     except Exception as e:
         print(f"Error en buscar_cif: {e}")
         return Response({"error": "Error interno del servidor"}, status=500)
-    
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def ver_mi_local(request):
@@ -413,6 +441,7 @@ from .models import Servicio, Usuario
 from .serializers import ServicioSerializer
 from rest_framework.decorators import action
 
+
 class ServicioViewSet(viewsets.ModelViewSet):
     """
     Esta vista se encarga de:
@@ -420,6 +449,7 @@ class ServicioViewSet(viewsets.ModelViewSet):
     2. VALIDAR que los datos sean correctos.
     3. GUARDAR el servicio asociándolo al usuario que tiene el token.
     """
+
     serializer_class = ServicioSerializer
     # Solo dejamos entrar a los usuarios que tenga el Token JWT (logueados)
     permission_classes = [permissions.IsAuthenticated]
@@ -430,7 +460,7 @@ class ServicioViewSet(viewsets.ModelViewSet):
         - 'list' y 'retrieve' (ver servicios): Permitido para todos.
         - 'create', 'update', 'destroy': Solo para usuarios logueados.
         """
-        if self.action in ['list', 'retrieve']:
+        if self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
@@ -440,42 +470,48 @@ class ServicioViewSet(viewsets.ModelViewSet):
         Si el usuario está logueado y quiere gestionar sus servicios, filtramos por los suyos.
         """
         # Si hay un parámetro 'cp' en la URL (proviene del buscador de React)
-        cp = self.request.query_params.get('cp')
+        cp = self.request.query_params.get("cp")
         if cp:
             return Servicio.objects.filter(cp=cp)
-        
+
         # Si el usuario está logueado y entra en su panel de gestión
         if self.request.user.is_authenticated and not cp:
             try:
-                return Servicio.objects.filter(id_usuario__auth_id=self.request.user.username)
+                return Servicio.objects.filter(
+                    id_usuario__auth_id=self.request.user.username
+                )
             except Exception:
                 return Servicio.objects.none()
-        
+
         # Por defecto para la API pública
         return Servicio.objects.all()
 
     def perform_create(self, serializer):
-            """
-            Asocia el servicio al usuario y HEREDA automáticamente 
-            la ubicación de su establecimiento para el mapa.
-            """
-            try:
-                # Obtenemos el perfil del usuario logueado a través de su auth_id (que es el username del User)
-                usuario_perfil = Usuario.objects.get(auth_id=self.request.user.username)
-                
-                # Buscamos su establecimiento para copiar las coordenadas y el CP
-                establecimiento = Establecimiento.objects.get(usuario=self.request.user)
-                
-                # 3. Guardamos el servicio con toda la información necesaria
-                serializer.save(
-                    id_usuario=usuario_perfil,
-                    lat=establecimiento.latitud, 
-                    lng=establecimiento.longitud,
-                    cp=establecimiento.cp
-                )
-            except Usuario.DoesNotExist:
-                from rest_framework.exceptions import ValidationError
-                raise ValidationError("El perfil de usuario no existe.")
-            except Establecimiento.DoesNotExist:
-                from rest_framework.exceptions import ValidationError
-                raise ValidationError("Debes registrar un establecimiento antes de ofrecer servicios.")
+        """
+        Asocia el servicio al usuario y HEREDA automáticamente
+        la ubicación de su establecimiento para el mapa.
+        """
+        try:
+            # Obtenemos el perfil del usuario logueado a través de su auth_id (que es el username del User)
+            usuario_perfil = Usuario.objects.get(auth_id=self.request.user.username)
+
+            # Buscamos su establecimiento para copiar las coordenadas y el CP
+            establecimiento = Establecimiento.objects.get(usuario=self.request.user)
+
+            # 3. Guardamos el servicio con toda la información necesaria
+            serializer.save(
+                id_usuario=usuario_perfil,
+                lat=establecimiento.latitud,
+                lng=establecimiento.longitud,
+                cp=establecimiento.cp,
+            )
+        except Usuario.DoesNotExist:
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError("El perfil de usuario no existe.")
+        except Establecimiento.DoesNotExist:
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(
+                "Debes registrar un establecimiento antes de ofrecer servicios."
+            )

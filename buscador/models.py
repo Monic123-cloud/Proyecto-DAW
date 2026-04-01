@@ -2,6 +2,7 @@ import requests
 import googlemaps
 from django.db import models
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class DetallePedido(models.Model):
@@ -52,6 +53,17 @@ class Establecimiento(models.Model):
         max_digits=12, decimal_places=9, blank=True, null=True
     )
     url_web = models.CharField(max_length=255, blank=True, null=True)
+
+    @property
+    def promedio_valoraciones(self):
+        from django.db.models import Avg
+        # Calculamos la media de las valoraciones relacionadas
+        promedio = self.valoraciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+        return round(promedio, 1) if promedio else 0
+
+    @property
+    def numero_valoraciones(self):
+        return self.valoraciones.count()
 
     class Meta:
         managed = True
@@ -200,16 +212,21 @@ class Valoracion(models.Model):
         Establecimiento,
         models.CASCADE,
         db_column="id_establecimiento",
+        related_name="valoraciones",
         blank=True,
         null=True,
     )
     id_usuario = models.ForeignKey(
         Usuario, models.CASCADE, db_column="id_usuario", blank=True, null=True
     )
-    puntuacion = models.IntegerField(blank=True, null=True)
+    # Validamos que solo sea de 1 a 5
+    puntuacion = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)], blank=True, null=True
+    )
     fecha = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = True
         db_table = "valoracion"
+        unique_together = ("id_establecimiento", "id_usuario")

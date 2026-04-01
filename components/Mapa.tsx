@@ -12,6 +12,9 @@ interface Punto {
   direccion: string;
   latitud: number;
   longitud: number;
+  promedio_valoraciones?: number; 
+  numero_valoraciones?: number;
+
 }
 
 interface Servicio {
@@ -123,6 +126,17 @@ export default function Mapa({ puntos, servicios = [] }: { puntos: Punto[],servi
             <h4 className="font-bold text-blue-700 text-sm mb-1">
               {selected.nombre_comercio || selected.categoria}
             </h4>
+            {selected.promedio_valoraciones !== undefined && (
+        <div className="flex items-center gap-1 mb-1">
+          <span className="text-yellow-500 text-xs">
+            {"★".repeat(Math.floor(selected.promedio_valoraciones))}
+            {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
+          </span>
+          <span className="text-[10px] text-gray-500">
+            ({selected.promedio_valoraciones})
+          </span>
+        </div>
+      )}
             <p className="text-xs text-gray-600 leading-tight">
               {selected.direccion || `Pro: ${selected.nombre_profesional}`}
             </p>
