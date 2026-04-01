@@ -14,9 +14,18 @@ interface Punto {
   longitud: number;
 }
 
-export default function Mapa({ puntos }: { puntos: Punto[] }) {
+interface Servicio {
+  id_servicio: number;
+  categoria: string;
+  lat: number;
+  lng: number;
+  nombre_profesional: string;
+  precio_hora: string;
+}
+
+export default function Mapa({ puntos, servicios = [] }: { puntos: Punto[],servicios?: Servicio[] }) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [selected, setSelected] = useState<Punto | null>(null);
+  const [selected, setSelected] = useState<any | null>(null);
 
   const center = useMemo(() => {
     if (puntos && puntos.length > 0) {
@@ -25,19 +34,35 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
         lng: Number(puntos[0].longitud),
       };
     }
+    if (servicios && servicios.length > 0) { 
+      return { lat: Number(servicios[0].lat), lng: Number(servicios[0].lng) };
+    }
     return defaultCenter;
-  }, [puntos]);
+  }, [puntos,servicios]);
 
   useEffect(() => {
     // Solo ejecutamos si el mapa existe y window.google está disponible
     if (map && puntos.length > 1 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
-      puntos.forEach((p) =>
-        bounds.extend({ lat: Number(p.latitud), lng: Number(p.longitud) }),
-      );
-      map.fitBounds(bounds);
+      let hayDatos = false;
+
+      if (puntos && puntos.length > 0) {
+        puntos.forEach((p) => {
+          bounds.extend({ lat: Number(p.latitud), lng: Number(p.longitud) });
+          hayDatos = true;
+        });
+      }
+    if (servicios && servicios.length > 0) {
+        servicios.forEach((s) => {
+          bounds.extend({ lat: Number(s.lat), lng: Number(s.lng) });
+          hayDatos = true;
+        });
+      }
+      if (hayDatos) {
+        map.fitBounds(bounds);
+      }
     }
-  }, [map, puntos]);
+  }, [map, puntos, servicios]);
 
   // Si por algún motivo llegamos aquí sin la API, mostramos un aviso simple
   if (typeof window !== "undefined" && !window.google) {
@@ -71,21 +96,35 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
           />
         );
       })}
-
+      {servicios.map((s) => (
+        <MarkerF
+          key={`ser-${s.id_servicio}`}
+          position={{ lat: Number(s.lat), lng: Number(s.lng) }}
+          onClick={() => setSelected(s)}
+          icon={{
+            path: 0, // Círculo
+            fillColor: "#22c55e",
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: "#ffffff",
+            scale: 7,
+          }}
+        />
+      ))}
       {selected && (
         <InfoWindowF
           position={{
-            lat: Number(selected.latitud),
-            lng: Number(selected.longitud),
+            lat: Number(selected.latitud || selected.lat),
+            lng: Number(selected.longitud || selected.lng),
           }}
           onCloseClick={() => setSelected(null)}
         >
           <div className="p-2 text-black max-w-[200px]">
             <h4 className="font-bold text-blue-700 text-sm mb-1">
-              {selected.nombre_comercio}
+              {selected.nombre_comercio || selected.categoria}
             </h4>
             <p className="text-xs text-gray-600 leading-tight">
-              {selected.direccion}
+              {selected.direccion || `Pro: ${selected.nombre_profesional}`}
             </p>
           </div>
         </InfoWindowF>

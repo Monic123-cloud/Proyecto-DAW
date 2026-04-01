@@ -1,3 +1,5 @@
+"use client";
+
 import Buscador from '../components/Buscador';
 
 export default function Home() {
@@ -8,7 +10,7 @@ export default function Home() {
           Buscador
         </h1>
         
-        {/* Aquí es donde aparece la magia */}
+        {/* Aquí es donde aparece */}
         <Buscador />
         
       </div>

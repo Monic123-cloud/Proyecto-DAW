@@ -13,9 +13,19 @@ interface Comercio {
   latitud: number;
   longitud: number;
 }
+
+interface Servicio {
+  id_servicio: number;
+  categoria: string;
+  lat: number;
+  lng: number;
+  nombre_profesional: string;
+  precio_hora: string;
+}
 //componente funcional exportado que permite encapsular la lógica de búsqueda, geolocalización y renderizado
 export default function Buscador() {
   const [comercios, setComercios] = useState<Comercio[]>([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [loading, setLoading] = useState(false); // Para mostrar "Cargando..." mientras se obtiene la respuesta
   const [cp, setCp] = useState("");
 
@@ -25,6 +35,14 @@ export default function Buscador() {
     setLoading(true); // Activa el estado de carga para mostrar feedback al usuario
     // Realiza la petición al backend con el código postal como parámetro
     try {
+
+      const resServicios = await fetch(`${ENDPOINTS.SERVICIOS}buscar/?cp=${cp}`);
+      if (resServicios.ok) {
+      setServicios(await resServicios.json());
+      } else {
+      setServicios([]);
+      }
+
       const url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
       const response = await fetch(url); //envía la petición HTTP al backend y espera la respuesta
 
@@ -111,7 +129,7 @@ export default function Buscador() {
 
         {/* Mapa */}
         <div className="h-[400px] rounded-2xl overflow-hidden shadow-inner border border-gray-50">
-          <Mapa puntos={comercios} />
+          <Mapa puntos={comercios} servicios={servicios} />
         </div>
       </div>
 

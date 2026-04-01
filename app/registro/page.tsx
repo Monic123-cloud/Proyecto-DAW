@@ -9,3 +9,5 @@ export default function PaginaRegistro() {
     </div>
   );
 }
+
+

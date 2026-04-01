@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     BuscadorAPIView,
     GeolocalizadorAPIView,
@@ -7,7 +8,13 @@ from .views import (
     gestionar_formulario,
     buscar_cif,
     ver_mi_local,
+    ServicioViewSet,
 )
+
+# Definimos el router
+router = DefaultRouter()
+# Registramos el ViewSet de servicios
+router.register(r'servicios', ServicioViewSet, basename='servicio')
 
 urlpatterns = [
     # El mapa visual (HTML)
@@ -22,4 +29,6 @@ urlpatterns = [
         "formulario/<int:pk>/", gestionar_formulario, name="formulario_detalle"
     ),  # Para manejar GET, PUT, DELETE con el ID
     path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
+    path('', include(router.urls)),
+
 ]

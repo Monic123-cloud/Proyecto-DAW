@@ -37,6 +37,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User  # Para gestionar usuarios y autenticación
 from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens JWT
+from .serializers import ServicioSerializer
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -405,3 +406,76 @@ def ver_mi_local(request):
         return Response({"error": "No tienes un establecimiento asociado"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+from rest_framework import viewsets, permissions
+from .models import Servicio, Usuario
+from .serializers import ServicioSerializer
+from rest_framework.decorators import action
+
+class ServicioViewSet(viewsets.ModelViewSet):
+    """
+    Esta vista se encarga de:
+    1. RECIBIR el JSON de React (vía Serializer).
+    2. VALIDAR que los datos sean correctos.
+    3. GUARDAR el servicio asociándolo al usuario que tiene el token.
+    """
+    serializer_class = ServicioSerializer
+    # Solo dejamos entrar a los usuarios que tenga el Token JWT (logueados)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Configura permisos dinámicos:
+        - 'list' y 'retrieve' (ver servicios): Permitido para todos.
+        - 'create', 'update', 'destroy': Solo para usuarios logueados.
+        """
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        """
+        Si es una búsqueda (list), devolvemos todos los servicios para que salgan en el mapa.
+        Si el usuario está logueado y quiere gestionar sus servicios, filtramos por los suyos.
+        """
+        # Si hay un parámetro 'cp' en la URL (proviene del buscador de React)
+        cp = self.request.query_params.get('cp')
+        if cp:
+            return Servicio.objects.filter(cp=cp)
+        
+        # Si el usuario está logueado y entra en su panel de gestión
+        if self.request.user.is_authenticated and not cp:
+            try:
+                return Servicio.objects.filter(id_usuario__auth_id=self.request.user.username)
+            except Exception:
+                return Servicio.objects.none()
+        
+        # Por defecto para la API pública
+        return Servicio.objects.all()
+
+    def perform_create(self, serializer):
+            """
+            Asocia el servicio al usuario y HEREDA automáticamente 
+            la ubicación de su establecimiento para el mapa.
+            """
+            try:
+                # Obtenemos el perfil del usuario logueado a través de su auth_id (que es el username del User)
+                usuario_perfil = Usuario.objects.get(auth_id=self.request.user.username)
+                
+                # Buscamos su establecimiento para copiar las coordenadas y el CP
+                establecimiento = Establecimiento.objects.get(usuario=self.request.user)
+                
+                # 3. Guardamos el servicio con toda la información necesaria
+                serializer.save(
+                    id_usuario=usuario_perfil,
+                    lat=establecimiento.latitud, 
+                    lng=establecimiento.longitud,
+                    cp=establecimiento.cp
+                )
+            except Usuario.DoesNotExist:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError("El perfil de usuario no existe.")
+            except Establecimiento.DoesNotExist:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError("Debes registrar un establecimiento antes de ofrecer servicios.")

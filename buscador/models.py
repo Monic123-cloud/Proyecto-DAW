@@ -157,6 +157,10 @@ class Servicio(models.Model):
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
+    lat = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
+    lng = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
+    cp = models.CharField(max_length=10, blank=True, null=True)
+
     class Meta:
         managed = True
         db_table = "servicio"
