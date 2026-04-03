@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Servicio, Establecimiento
+from .models import SolicitudAyuda
 
 # 1. El que te estaba dando el error de importación (ServicioSerializer)
 class ServicioSerializer(serializers.ModelSerializer):

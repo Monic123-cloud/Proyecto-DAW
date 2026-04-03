@@ -45,6 +45,12 @@ from .models import (
     Servicio,
     Usuario,
 )  # Importamos el modelo de Servicio y Usuario para gestionar
+from django.http import JsonResponse
+from core.analytics_service import get_google_analytics_data
+from django.db import models
+from django.contrib.auth.models import User
+from .models import SolicitudAyuda
+from .models import Pedido, Establecimiento
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -235,6 +241,7 @@ class GoogleMapsProxyView(APIView):
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&key={api_key}"
         response = requests.get(url)
         return Response(response.json())
+
 
 # Formulario de establecimiento
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -515,3 +522,67 @@ class ServicioViewSet(viewsets.ModelViewSet):
             raise ValidationError(
                 "Debes registrar un establecimiento antes de ofrecer servicios."
             )
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def lista_solicitudes_ayuda(request):
+    try:
+        # Consultamos los datos reales de la tabla 'solicitud_ayuda'
+        solicitudes = SolicitudAyuda.objects.all().order_by('-fecha_creacion')
+        
+        # Formateamos el JSON exactamente como lo espera tu componente de React
+        data = []
+        for s in solicitudes:
+            data.append({
+                "nombre_completo": s.nombre_completo,
+                "cp": s.cp,
+                "telefono": s.telefono,
+                "requiere_llamada": s.requiere_llamada,
+                "encuesta_enviada": s.encuesta_enviada,
+                "puntuacion": s.puntuacion if s.puntuacion else 0
+            })
+        
+        return Response(data, status=200)
+    except Exception as e:
+        print(f"Error al obtener solicitudes: {e}")
+        return Response([], status=500)
+
+def dashboard_stats(request):
+    PROPERTY_ID = "530848880"
+
+    try:
+        data = get_visitor_count(PROPERTY_ID)
+        return JsonResponse({"status": "success", "data": data})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    
+def analytics_dashboard_view(request):
+    try:
+        # Intentamos traer los datos reales de Analytics
+        try:
+            visitas_reales = get_google_analytics_data()
+            total_visitas = sum(item['usuarios'] for item in visitas_reales) if visitas_reales else 100
+
+        except:
+            visitas_reales = [] # Si falla la API de Google, enviamos lista vacía
+            total_visitas = 100 # Valor por defecto si falla Google
+
+        total_ventas = Pedido.objects.count()
+        ratio = (total_ventas / total_visitas * 100) if total_visitas > 0 else 0
+
+        data = {
+            "visitas": visitas_reales if visitas_reales else [
+                {"fecha": "01 Abr", "usuarios": 5},
+                {"fecha": "02 Abr", "usuarios": 12},
+                {"fecha": "03 Abr", "usuarios": 8},
+            ],
+            "conversion": [
+                {"nombre": "Visitas", "valor": total_visitas},
+                {"nombre": "Ventas", "valor": total_ventas}
+            ],
+            "ratio_conversion": f"{ratio:.2f}%"
+        }
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        # Esto dice el error exacto en el navegador si algo falla
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)    

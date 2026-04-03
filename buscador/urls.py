@@ -9,6 +9,7 @@ from .views import (
     buscar_cif,
     ver_mi_local,
     ServicioViewSet,
+    lista_solicitudes_ayuda,
 )
 
 # Definimos el router
@@ -30,5 +31,5 @@ urlpatterns = [
     ),  # Para manejar GET, PUT, DELETE con el ID
     path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
     path('', include(router.urls)),
-
+    path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
 ]

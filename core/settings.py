@@ -3,6 +3,8 @@ from dotenv import load_dotenv  # busca un archivo secreto llamado .env y lo car
 import environ  # permite leer variables y decirles qué tipo de dato son
 import dj_database_url  # permite configurar la base de datos usando una URL, útil para despliegues como Railway
 import os  # permite que Python lea los valores .env
+from pathlib import Path
+import json
 
 env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = (
@@ -17,7 +19,15 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
 GOOGLE_MAPS_API_KEY = os.getenv(
     "GOOGLE_MAPS_API_KEY"
 )  # Busca en el sistema operativo una variable llamada así
+GOOGLE_ANALYTICS_PROPERTY_ID = "530848880"
+GA_JSON_ENV = os.getenv('GOOGLE_ANALYTICS_JSON_DATA')
 
+if GA_JSON_ENV:
+    # Si estamos en Railway, usamos el texto de la variable de entorno
+    GOOGLE_ANALYTICS_CREDENTIALS = json.loads(GA_JSON_ENV)
+else:
+    # Si estamos en local, usamos la ruta al archivo físico
+    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
 
 # Pongo los datos de mi fichero .env
 SECRET_KEY = env("DJANGO_SECRET_KEY")
@@ -179,3 +189,5 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # Permite renovarlo durante 1 día
     "AUTH_HEADER_TYPES": ("Bearer",),               # El prefijo que usará React
 }
+
+GA_SERVICE_ACCOUNT_JSON = os.path.join(BASE_DIR, 'core', 'google-analytics-key.json')
