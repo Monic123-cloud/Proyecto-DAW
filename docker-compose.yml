@@ -1,16 +1,27 @@
-version: "3.9"
+version: '3.9'
 
 services:
   backend:
     build: ./backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
     depends_on:
-      - backend
+      - db
+    env_file:
+      - ./backend/.env
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: proyecto_daw
+      POSTGRES_USER: daw_user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

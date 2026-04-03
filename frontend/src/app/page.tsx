@@ -94,9 +94,13 @@ export default function HomePage() {
             
           </nav>
 
-          <Link href="/acceso" className="btn btn-primary">
+          <Link href="/acceso/registro" className="btn btn-primary">
             Empezar
           </Link>
+          <Link href="/acceso/login" className="btn btn-primary">
+            Inciar Sesion
+          </Link>
+          
         </div>
       </header>
 
