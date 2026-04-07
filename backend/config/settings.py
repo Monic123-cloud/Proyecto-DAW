@@ -29,9 +29,8 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-GOOGLE_MAPS_API_KEY = os.getenv(
-    env("GOOGLE_MAPS_API_KEY", default="")
-)  # Busca en el sistema operativo una variable llamada así
+GOOGLE_MAPS_API_KEY =env("GOOGLE_MAPS_API_KEY", default="")
+# Busca en el sistema operativo una variable llamada así
 print(f"LA KEY CARGADA ES: {GOOGLE_MAPS_API_KEY}")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("DJANGO_SECRET_KEY")
