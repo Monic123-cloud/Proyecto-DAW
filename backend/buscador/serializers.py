@@ -1,12 +1,18 @@
 from rest_framework import serializers
 from .models import Servicio, Establecimiento
+from .models import SolicitudAyuda
 
 # 1. El que te estaba dando el error de importación (ServicioSerializer)
 class ServicioSerializer(serializers.ModelSerializer):
+
+    latitud = serializers.ReadOnlyField(source='lat')
+    longitud = serializers.ReadOnlyField(source='lng')
+
     class Meta:
         model = Servicio
-        fields = ['id_servicio', 'categoria', 'descripcion', 'precio_hora', 'fecha_creacion', 'lat', 'lng', 'cp']
-        read_only_fields = ['id_servicio', 'fecha_creacion', 'lat', 'lng', 'cp']
+        fields = ['id_servicio', 'categoria', 'descripcion', 'precio_hora', 'fecha_creacion', 'latitud', 'longitud', 'cp']
+        read_only_fields = ['id_servicio', 'fecha_creacion', 'latitud', 'longitud', 'cp']
+
 
 # 2. El que necesitamos para las estrellas (EstablecimientoSerializer)
 class EstablecimientoSerializer(serializers.ModelSerializer):

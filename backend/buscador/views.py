@@ -1,6 +1,6 @@
 """ "Es el controlador que gestiona la lógica de negocio, procesando las peticiones de búsqueda para devolver resultados
 de la base de datos local y la API de Google Maps en formato JSON."""
-
+from django.conf import settings
 from django.shortcuts import render
 from rest_framework.views import APIView  # # Clase base para crear tu endpoint de API
 from rest_framework.response import (
@@ -43,8 +43,9 @@ from .serializers import (
 )  # Para convertir los datos de la base de datos a formato JSON que React entiende
 from .models import (
     Servicio,
-    Usuario,
-)  # Importamos el modelo de Servicio y Usuario para gestionar
+)  # Importamos el modelo de Servicio y setting para gestionar
+from django.contrib.auth import get_user_model
+User = get_user_model()  # Para usar el modelo de usuario personalizado que hemos creado en users/models.py
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -437,7 +438,7 @@ def ver_mi_local(request):
 
 
 from rest_framework import viewsets, permissions
-from .models import Servicio, Usuario
+from .models import Servicio
 from .serializers import ServicioSerializer
 from rest_framework.decorators import action
 

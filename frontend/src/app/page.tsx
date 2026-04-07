@@ -51,7 +51,8 @@ export default function HomePage() {
       name: "Arreglos Express",
       type: "Servicios del hogar",
       distance: "A 9 min",
-      description: "Pequeñas reparaciones y asistencia rápida para tu día a día.",
+      description:
+        "Pequeñas reparaciones y asistencia rápida para tu día a día.",
     },
   ];
 
@@ -59,7 +60,7 @@ export default function HomePage() {
     <div className="page page-home">
       <header className="header">
         <div className="container nav">
-          <a href= "#top" className="brand">
+          <a href="#top" className="brand">
             <Image
               src="/images/Close-logo_1.png"
               alt="Logo Close4u"
@@ -89,9 +90,8 @@ export default function HomePage() {
             <a href="#eventos">Eventos</a>
             <a href="#valoraciones">Valoraciones</a>
             <a href="#buscador">Buscador</a>
-            
+
             <Link href="/carrito">Carrito</Link>
-            
           </nav>
 
           <Link href="/acceso/registro" className="btn btn-primary">
@@ -100,7 +100,6 @@ export default function HomePage() {
           <Link href="/acceso/login" className="btn btn-primary">
             Inciar Sesion
           </Link>
-          
         </div>
       </header>
 
@@ -137,8 +136,6 @@ export default function HomePage() {
                   Soy comercio
                 </Link>
               </div>
-
-
             </div>
 
             <div className="phone-wrap">

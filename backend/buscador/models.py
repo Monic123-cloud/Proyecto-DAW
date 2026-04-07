@@ -3,6 +3,7 @@ import googlemaps
 from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 
 
 class DetallePedido(models.Model):
@@ -101,7 +102,7 @@ class Establecimiento(models.Model):
 
 class Evento(models.Model):
     id_evento = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
     nombre_evento = models.CharField(max_length=255)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
@@ -123,7 +124,7 @@ class Pedido(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )
@@ -161,7 +162,7 @@ class Producto(models.Model):
 
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey("Usuario", models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
     descripcion = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     precio_hora = models.DecimalField(
@@ -178,7 +179,7 @@ class Servicio(models.Model):
         db_table = "servicio"
 
 
-class Usuario(models.Model):
+"""class Usuario(models.Model):
     id_usuario = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     apellidos = models.CharField(max_length=100)
@@ -203,7 +204,7 @@ class Usuario(models.Model):
 
     class Meta:
         managed = True
-        db_table = "usuario"
+        db_table = "usuario" """
 
 
 class Valoracion(models.Model):
@@ -217,7 +218,8 @@ class Valoracion(models.Model):
         null=True,
     )
     id_usuario = models.ForeignKey(
-        Usuario, models.CASCADE, db_column="id_usuario", blank=True, null=True
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
     )
     # Validamos que solo sea de 1 a 5
     puntuacion = models.IntegerField(
@@ -230,3 +232,47 @@ class Valoracion(models.Model):
         managed = True
         db_table = "valoracion"
         unique_together = ("id_establecimiento", "id_usuario")
+
+
+class Voluntario(models.Model):
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='perfil_voluntario')
+    cp = models.CharField(max_length=5)
+    dias_disponibles = models.CharField(max_length=100) 
+    horario_inicio = models.TimeField()
+    horario_fin = models.TimeField()
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'voluntario' # Nombre para la nueva tabla
+
+class SolicitudAyuda(models.Model):
+    nombre_completo = models.CharField(max_length=150)
+    telefono = models.CharField(max_length=15)
+    email = models.EmailField()
+    cp = models.CharField(max_length=5)
+    descripcion = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_nacimiento = models.DateField() 
+    encuesta_enviada = models.BooleanField(default=False)
+    requiere_llamada = models.BooleanField(default=False)
+    puntuacion = models.IntegerField(null=True, blank=True)
+
+    @property
+    def es_persona_mayor(self):
+        # Consideramos mayor a +65 años
+        return (timezone.now().date() - self.fecha_nacimiento).days > (65 * 365)
+
+    class Meta:
+        db_table = 'solicitud_ayuda'
+
+class EncuestaSatisfaccion(models.Model):
+    # Relación con la solicitud original
+    solicitud = models.OneToOneField(SolicitudAyuda, on_delete=models.CASCADE, related_name='encuesta')
+    
+    # Preguntas de la encuesta
+    puntuacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)]) # 1 a 5 estrellas
+    comentario = models.TextField(blank=True, null=True)
+    fecha_completada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'encuesta_satisfaccion'
