@@ -21,11 +21,24 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
+    id = models.AutoField(primary_key=True, db_column='id_usuario')
     email = models.EmailField(max_length=200, unique=True)
-    birthday = models.DateField(null=True, blank=True)
     username = models.CharField(max_length=200, null=True, blank=True)
+
+    # Campos de perfil (traídos del models buscador)
+    birthday = models.DateField(null=True, blank=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(max_length=100, blank=True, null=True)
+    cp = models.CharField(max_length=10, blank=True, null=True)
+    latitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
+    longitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
 
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+
+    class Meta:
+        db_table = 'auth_user'

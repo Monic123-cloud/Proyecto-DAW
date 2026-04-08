@@ -55,7 +55,8 @@ export default function HomePage() {
       name: "Arreglos Express",
       type: "Servicios del hogar",
       distance: "A 9 min",
-      description: "Pequeñas reparaciones y asistencia rápida para tu día a día.",
+      description:
+        "Pequeñas reparaciones y asistencia rápida para tu día a día.",
     },
   ];
 
@@ -96,8 +97,6 @@ export default function HomePage() {
                   Soy comercio
                 </Link>
               </div>
-
-
             </div>
 
             <div className="flex flex-col items-center gap-4">

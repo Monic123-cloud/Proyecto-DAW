@@ -12,10 +12,22 @@ interface Comercio {
   cp: string;
   latitud: number;
   longitud: number;
+  promedio_valoraciones?: number;
+  numero_valoraciones?: number;
+}
+
+interface Servicio {
+  id_servicio: number;
+  categoria: string;
+  latitud: number;
+  longitud: number;
+  nombre_profesional: string;
+  precio_hora: string;
 }
 //componente funcional exportado que permite encapsular la lógica de búsqueda, geolocalización y renderizado
 export default function Buscador() {
   const [comercios, setComercios] = useState<Comercio[]>([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [loading, setLoading] = useState(false); // Para mostrar "Cargando..." mientras se obtiene la respuesta
   const [cp, setCp] = useState("");
 
@@ -25,6 +37,14 @@ export default function Buscador() {
     setLoading(true); // Activa el estado de carga para mostrar feedback al usuario
     // Realiza la petición al backend con el código postal como parámetro
     try {
+      const resServicios = await fetch(
+        `${ENDPOINTS.BUSCADOR}?cp=${cp}&tipo=servicio`);
+
+      if (resServicios.ok) {
+        setServicios(await resServicios.json());
+      } else {
+        setServicios([]);
+      }
       const url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
       const response = await fetch(url); //envía la petición HTTP al backend y espera la respuesta
 
@@ -56,7 +76,7 @@ export default function Buscador() {
 
         try {
           // usamos 'lat' y 'lng' en la URL
-          const url = `http://localhost:8000/api/buscador/buscar/?lat=${latitude}&lng=${longitude}`;
+          const url = `${ENDPOINTS.GEOLOCALIZAR}?lat=${latitude}&lng=${longitude}`;
           const response = await fetch(url);
           const data = await response.json();
           setComercios(data);
@@ -111,8 +131,8 @@ export default function Buscador() {
         </div>
 
         {/* Mapa */}
-        <div className="flex-1 min-h-0">
-          <Mapa puntos={comercios} />
+        <div className="h-[400px] rounded-2xl overflow-hidden shadow-inner border border-gray-50">
+          <Mapa puntos={comercios} servicios={servicios} />
         </div>
       </div>
 
@@ -127,6 +147,26 @@ export default function Buscador() {
                 <h3 className="font-bold text-blue-900 text-lg mb-1">
                   {c.nombre_comercio}
                 </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-yellow-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        className={
+                          star <= (c.promedio_valoraciones || 0)
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500 font-medium">
+                    {c.promedio_valoraciones || 0} ({c.numero_valoraciones || 0}
+                    )
+                  </span>
+                </div>
                 <p className="text-sm text-gray-500 mb-3">{c.direccion}</p>
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
                   CP: {c.cp}
