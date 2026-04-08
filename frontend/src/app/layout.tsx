@@ -1,4 +1,5 @@
 import { CartProvider } from "../components/cart/CartContext";
+import "./globals.css";
 
 export const metadata = {
   title: "Close4u",

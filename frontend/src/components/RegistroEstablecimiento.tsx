@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
-import { validarDocumentoCompleto, validarCP } from "../app/utils";
+import { validarDocumentoCompleto, validarCP } from "../components/utils/utils";
 import { authService } from '../services/authService';
 
 const libraries: ("places" | "geometry")[] = ["places", "geometry"];

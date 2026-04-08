@@ -205,23 +205,7 @@ const Register = () => {
               />
             </Box>
 
-            {/* Latitud */}
-            <Box className={"itemBox"}>
-              <MyTextField
-                label={"Latitud"}
-                name={"latitud"}
-                control={control}
-              />
-            </Box>
-
-            {/* Longitud */}
-            <Box className={"itemBox"}>
-              <MyTextField
-                label={"Longitud"}
-                name={"longitud"}
-                control={control}
-              />
-            </Box>
+  
 
             {/* Password */}
             <Box >
@@ -250,9 +234,16 @@ const Register = () => {
                 sx={{ mt: 2 }}
               />
             </Box>
+          
 
           </Box>
         </form>
+        <Link href="/registroM" className="btn btn-primary">
+                    Soy Negocio
+                  </Link>
+        <Link href="/acceso/login" className="btn btn-primary">
+                    Ya estoy registrado
+                  </Link>
       </Paper>
 
 

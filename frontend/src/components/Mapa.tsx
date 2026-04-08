@@ -7,7 +7,11 @@ import {
 } from "@react-google-maps/api";
 import { useMemo, useEffect, useState } from "react"; // Para manejar el estado del mapa, el punto seleccionado y la carga del mapa
 
-const containerStyle = { width: "100%", height: "400px" };
+const containerStyle = {
+  width: "100%",
+  height: "100%",
+  minHeight: "300px"
+};
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
 ////define qué debe tener el Punto
 interface Punto {
@@ -21,7 +25,7 @@ interface Punto {
 export default function Mapa({ puntos }: { puntos: Punto[] }) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -58,13 +62,14 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
     );
 
   return (
+    <div style={{width:"100%", height:"100%"}}>
     <GoogleMap
       mapContainerStyle={containerStyle}
       center={center}
       zoom={14}
       onLoad={(m) => setMap(m)}
       onClick={() => setSelected(null)} // Cerrar ventana al pulsar fuera
-      options={{ streetViewControl: false, mapTypeControl: false }}
+      options={{ streetViewControl: false, mapTypeControl: false, fullscreenControl: false }}
     >
       {puntos.map((p) => (
         <MarkerF
@@ -94,5 +99,6 @@ export default function Mapa({ puntos }: { puntos: Punto[] }) {
         </InfoWindowF>
       )}
     </GoogleMap>
+    </div>
   );
 }

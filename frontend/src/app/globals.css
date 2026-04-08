@@ -253,6 +253,7 @@ button {
 .phone-wrap {
   display: flex;
   justify-content: center;
+  height: 600px;
 }
 
 .phone-card {
@@ -263,6 +264,7 @@ button {
   border-radius: 34px;
   padding: 1rem;
   box-shadow: 0 20px 50px rgba(255, 149, 0, 0.35);
+  height: 100%;
 }
 
 /* ===== Scroll interno para la tarjeta del buscador dentro de phone-screen ===== */
@@ -276,6 +278,7 @@ button {
   height: 720px;          /* ajusta a gusto: 650-780 suele ir bien */
   overflow: hidden;       /* evita que la lista “se salga” */
   display: flex;
+  height: 100%;
 }
 
 /* El buscador ocupa toda la pantalla y se organiza en columna */
@@ -791,6 +794,7 @@ button {
 
   .phone-card {
     border-radius: 26px;
+    height: 100%;
   }
 
   .phone-screen {
