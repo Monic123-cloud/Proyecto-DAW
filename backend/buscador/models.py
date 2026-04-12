@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
+from datetime import date
 
 
 class DetallePedido(models.Model):
@@ -174,6 +175,18 @@ class Servicio(models.Model):
     lng = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
     cp = models.CharField(max_length=10, blank=True, null=True)
 
+    @property
+    def promedio_valoraciones(self):
+        from django.db.models import Avg
+        # Calculamos la media de las valoraciones relacionadas
+        promedio = self.valoraciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+        return round(promedio, 1) if promedio else 0
+
+    @property
+    def numero_valoraciones(self):
+        return self.valoraciones.count()
+
+
     class Meta:
         managed = True
         db_table = "servicio"
@@ -209,6 +222,10 @@ class Servicio(models.Model):
 
 class Valoracion(models.Model):
     id_valoracion = models.AutoField(primary_key=True)
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
+    )
     id_establecimiento = models.ForeignKey(
         Establecimiento,
         models.CASCADE,
@@ -217,10 +234,15 @@ class Valoracion(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
+    id_servicio = models.ForeignKey(
+        Servicio,
+        models.CASCADE,
+        db_column="id_servicio",
+        related_name="valoraciones",
+        blank=True,
+        null=True,
     )
+
     # Validamos que solo sea de 1 a 5
     puntuacion = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)], blank=True, null=True
@@ -231,7 +253,7 @@ class Valoracion(models.Model):
     class Meta:
         managed = True
         db_table = "valoracion"
-        unique_together = ("id_establecimiento", "id_usuario")
+        unique_together = [("id_establecimiento", "id_usuario"),("id_servicio", "id_usuario"),]
 
 
 class Voluntario(models.Model):
@@ -261,6 +283,20 @@ class SolicitudAyuda(models.Model):
     def es_persona_mayor(self):
         # Consideramos mayor a +65 años
         return (timezone.now().date() - self.fecha_nacimiento).days > (65 * 365)
+    
+    def save(self, *args, **kwargs):
+        # Calculamos la edad exacta
+        hoy = date.today()
+        edad = hoy.year - self.fecha_nacimiento.year - (
+            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        )
+        
+        # Si es mayor de 65, marcamos el check de llamada automáticamente
+        if edad >= 65:
+            self.requiere_llamada = True
+        
+        # Guardamos en la base de datos
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'solicitud_ayuda'

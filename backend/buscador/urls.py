@@ -9,13 +9,17 @@ from .views import (
     buscar_cif,
     ver_mi_local,
     ServicioViewSet,
-    #lista_solicitudes_ayuda,
+    lista_solicitudes_ayuda,
+    buscar_y_login_por_cif,
+    ValoracionViewSet
 )
 
 # Definimos el router
 router = DefaultRouter()
 # Registramos el ViewSet de servicios
 router.register(r'servicios', ServicioViewSet, basename='servicio')
+# Registramos el ViewSet de valoraciones
+router.register(r'valoraciones', ValoracionViewSet, basename='valoracion')
 
 urlpatterns = [
     # El mapa visual (HTML)
@@ -29,8 +33,9 @@ urlpatterns = [
     path(
         "formulario/<int:pk>/", gestionar_formulario, name="formulario_detalle"
     ),  # Para manejar GET, PUT, DELETE con el ID
-    path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
+    #path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
+    path("buscar-cif/<str:cif>/", buscar_y_login_por_cif, name="buscar_y_login"),
     path('', include(router.urls)),
-    #path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
+    path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
 
 ]

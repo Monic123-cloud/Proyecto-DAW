@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Servicio, Establecimiento
+from .models import Valoracion
 from .models import SolicitudAyuda
 
 # 1. El que te estaba dando el error de importación (ServicioSerializer)
@@ -36,3 +37,9 @@ class EstablecimientoSerializer(serializers.ModelSerializer):
 
     def get_distancia(self, obj):
         return getattr(obj, 'distancia', None)
+    
+class ValoracionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Valoracion
+        # Solo pedimos lo que el usuario envía desde el front
+        fields = ['id_establecimiento', 'id_servicio', 'puntuacion', 'comentario']

@@ -2,6 +2,10 @@ import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
 import Buscador from "../components/Buscador";
+import Header from "@/components/header";
+import Mapa from "@/components/Mapa";
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import { IconButton } from "@mui/material";
 
 export default function HomePage() {
   const categories = [
@@ -58,50 +62,7 @@ export default function HomePage() {
 
   return (
     <div className="page page-home">
-      <header className="header">
-        <div className="container nav">
-          <a href="#top" className="brand">
-            <Image
-              src="/images/Close-logo_1.png"
-              alt="Logo Close4u"
-              width={56}
-              height={56}
-              className="brand-logo-img"
-              priority
-            />
-
-            <div className="brand-text-block">
-              <Image
-                src="/images/Close4up-logo_2.png"
-                alt="Close4u"
-                width={100}
-                height={36}
-                className="brand-name-img"
-                priority
-              />
-              <p className="brand-subtitle">Comercio local a un clic</p>
-            </div>
-          </a>
-
-          <nav className="menu">
-            <a href="#servicios">Servicios</a>
-            <a href="#tiendas">Tiendas</a>
-            <a href="#productos">Productos</a>
-            <a href="#eventos">Eventos</a>
-            <a href="#valoraciones">Valoraciones</a>
-            <a href="#buscador">Buscador</a>
-
-            <Link href="/carrito">Carrito</Link>
-          </nav>
-
-          <Link href="/acceso/registro" className="btn btn-primary">
-            Empezar
-          </Link>
-          <Link href="/acceso/login" className="btn btn-primary">
-            Inciar Sesion
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       <main>
         <section className="hero">
@@ -126,11 +87,11 @@ export default function HomePage() {
               </div>
 
               <div className="hero-actions">
-                <Link href="/acceso" className="btn btn-primary">
+                <Link href="/acceso/registro" className="btn btn-primary">
                   Soy cliente
                 </Link>
                 <Link
-                  href="/acceso?tipo=comercio"
+                  href="/registroM"
                   className="btn btn-secondary"
                 >
                   Soy comercio
@@ -138,12 +99,42 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="phone-wrap">
-              <div className="phone-card">
-                <div className="phone-screen">
-                  <Buscador />
+            <div className="flex flex-col items-center gap-4">
+
+              {/* Móvil con mapa */}
+              <div className="phone-wrap">
+                <div className="phone-card">
+                  <div className="phone-screen">
+                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                      <Mapa puntos={[]} />
+                      <Link
+                        href="/buscador"
+                      >
+                        <IconButton
+                          sx={{
+                            position: "absolute",
+                            top: 16,
+                            right: 16,
+                            backgroundColor: "#1abc8a",
+                            color: "white",
+                            border: "3px solid white",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+                            "&:hover": {
+                              backgroundColor: "#17a97c",
+                              transform: "scale(1.05)"
+                            },
+                            transition: "all 0.2s ease"
+                          }}
+                        >
+                          <FullscreenIcon sx={{ fontSize: 40 }} />
+                        </IconButton>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+
             </div>
           </div>
         </section>
@@ -243,7 +234,10 @@ export default function HomePage() {
                 empieza casi todo: en la búsqueda digital. Más visibilidad, más
                 cercanía y más oportunidades reales de crecer.
               </p>
-              <button className="btn btn-light">Unir mi negocio</button>
+              <Link href="/registroM" className="btn btn-light">
+                Unir mi negocio
+              </Link>
+              
             </div>
           </div>
         </section>

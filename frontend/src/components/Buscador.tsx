@@ -26,10 +26,11 @@ interface Servicio {
 }
 //componente funcional exportado que permite encapsular la lógica de búsqueda, geolocalización y renderizado
 export default function Buscador() {
-  const [comercios, setComercios] = useState<Comercio[]>([]);
-  const [servicios, setServicios] = useState<Servicio[]>([]);
+  const [resultados, setResultados] = useState<any[]>([]); // Una sola lista para todo
   const [loading, setLoading] = useState(false); // Para mostrar "Cargando..." mientras se obtiene la respuesta
   const [cp, setCp] = useState("");
+  const [valorando, setValorando] = useState<any | null>(null);
+  const [puntuacionNueva, setPuntuacionNueva] = useState(5);
 
   // Función para buscar comercios por código postal o por ubicación actual.Asíncrona para que la web no se congele mientras espera la respuesta
   const buscarComercios = async () => {
@@ -37,28 +38,20 @@ export default function Buscador() {
     setLoading(true); // Activa el estado de carga para mostrar feedback al usuario
     // Realiza la petición al backend con el código postal como parámetro
     try {
-      const resServicios = await fetch(
-        `${ENDPOINTS.BUSCADOR}?cp=${cp}&tipo=servicio`);
-
-      if (resServicios.ok) {
-        setServicios(await resServicios.json());
-      } else {
-        setServicios([]);
-      }
+      // Django ya filtra internamente y te da la lista unificada
       const url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
       const response = await fetch(url); //envía la petición HTTP al backend y espera la respuesta
-
       if (!response.ok) throw new Error("Error en la respuesta");
 
-      const data = await response.json(); // 'data' recibe el JSON convertido en un Array de objetos
-      setComercios(data);
+      const data = await response.json();
+      setResultados(data); // 'data' es el data_final de Django
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al conectar con el servidor.");
     } finally {
       setLoading(false);
     }
   };
+
   //Se dispara cuando el usuario hace clic en el botón del pin. Es una función de flecha que engloba toda la lógica de geolocalización.
   const obtenerUbicacionActual = () => {
     if (!navigator.geolocation) {
@@ -79,7 +72,8 @@ export default function Buscador() {
           const url = `${ENDPOINTS.GEOLOCALIZAR}?lat=${latitude}&lng=${longitude}`;
           const response = await fetch(url);
           const data = await response.json();
-          setComercios(data);
+
+          setResultados(data); // 'data' es el data_final de Django
         } catch (error) {
           console.error("Error:", error);
         } finally {
@@ -91,6 +85,37 @@ export default function Buscador() {
         alert("Permiso de ubicación denegado.");
       },
     );
+  };
+  const enviarValoracion = async () => {
+    if (!valorando) return;
+
+    try {
+      const url = `${ENDPOINTS.VALORACIONES}`;
+      const token = localStorage.getItem("access_token");
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // "Authorization": `Bearer ${tuToken}`
+        },
+        body: JSON.stringify({
+          puntuacion: puntuacionNueva,
+          id_establecimiento: valorando.id_establecimiento || null,
+          id_servicio: valorando.id_servicio || null,
+        }),
+      });
+
+      if (response.ok) {
+        alert("¡Valoración enviada con éxito!");
+        setValorando(null);
+        buscarComercios(); // Refrescamos para ver las nuevas estrellas
+      } else {
+        alert("Error: Quizás ya valoraste este sitio.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   return (
@@ -109,8 +134,7 @@ export default function Buscador() {
             className="bg-gray-100 hover:bg-gray-200 text-2xl px-5 rounded-2xl transition-all border border-gray-200 disabled:opacity-50"
             title="Usar mi ubicación actual"
           >
-            {" "}
-            📍{" "}
+            📍
           </button>
           <input
             type="text"
@@ -128,56 +152,118 @@ export default function Buscador() {
             {loading ? "..." : "Buscar"}
           </button>
         </div>
-
-        {/* Mapa */}
-        <div className="h-[400px] rounded-2xl overflow-hidden shadow-inner border border-gray-50">
-          <Mapa puntos={comercios} servicios={servicios} />
+        {/* llamamos al componente Mapa y le enviamos la variable 'resultados' 
+       que contiene TODO (comercios, servicios y google) */}
+        <div className="h-[450px] rounded-2xl overflow-hidden shadow-inner border border-gray-50">
+          <Mapa puntos={resultados} />
         </div>
       </div>
 
-      {/* Listado de Resultados */}
+      {/* Listado de tarjetas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {comercios.length > 0
-          ? comercios.map((c) => (
+        {resultados.length > 0
+          ? resultados.map((c) => (
               <div
-                key={c.id_establecimiento}
-                className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                key={c.id_establecimiento || c.id_servicio}
+                className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
               >
-                <h3 className="font-bold text-blue-900 text-lg mb-1">
-                  {c.nombre_comercio}
-                </h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="text-yellow-400">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span
-                        key={star}
-                        className={
-                          star <= (c.promedio_valoraciones || 0)
-                            ? "text-yellow-400"
-                            : "text-gray-300"
-                        }
-                      >
-                        ★
-                      </span>
-                    ))}
+                <div>
+                  <h3 className="font-bold text-blue-900 text-lg mb-1">
+                    {c.nombre_comercio || c.categoria}
+                  </h3>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-yellow-400">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          className={
+                            star <= (c.promedio_valoraciones || 0)
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {c.promedio_valoraciones || 0} (
+                      {c.numero_valoraciones || 0})
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium">
-                    {c.promedio_valoraciones || 0} ({c.numero_valoraciones || 0}
-                    )
+
+                  <p className="text-sm text-gray-500 mb-3">
+                    {c.direccion || "Servicio profesional"}
+                  </p>
+                  <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
+                    CP: {c.cp}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mb-3">{c.direccion}</p>
-                <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  CP: {c.cp}
-                </span>
+
+                {/* BOTÓN PARA ABRIR EL MODAL */}
+                {c.tipo !== "google" && (
+                  <button
+                    onClick={() => setValorando(c)}
+                    className="w-full mt-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all text-sm"
+                  >
+                    ⭐ Valorar ahora
+                  </button>
+                )}
               </div>
             ))
           : !loading && (
               <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border-2 border-dashed border-gray-100">
-                Ingresa un código postal para ver resultados
+                Ingresa un código postal o usa tu ubicación
               </div>
             )}
       </div>
+
+      {/* MODAL FLOTANTE */}
+      {valorando && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-white p-8 rounded-3xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold mb-2 text-black text-center">
+              Valora tu experiencia
+            </h3>
+            <p className="text-gray-500 text-center mb-6 text-sm">
+              Valorando:{" "}
+              <span className="font-bold text-blue-600">
+                {valorando.nombre_comercio || valorando.categoria}
+              </span>
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <select
+                className="w-full p-4 border-2 border-gray-100 rounded-2xl text-black font-medium focus:border-blue-500 outline-none"
+                value={puntuacionNueva}
+                onChange={(e) => setPuntuacionNueva(Number(e.target.value))}
+              >
+                <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
+                <option value="4">⭐⭐⭐⭐ Muy bueno</option>
+                <option value="3">⭐⭐⭐ Normal</option>
+                <option value="2">⭐⭐ Pobre</option>
+                <option value="1">⭐ Malo</option>
+              </select>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setValorando(null)}
+                  className="flex-1 py-4 text-gray-400 font-bold hover:bg-gray-50 rounded-2xl"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={enviarValoracion}
+                  className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

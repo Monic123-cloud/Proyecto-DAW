@@ -29,9 +29,9 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-GOOGLE_MAPS_API_KEY =env("GOOGLE_MAPS_API_KEY", default="")
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
 # Busca en el sistema operativo una variable llamada así
-print(f"LA KEY CARGADA ES: {GOOGLE_MAPS_API_KEY}")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
@@ -192,3 +192,17 @@ SIMPLE_JWT = {
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# CONFIGURACIÓN DE EMAIL
+# para pruebas para ver los emails de matching
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# para mandar emails reales
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+# EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+
+GOOGLE_ANALYTICS_PROPERTY_ID = env("GOOGLE_ANALYTICS_PROPERTY_ID")
+GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
