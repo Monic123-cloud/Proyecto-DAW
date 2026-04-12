@@ -124,6 +124,7 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
   );
   return (
+    <div style={{width:"100%", height:"100%"}}>
     <GoogleMap
       mapContainerStyle={CONTAINER_STYLE}
       center={center}
@@ -180,5 +181,6 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
         </InfoWindowF>
       )}
     </GoogleMap>
+    </div>
   );
 }

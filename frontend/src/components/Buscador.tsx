@@ -119,7 +119,7 @@ export default function Buscador() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 flex flex-col gap-6">
+    <div className="w-full h-full flex flex-col gap-4">
       {/* Panel Superior: BUSCADOR Y MAPA */}
       <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
@@ -151,6 +151,7 @@ export default function Buscador() {
           >
             {loading ? "..." : "Buscar"}
           </button>
+
         </div>
         {/* llamamos al componente Mapa y le enviamos la variable 'resultados' 
        que contiene TODO (comercios, servicios y google) */}

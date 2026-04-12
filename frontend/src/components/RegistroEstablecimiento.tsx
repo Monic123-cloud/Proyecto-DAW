@@ -154,16 +154,17 @@ export default function RegistroEstablecimiento() {
   const selectClasses = "form-select bg-dark text-white border-secondary";
 
   const buscarMiNegocio = async () => {
-    if (!cifBusqueda || !password) return alert("Por favor, introduce CIF y contraseña");
+    if (!cifBusqueda || !password)
+      return alert("Por favor, introduce CIF y contraseña");
     setLoading(true);
     try {
-      const res = await fetch(`${ENDPOINTS.BUSCAR_CIF}${cifBusqueda}/`,{
-      method: "POST", // Usamos POST para poder enviar la password de forma segura
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-      password: password // La contraseña viaja protegida 
-      }),
-    });
+      const res = await fetch(`${ENDPOINTS.BUSCAR_CIF}${cifBusqueda}/`, {
+        method: "POST", // Usamos POST para poder enviar la password de forma segura
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: password, // La contraseña viaja protegida
+        }),
+      });
       const data = await res.json();
 
       if (res.ok) {
@@ -305,12 +306,12 @@ export default function RegistroEstablecimiento() {
     };
 
     if (password) {
-    datosAEnviar.password = password;
-  } else if (!editId) {
-    alert("La contraseña es obligatoria para nuevos registros.");
-    setLoading(false);
-    return;
-  }
+      datosAEnviar.password = password;
+    } else if (!editId) {
+      alert("La contraseña es obligatoria para nuevos registros.");
+      setLoading(false);
+      return;
+    }
     const url = editId
       ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
       : ENDPOINTS.ESTABLECIMIENTOS;
