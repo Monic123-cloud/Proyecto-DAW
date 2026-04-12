@@ -15,6 +15,7 @@ from dotenv import load_dotenv  # busca un archivo secreto llamado .env y lo car
 import environ  # permite leer variables y decirles qué tipo de dato son
 import dj_database_url  # permite configurar la base de datos usando una URL, útil para despliegues como Railway
 import os  # permite que Python lea los valores .env
+import json
 
 env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = (
@@ -205,5 +206,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 # EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 
-GOOGLE_ANALYTICS_PROPERTY_ID = env("GOOGLE_ANALYTICS_PROPERTY_ID")
-GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
+
+google_creds_env = os.getenv('GOOGLE_ANALYTICS_JSON')
+
+if google_creds_env:
+    # Si estamos en la nube, convertimos el texto de la variable en un diccionario
+    GOOGLE_ANALYTICS_CREDENTIALS = json.loads(google_creds_env)
+else:
+    # Si estamos en local, usamos la ruta al archivo físico 
+    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
+
+GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv('GOOGLE_ANALYTICS_PROPERTY_ID')
