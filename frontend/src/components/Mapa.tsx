@@ -9,7 +9,7 @@ const LIBRARIES: (
   | "drawing"
   | "geometry"
   | "visualization"
-)[] = ["marker"];
+)[] = ["marker", "places", "geometry"];
 const CONTAINER_STYLE = { width: "100%", height: "400px" };
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
 
