@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED 1
 
 # 3. Directorio de trabajo
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # 4. INSTALACIÓN DE DEPENDENCIAS PARA POSTGRES (MUY IMPORTANTE)
 # Instalamos libpq-dev para que la librería 'psycopg2' pueda compilarse
@@ -27,4 +28,4 @@ COPY . /app/
 EXPOSE 8000
 
 # 8. Comando de arranque
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "check"]

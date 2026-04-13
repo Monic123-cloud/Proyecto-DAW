@@ -1,17 +1,25 @@
-"use client";
+"use client" 
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
+const ProtectedRoute = ({ children }) => {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
 
-const ProtectedRoute = () => {
-    const router = useRouter();
-    const token = localStorage.getItem('Token')
+  useEffect(() => {
+    const token = localStorage.getItem("token")
 
-    return(
+    if (!token) {
+      router.push("/acceso/login")
+    } else {
+      setLoading(false)
+    }
+  }, [])
 
-        token ? <Outlet/> : router.push(`/`) 
-    )
+  if (loading) return null
 
+  return children
 }
 
 export default ProtectedRoute

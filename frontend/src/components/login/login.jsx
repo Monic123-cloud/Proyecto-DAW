@@ -50,6 +50,7 @@ const LoginForm= () =>{
           maxWidth: 400,
           borderRadius: "20px",
           background: "rgba(255,255,255,0.95)",
+          border: '4px solid #10b981'
         }}
       >
         <Typography

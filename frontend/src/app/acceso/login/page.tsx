@@ -1,5 +1,13 @@
 import LoginForm from "../../../components/login/login";
+import ThemeRegistry from "@/theme/ThemeRegistry"
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return (
+  <ThemeRegistry>
+  <LoginForm />;
+  </ThemeRegistry>
+  )
+  
+  
+  
 }
