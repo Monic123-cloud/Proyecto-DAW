@@ -15,6 +15,7 @@ from dotenv import load_dotenv  # busca un archivo secreto llamado .env y lo car
 import environ  # permite leer variables y decirles qué tipo de dato son
 import dj_database_url  # permite configurar la base de datos usando una URL, útil para despliegues como Railway
 import os  # permite que Python lea los valores .env
+import json
 
 env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = (
@@ -29,9 +30,9 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-GOOGLE_MAPS_API_KEY =env("GOOGLE_MAPS_API_KEY", default="")
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
 # Busca en el sistema operativo una variable llamada así
-print(f"LA KEY CARGADA ES: {GOOGLE_MAPS_API_KEY}")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
@@ -196,3 +197,26 @@ SIMPLE_JWT = {
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# CONFIGURACIÓN DE EMAIL
+# para pruebas para ver los emails de matching
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# para mandar emails reales
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+# EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+
+
+google_creds_env = os.getenv('GOOGLE_ANALYTICS_JSON')
+
+if google_creds_env:
+    # Si estamos en la nube, convertimos el texto de la variable en un diccionario
+    GOOGLE_ANALYTICS_CREDENTIALS = json.loads(google_creds_env)
+else:
+    # Si estamos en local, usamos la ruta al archivo físico 
+    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
+
+GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv('GOOGLE_ANALYTICS_PROPERTY_ID')

@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from buscador.views import analytics_dashboard_view
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -28,5 +29,5 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/buscador/", include("buscador.urls")),
-    #path('api/analytics/', analytics_dashboard_view, name='analytics_view'),
+    path('api/analytics/', analytics_dashboard_view, name='analytics_view'),
 ]
