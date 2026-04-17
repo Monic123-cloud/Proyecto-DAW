@@ -1,4 +1,6 @@
 from django.shortcuts import render
+import os
+import json
 from rest_framework.views import APIView  # # Clase base para crear tu endpoint de API
 from rest_framework.response import (
     Response,
@@ -39,10 +41,14 @@ from .serializers import (
     EstablecimientoSerializer,
 )  # Para convertir los datos de la base de datos a formato JSON que React entiende
 from .models import (
-    Servicio, Valoracion, SolicitudAyuda
+    Servicio,
+    Valoracion,
+    SolicitudAyuda,
 )  # Importamos el modelo de Servicio y setting para gestionar
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+import google.generativeai as genai
+from .models import Establecimiento
 from config.analytics_service import get_google_analytics_data, get_conversion_data
 from django.contrib.auth import authenticate
 
@@ -52,6 +58,7 @@ User = (
 
 """ "Es el controlador que gestiona la lógica de negocio, procesando las peticiones de búsqueda para devolver resultados
 de la base de datos local y la API de Google Maps en formato JSON."""
+
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
 def buscador_mapa(request):
@@ -97,7 +104,6 @@ def buscador_mapa(request):
             ),  # pasa el ID del comercio que pertenece al usuario que está navegando,para permitirte editar solo tu establecimiento
         },
     )
-
 
 
 # API de búsqueda (Para React). devuelve datos (JSON). Es la que consume React para mostrar los resultados de búsqueda en el mapa. Lee los parámetros de búsqueda (lat/lng o CP) y devuelve una lista de comercios que cumplen esos criterios, tanto de la base de datos local como de Google Maps.
@@ -427,44 +433,56 @@ def gestionar_formulario(request, pk=None):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def buscar_y_login_por_cif(request, cif):
     """
     Punto de entrada para usuarios registrados.
     Valida CIF + Password y devuelve los datos del local + Token.
     """
-    password = request.data.get('password')
+    password = request.data.get("password")
     cif_limpio = cif.strip().upper()
-    
+
     try:
         # 1. Buscamos el local por CIF
         local = Establecimiento.objects.get(cif_nif__iexact=cif_limpio)
-        
+
         # 2. Verificamos que tenga usuario
         if not local.usuario:
-            return Response({"error": "Ficha sin usuario asociado. Contacte con soporte."}, status=400)
-        
+            return Response(
+                {"error": "Ficha sin usuario asociado. Contacte con soporte."},
+                status=400,
+            )
+
         # 3. Autenticamos contra auth_user usando el username del usuario vinculado
         user = authenticate(username=local.usuario.username, password=password)
-        
+
         if user is not None:
             # Generamos token real
             refresh = RefreshToken.for_user(user)
             serializer = EstablecimientoSerializer(local)
-            
-            return Response({
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                **serializer.data  # Enviamos todos los datos del local
-            }, status=200)
-        else:
-            return Response({"error": "Contraseña incorrecta para este CIF/NIF."}, status=401)
-            
-    except Establecimiento.DoesNotExist:
-        return Response({"error": "No existe ningún negocio con ese CIF/NIF."}, status=404)
 
-@api_view(["GET","POST" ])
+            return Response(
+                {
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    **serializer.data,  # Enviamos todos los datos del local
+                },
+                status=200,
+            )
+        else:
+            return Response(
+                {"error": "Contraseña incorrecta para este CIF/NIF."}, status=401
+            )
+
+    except Establecimiento.DoesNotExist:
+        return Response(
+            {"error": "No existe ningún negocio con ese CIF/NIF."}, status=404
+        )
+
+
+@api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def buscar_cif(request, cif):
     try:
@@ -575,10 +593,10 @@ class ServicioViewSet(viewsets.ModelViewSet):
         la ubicación de su establecimiento para el mapa.
         """
         from users.models import CustomUser
+
         try:
             # Obtenemos el perfil del usuario logueado a través de su auth_id (que es el username del User)
             usuario_perfil = CustomUser.objects.get(auth_id=self.request.user.username)
-
 
             # Guardamos el servicio con toda la información necesaria
             serializer.save(
@@ -597,15 +615,19 @@ class ServicioViewSet(viewsets.ModelViewSet):
             raise ValidationError(
                 "Debes registrar un establecimiento antes de ofrecer servicios."
             )
-        
+
+
 class ValoracionViewSet(viewsets.ModelViewSet):
     queryset = Valoracion.objects.all()
     serializer_class = ValoracionSerializer
-    permission_classes = [permissions.IsAuthenticated] # Solo usuarios logueados pueden valorar
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]  # Solo usuarios logueados pueden valorar
 
     def perform_create(self, serializer):
         from users.models import CustomUser
         from rest_framework.exceptions import ValidationError
+
         try:
             # SEGURIDAD: Verificamos que el usuario del token existe en nuestra tabla CustomUser
             # Buscamos por username (que es el CIF/DNI)
@@ -617,9 +639,9 @@ class ValoracionViewSet(viewsets.ModelViewSet):
         except CustomUser.DoesNotExist:
             # Si el token es válido pero por algún motivo el usuario no está en la BBDD
             raise ValidationError("Error de seguridad: El perfil de usuario no existe.")
-        
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def lista_solicitudes_ayuda(request):
     """
@@ -627,22 +649,25 @@ def lista_solicitudes_ayuda(request):
     """
     try:
         # Traemos las solicitudes reales ordenadas por fecha (las más nuevas primero)
-        solicitudes = SolicitudAyuda.objects.all().order_by('-fecha_creacion')
-        
+        solicitudes = SolicitudAyuda.objects.all().order_by("-fecha_creacion")
+
         data = []
         for s in solicitudes:
-            data.append({
-                "nombre_completo": s.nombre_completo,
-                "cp": s.cp,
-                "telefono": s.telefono,
-                "requiere_llamada": s.requiere_llamada,
-                "encuesta_enviada": s.encuesta_enviada
-            })
+            data.append(
+                {
+                    "nombre_completo": s.nombre_completo,
+                    "cp": s.cp,
+                    "telefono": s.telefono,
+                    "requiere_llamada": s.requiere_llamada,
+                    "encuesta_enviada": s.encuesta_enviada,
+                }
+            )
         return Response(data)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def analytics_dashboard_view(request):
     """
@@ -652,11 +677,85 @@ def analytics_dashboard_view(request):
     try:
         visitas = get_google_analytics_data()
         conversion = get_conversion_data()
-        
-        return Response({
-            "visitas": visitas,
-            "conversion": conversion,
-        })
+
+        return Response(
+            {
+                "visitas": visitas,
+                "conversion": conversion,
+            }
+        )
     except Exception as e:
         # Si el servicio de Analytics falla, devolvemos el error para que React lo gestione
         return Response({"error": f"Error en Analytics: {str(e)}"}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def analizar_mercado(request):
+    import google.generativeai as genai
+    from django.http import JsonResponse
+    import json
+
+    try:
+        cp = request.GET.get('cp')
+        if not cp:
+            return JsonResponse({"error": "Falta el parámetro CP"}, status=400)
+        # Configuración básica
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            return JsonResponse({"error": "No hay API KEY en el .env"}, status=500)
+
+        genai.configure(api_key=api_key)
+
+        # automáticamente detectamos un modelo válido
+        modelo_valido = None
+        for m in genai.list_models():
+            if "generateContent" in m.supported_generation_methods:
+                modelo_valido = m.name
+                break  # Usamos el primero que soporte generar contenido
+
+        if not modelo_valido:
+            return JsonResponse(
+                {"error": "Tu API Key no tiene modelos disponibles"}, status=500
+            )
+
+        # Preparar contexto de base de datos
+        cp_limpio = str(cp).strip()
+        locales = Establecimiento.objects.filter(cp=cp_limpio).values_list(
+            "categoria", flat=True
+        )
+        lista_contexto = ", ".join(set(locales)) if locales else "ninguno"
+
+        # Generación con el modelo detectado
+        model = genai.GenerativeModel(modelo_valido)
+        prompt = f"""
+        Analiza el CP {cp_limpio} en España. Actualmente hay: {lista_contexto}.
+        Dime 3 negocios que faltan. Responde SOLO un JSON:
+        {{
+            "cp": "{cp_limpio}",
+            "recomendaciones": [
+                {{"negocio": "tipo", "razon": "explicación"}}
+            ]
+        }}
+        """
+
+        response = model.generate_content(prompt)
+
+        # Limpieza y respuesta
+        res_text = response.text
+        if "```" in res_text:
+            res_text = res_text.split("```")[1].replace("json", "").strip()
+
+        return JsonResponse({"status": "success", "data": json.loads(res_text)})
+
+    except Exception as e:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": str(e),
+                "modelo_intentado": (
+                    modelo_valido if "modelo_valido" in locals() else "ninguno"
+                ),
+            },
+            status=500,
+        )

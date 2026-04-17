@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from . import views
 from .views import (
     BuscadorAPIView,
     GeolocalizadorAPIView,
@@ -37,5 +38,6 @@ urlpatterns = [
     path("buscar-cif/<str:cif>/", buscar_y_login_por_cif, name="buscar_y_login"),
     path('', include(router.urls)),
     path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
+    path('experto-mercado/', views.analizar_mercado, name='analizar_mercado'),
 
 ]
