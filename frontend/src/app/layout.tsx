@@ -1,4 +1,5 @@
 import { CartProvider } from "../components/cart/CartContext";
+
 import "./globals.css";
 
 export const metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-light">
         <CartProvider>{children}</CartProvider>
+        
       </body>
     </html>
   );
