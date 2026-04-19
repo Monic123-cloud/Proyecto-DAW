@@ -63,7 +63,14 @@ export default function Buscador({
     try {
       // Django ya filtra internamente y te da la lista unificada
       const url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
-      const response = await fetch(url); //envía la petición HTTP al backend y espera la respuesta
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        mode: "cors", // Forzamos explícitamente el modo CORS
+      }); //envía la petición HTTP al backend y espera la respuesta
       if (!response.ok) throw new Error("Error en la respuesta");
 
       const data = await response.json();
