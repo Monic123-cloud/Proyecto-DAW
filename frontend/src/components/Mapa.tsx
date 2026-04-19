@@ -28,11 +28,12 @@ interface ResultadoBusqueda {
 
 function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
   useEffect(() => {
+    if (!map || !window.google?.maps?.marker) return;
     if (!map) return;
 
     let contenido;
 
-// Decidimos el color según el "tipo" que viene de Django
+    // Decidimos el color según el "tipo" que viene de Django
     if (p.tipo === "servicio_propio") {
       // Círculo VERDE para servicios
       contenido = document.createElement("div");
@@ -98,7 +99,7 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
 
   // Ajuste automático de zoom
   useEffect(() => {
-    if (map && (puntos.length > 0 )) {
+    if (map && puntos.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
       let hayDatos = false;
 
@@ -124,63 +125,63 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
   );
   return (
-    <div style={{width:"100%", height:"100%"}}>
-    <GoogleMap
-      mapContainerStyle={CONTAINER_STYLE}
-      center={center}
-      zoom={14}
-      onLoad={(m) => setMap(m)}
-      onClick={() => setSelected(null)}
-      options={{
-        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
-        streetViewControl: false,
-        mapTypeControl: false,
-      }}
-    >
-      {/* Marcadores de Comercios */}
-      {Array.isArray(puntos) &&
-        puntos.map((p) => (
-          <MarcadorInteligente
-            key={p.id_establecimiento}
-            map={map} // Le pasamos el mapa
-            p={p}
-            onClick={() => setSelected(p)}
-          />
-        ))}
+    <div style={{ width: "100%", height: "100%" }}>
+      <GoogleMap
+        mapContainerStyle={CONTAINER_STYLE}
+        center={center}
+        zoom={14}
+        onLoad={(m) => setMap(m)}
+        onClick={() => setSelected(null)}
+        options={{
+          mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
+          streetViewControl: false,
+          mapTypeControl: false,
+        }}
+      >
+        {/* Marcadores de Comercios */}
+        {Array.isArray(puntos) &&
+          puntos.map((p) => (
+            <MarcadorInteligente
+              key={p.id_establecimiento}
+              map={map} // Le pasamos el mapa
+              p={p}
+              onClick={() => setSelected(p)}
+            />
+          ))}
 
-      {/* Ventana de información */}
-      {selected && (
-        <InfoWindowF
-          position={{
-            lat: Number(selected.latitud || selected.lat),
-            lng: Number(selected.longitud || selected.lng),
-          }}
-          onCloseClick={() => setSelected(null)}
-        >
-          <div className="p-2 text-black max-w-[200px]">
-            <h4 className="font-bold text-blue-700 text-sm mb-1">
-              {selected.nombre_comercio || selected.categoria}
-            </h4>
+        {/* Ventana de información */}
+        {selected && (
+          <InfoWindowF
+            position={{
+              lat: Number(selected.latitud || selected.lat),
+              lng: Number(selected.longitud || selected.lng),
+            }}
+            onCloseClick={() => setSelected(null)}
+          >
+            <div className="p-2 text-black max-w-[200px]">
+              <h4 className="font-bold text-blue-700 text-sm mb-1">
+                {selected.nombre_comercio || selected.categoria}
+              </h4>
 
-            {selected.promedio_valoraciones !== undefined && (
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-yellow-500 text-xs">
-                  {"★".repeat(Math.floor(selected.promedio_valoraciones))}
-                  {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
-                </span>
-                <span className="text-[10px] text-gray-500">
-                  ({selected.promedio_valoraciones})
-                </span>
-              </div>
-            )}
+              {selected.promedio_valoraciones !== undefined && (
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-yellow-500 text-xs">
+                    {"★".repeat(Math.floor(selected.promedio_valoraciones))}
+                    {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
+                  </span>
+                  <span className="text-[10px] text-gray-500">
+                    ({selected.promedio_valoraciones})
+                  </span>
+                </div>
+              )}
 
-            <p className="text-xs text-gray-600 leading-tight">
-              {selected.direccion || `Pro: ${selected.nombre_profesional}`}
-            </p>
-          </div>
-        </InfoWindowF>
-      )}
-    </GoogleMap>
+              <p className="text-xs text-gray-600 leading-tight">
+                {selected.direccion || `Pro: ${selected.nombre_profesional}`}
+              </p>
+            </div>
+          </InfoWindowF>
+        )}
+      </GoogleMap>
     </div>
   );
 }

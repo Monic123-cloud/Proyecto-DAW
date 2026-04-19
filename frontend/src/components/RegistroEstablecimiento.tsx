@@ -91,11 +91,14 @@ const ESTRUCTURA = {
 };
 
 export default function RegistroEstablecimiento() {
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
+
+  if (!isLoaded) return <div>Cargando mapa...</div>;
+  if (loadError) return <div>Error al cargar el mapa</div>;
 
   const [vista, setVista] = useState<"seleccion" | "busqueda" | "formulario">(
     "seleccion",
