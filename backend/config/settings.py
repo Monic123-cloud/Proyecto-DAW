@@ -45,8 +45,6 @@ DEBUG = True
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-CORS_ALLOW_ALL_ORIGINS = True
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -167,7 +165,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
     "https://app-comercio-red.vercel.app",
@@ -175,7 +173,19 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://app-comercio-red.vercel.app"]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CSRF_TRUSTED_ORIGINS = ["https://app-comercio-red.vercel.app","https://proyecto-daw-production.up.railway.app"]
 
 # Configuración de Django REST Framework para usar JWT y permitir cualquier permiso
 REST_FRAMEWORK = {
