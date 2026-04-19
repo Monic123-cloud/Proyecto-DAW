@@ -1,6 +1,11 @@
 "use client";
 
-import RegistroEstablecimiento from "../../components/RegistroEstablecimiento";
+import dynamic from "next/dynamic";
+
+const RegistroEstablecimiento = dynamic(
+  () => import("@/components/RegistroEstablecimiento"),
+  { ssr: false },
+);
 
 export default function PaginaRegistro() {
   return (
@@ -9,5 +14,3 @@ export default function PaginaRegistro() {
     </div>
   );
 }
-
-
