@@ -101,39 +101,29 @@ WSGI_APPLICATION = "config.wsgi.application"
 db_from_env = env.db_url("DATABASE_URL", default=None)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-        # SI ESTAMOS EN RAILWAY (Deploy)
-        DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True
-            )
-        }
-else:
-
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": ":memory:",
-            }
-        }
-
-    # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
-"""DATABASES = {
+if os.environ.get("DB_HOST"):
+    DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("DB_NAME", default="tu_db_nombre"),
-            "USER": env("DB_USER", default="tu_usuario"),
-            "PASSWORD": env("DB_PASSWORD", default=""),
-            "HOST": env("DB_HOST", default="localhost"),
-            "PORT": env("DB_PORT", default="5432"),
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT"),
             "OPTIONS": {
-                "sslmode": "disable",
+                "sslmode": "require",  # OBLIGATORIO en Railway
             },
         }
-    }"""
-
+    }
+else:
+    # Este bloque salva el "Build" de quedarse colgado
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+    # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
