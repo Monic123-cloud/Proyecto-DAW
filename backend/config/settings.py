@@ -111,7 +111,7 @@ if os.environ.get("DB_HOST"):
             "USER": env("DB_USER", default=""),
             "PASSWORD": env("DB_PASSWORD", default=""),
             "HOST": env("DB_HOST", default=""),
-            "PORT": env("DB_PORT", default="5432"),
+            "PORT": env("DB_PORT"),
             "OPTIONS": {
                 "sslmode": "require",  # OBLIGATORIO en Railway
             },
