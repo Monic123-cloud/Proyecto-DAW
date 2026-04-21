@@ -8,7 +8,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Email es obligatorio")
 
         email = self.normalize_email(email)
-        cif_nif = models.CharField(max_length=20, unique=True)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -32,6 +31,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=200, unique=True)
     username = models.CharField(max_length=200, null=True, blank=True)
+    cif_nif = models.CharField(max_length=20, unique=True)
 
     nombre = models.CharField(max_length=100, blank=True, null=True)
     apellidos = models.CharField(max_length=150, blank=True, null=True)
