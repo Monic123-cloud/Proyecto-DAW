@@ -16,5 +16,4 @@ export const ENDPOINTS = {
     BUSCAR_CIF: `${API_BASE_URL}/api/buscador/buscar-cif/`,
     MI_LOCAL: `${API_BASE_URL}/api/buscador/establecimiento/mi_local/`,
     SERVICIOS: `${API_BASE_URL}/api/buscador/servicios/`,
-    VALORACIONES: `${API_BASE_URL}/api/buscador/valoraciones/`,
 };

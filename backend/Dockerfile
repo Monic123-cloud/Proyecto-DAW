@@ -23,9 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. Código del proyecto
 COPY . /app/
 
-#7. Ejecutar tareas de Django en build (NO en CMD)
-RUN python manage.py collectstatic --noinput
+# 7. Puerto
+EXPOSE 8000
 
-# 8. Esto SIEMPRE en el CMD (Se ejecuta en el Deploy, con la DB real conectada)
-CMD gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2
-
+# 8. Comando de arranque
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

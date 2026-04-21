@@ -15,7 +15,6 @@ from dotenv import load_dotenv  # busca un archivo secreto llamado .env y lo car
 import environ  # permite leer variables y decirles qué tipo de dato son
 import dj_database_url  # permite configurar la base de datos usando una URL, útil para despliegues como Railway
 import os  # permite que Python lea los valores .env
-import json
 
 env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = (
@@ -30,11 +29,11 @@ if os.path.exists(os.path.join(BASE_DIR, ".env")):
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
+GOOGLE_MAPS_API_KEY =env("GOOGLE_MAPS_API_KEY", default="")
 # Busca en el sistema operativo una variable llamada así
-
+print(f"LA KEY CARGADA ES: {GOOGLE_MAPS_API_KEY}")
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="clave-segura-solo-para-el-paso-de-build")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
@@ -44,6 +43,7 @@ ALLOWED_HOSTS = ["*"]
 DEBUG = True
 
 AUTH_USER_MODEL = "users.CustomUser"
+
 
 # Application definition
 
@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "buscador",
+    "productos.apps.ProductosConfig",
     "users",
     "knox",
 ]
@@ -100,32 +101,26 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
 db_from_env = env.db_url("DATABASE_URL", default=None)
 
-print(f"DEBUG: Intentando conectar a HOST: {os.environ.get('DB_HOST')}")
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if os.environ.get("DB_HOST"):
+if db_from_env:
+    # Si estamos en Railway, esto configura todo automáticamente (host, user, pass...)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=env("DATABASE_URL"), conn_max_age=600, ssl_require=True
+        )
+    }
+else:
+    # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("DB_NAME", default=""),
-            "USER": env("DB_USER", default=""),
+            "NAME": env("DB_NAME", default="tu_db_nombre"),
+            "USER": env("DB_USER", default="tu_usuario"),
             "PASSWORD": env("DB_PASSWORD", default=""),
-            "HOST": env("DB_HOST", default=""),
-            "PORT": env("DB_PORT"),
-            "OPTIONS": {
-                "sslmode": "require",  # OBLIGATORIO en Railway
-            },
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
         }
     }
-else:
-    # Este bloque salva el "Build" de quedarse colgado
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": ":memory:",
-        }
-    }
-    # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -145,6 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -155,6 +151,7 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -172,35 +169,19 @@ CORS_ALLOWED_ORIGINS = [
     "https://app-comercio-red.vercel.app",
     "http://localhost:5173",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://app-comercio-red.vercel.app",
-    "https://proyecto-daw-production.up.railway.app",
-    "https://*.vercel.app",
-    "https://*.up.railway.app",
-    "http://localhost:5173",
-]
+CSRF_TRUSTED_ORIGINS = ["https://app-comercio-red.vercel.app"]
 
 # Configuración de Django REST Framework para usar JWT y permitir cualquier permiso
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "knox.auth.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 # Duración de Tokens
@@ -212,32 +193,5 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# CONFIGURACIÓN DE EMAIL
-# para pruebas para ver los emails de matching
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# para mandar emails reales
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-# EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-
-
-google_creds_env = os.getenv("GOOGLE_ANALYTICS_JSON")
-
-if google_creds_env:
-    # Si estamos en la nube, convertimos el texto de la variable en un diccionario
-    GOOGLE_ANALYTICS_CREDENTIALS = json.loads(google_creds_env)
-else:
-    # Si estamos en local, usamos la ruta al archivo físico
-    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(
-        BASE_DIR, "credentials", "google-analytics-key.json"
-    )
-
-GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv("GOOGLE_ANALYTICS_PROPERTY_ID")

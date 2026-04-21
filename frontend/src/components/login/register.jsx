@@ -1,14 +1,15 @@
 'use client'
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from 'react-hook-form'
+import React from "react";
+import { useForm } from 'react-hook-form'
 import MyTextField from './forms/MyTextField'
 import MyPassField from './forms/MyPassField'
 import MyButton from './forms/MyButton'
+import Box from '@mui/material/Box'
 import Link from 'next/link'
 import AxiosInstance from '../AxiosInstance'
 import MySelect from './forms/MySelect.jsx'
-import DatePicker from './forms/DatePicker'
-import { Paper, Box, Button, Stack, Checkbox, FormControlLabel } from "@mui/material";
+import { Paper } from "@mui/material";
 
 const Register = () => {
   const router = useRouter()
@@ -37,18 +38,13 @@ const Register = () => {
       cp: data.cp,
 
       latitud: data.latitud,
-      longitud: data.longitud,
-      voluntariado: data.voluntariado,
+      longitud: data.longitud
     })
 
       .then(() => {
         router.push(`/`)
-        
       }
       )
-      .catch(err => {
-        console.log("ERROR:", err.response.data)
-      })
   }
 
   return (
@@ -74,17 +70,16 @@ const Register = () => {
           borderRadius: "20px",
           width: "100%",
           maxWidth: 600,
-          border: '4px solid #10b981'
         }}
       >
         <form onSubmit={handleSubmit(submission)}>
-          <Box className={"whiteBox"} >
+          <Box className={"whiteBox"}>
 
-            <Box className={"itemBox"} >
-              <Box sx={{ typography: 'h4', textAlign: 'center', fontWeight: 'bold', color: 'primary.dark' }}>Alta de usuario</Box>
+            <Box className={"itemBox"}>
+              <Box className={"title"}>Alta de usuario</Box>
             </Box>
 
-
+            {/* Nombre */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Nombre"}
@@ -93,7 +88,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Apellidos */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Apellidos"}
@@ -102,18 +97,18 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Correo */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Correo"}
-                name={"email"}
+                name={"correo"}
                 control={control}
               />
             </Box>
 
+            
 
-
-
+            {/* Sexo */}
             <Box className={"itemBox"}>
               <MySelect
                 label={"Sexo"}
@@ -129,13 +124,16 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Fecha de nacimiento */}
             <Box className={"itemBox"}>
-              <DatePicker 
-              name={"fecha_nacimiento"}/>
+              <MyTextField
+                label={"Fecha de nacimiento"}
+                name={"fecha_nacimiento"}
+                control={control}
+              />
             </Box>
 
-
+            {/* Teléfono */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Teléfono"}
@@ -144,7 +142,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Dirección */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Dirección"}
@@ -153,7 +151,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Número */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Número"}
@@ -162,7 +160,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Piso */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Piso"}
@@ -171,7 +169,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Letra */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Letra"}
@@ -180,7 +178,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Municipio */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Municipio"}
@@ -189,7 +187,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Provincia */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Provincia"}
@@ -198,7 +196,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* CP */}
             <Box className={"itemBox"}>
               <MyTextField
                 label={"CP"}
@@ -207,9 +205,9 @@ const Register = () => {
               />
             </Box>
 
+  
 
-
-
+            {/* Password */}
             <Box >
               <MyPassField
                 label={"Password"}
@@ -218,7 +216,7 @@ const Register = () => {
               />
             </Box>
 
-
+            {/* Confirm Password */}
             <Box >
               <MyPassField
                 label={"Confirm password"}
@@ -227,26 +225,7 @@ const Register = () => {
               />
             </Box>
 
-            <Box display="flex" justifyContent="center">
-              <Controller
-                name="voluntariado"
-                control={control}
-                defaultValue={false}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                      />
-                    }
-                    label="¿Quieres participar en voluntariado?"
-                  />
-                )}
-              />
-            </Box>
-
-
+            {/* Botón */}
             <Box >
               <MyButton
                 type={"submit"}
@@ -255,45 +234,16 @@ const Register = () => {
                 sx={{ mt: 2 }}
               />
             </Box>
-
+          
 
           </Box>
         </form>
-        <Stack spacing={1} mt={2}>
-          <Button
-            component={Link}
-            href="/registroM"
-            variant="outlined"
-            sx={{
-              color: 'white',
-              borderColor: '#10b981',
-              backgroundColor: "#d1b3ff",
-              "&:hover": {
-                backgroundColor: "#c49eff"
-              }
-            }}
-            fullWidth
-          >
-            Soy Negocio
-          </Button>
-
-          <Button
-            component={Link}
-            href="/acceso/login"
-            variant="outlined"
-            sx={{
-              color: 'white',
-              borderColor: '#10b981',
-              backgroundColor: "#d1b3ff",
-              "&:hover": {
-                backgroundColor: "#c49eff"
-              }
-            }}
-            fullWidth
-          >
-            Ya estoy registrado
-          </Button>
-        </Stack>
+        <Link href="/registroM" className="btn btn-primary">
+                    Soy Negocio
+                  </Link>
+        <Link href="/acceso/login" className="btn btn-primary">
+                    Ya estoy registrado
+                  </Link>
       </Paper>
 
 

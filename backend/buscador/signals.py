@@ -15,20 +15,17 @@ def matching_por_cp(sender, instance, created, **kwargs):
             # Enviamos el email al usuario voluntario
             send_mail(
                 subject="¡Tienes un nuevo Match de Voluntariado!",
-                message=(
-                f"Hola {v.usuario.username},\n\n"
-                f"Una persona en tu zona ({instance.cp}) necesita de tu ayuda como voluntario.\n\n"
-                f"DATOS DE CONTACTO:\n"
-                f"- Nombre: {instance.nombre_completo}\n"
-                f"- Teléfono: {instance.telefono}\n"
-                f"- Descripción: {instance.descripcion}\n\n"
-                f"Por favor, ponte en contacto lo antes posible.\n"
-                f"¡Gracias por tu compromiso!"
-            ),
-            from_email="no-reply@tudominio.com",
-            recipient_list=[v.usuario.email],
-            fail_silently=False,
-        )
+                message=f"Hola {v.usuario.nombre},\n\n"
+                f"Una persona en tu zona ({instance.cp}) necesita ayuda.\n"
+                f"Nombre: {instance.nombre_completo}\n"
+                f"Descripción: {instance.descripcion}\n"
+                f"Teléfono de contacto: {instance.telefono}\n\n"
+                f"¡Gracias por tu compromiso!",
+                from_email="no-reply@tudominio.com",
+                recipient_list=[v.usuario.email],  # Usamos el email de tu tabla usuario
+                fail_silently=False,
+            )
+
 
 def procesar_seguimiento_ayuda():
     hace_una_semana = timezone.now() - timedelta(days=7)

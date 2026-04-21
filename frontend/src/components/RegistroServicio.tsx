@@ -62,8 +62,6 @@ const RegistroServicio = () => {
         body: JSON.stringify(datos),
       });
 
-      const resData = await response.json();
-
       if (response.ok) {
         setMensaje({
           texto: "¡Servicio publicado con éxito!",
@@ -71,11 +69,11 @@ const RegistroServicio = () => {
         });
         setDatos({ categoria: "", descripcion: "", precio_hora: "" });
       } else {
-       const errorMsg = resData.error || 
-                         (resData && typeof resData === 'object' ? Object.values(resData)[0] : "Error al publicar");
-        
+        const errorData = await response.json();
         setMensaje({
-          texto: Array.isArray(errorMsg) ? errorMsg[0] : errorMsg,
+          texto:
+            errorData.error ||
+            "Error al publicar. Revisa que estés dado de alta como usuario.",
           tipo: "error",
         });
       }
@@ -132,7 +130,7 @@ const RegistroServicio = () => {
           {/* CATEGORÍA */}
           <div className="mb-3">
             <label className="form-label text-white fw-bold small">
-              ¿Qué servicio ofreces?
+              ¿QUÉ SERVICIO OFRECES?
             </label>
             <select
               name="categoria"
@@ -157,7 +155,7 @@ const RegistroServicio = () => {
           {/* DESCRIPCIÓN */}
           <div className="mb-3">
             <label className="form-label text-white fw-bold small">
-              Descripción del servicio
+              DESCRIPCIÓN DETALLADA
             </label>
             <textarea
               name="descripcion"
@@ -173,7 +171,7 @@ const RegistroServicio = () => {
           {/* PRECIO */}
           <div className="mb-4">
             <label className="form-label text-white fw-bold small">
-              Precio por hora (€)
+              PRECIO POR HORA (€)
             </label>
             <input
               type="number"

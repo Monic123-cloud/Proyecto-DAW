@@ -3,14 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
-import { validarDocumentoCompleto, validarCP } from "../app/utils";
-import { authService } from "../services/authService";
+import { validarDocumentoCompleto, validarCP } from "../components/utils/utils";
+import { authService } from '../services/authService';
 
-const GOOGLE_MAPS_LIBRARIES: ("places" | "geometry" | "marker")[] = [
-  "places",
-  "geometry",
-  "marker",
-];
+const libraries: ("places" | "geometry")[] = ["places", "geometry"];
 
 const ESTRUCTURA = {
   "Educación y Cultura": {
@@ -91,14 +87,11 @@ const ESTRUCTURA = {
 };
 
 export default function RegistroEstablecimiento() {
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: GOOGLE_MAPS_LIBRARIES,
+    libraries,
   });
-
-  if (!isLoaded) return <div>Cargando mapa...</div>;
-  if (loadError) return <div>Error al cargar el mapa</div>;
 
   const [vista, setVista] = useState<"seleccion" | "busqueda" | "formulario">(
     "seleccion",
@@ -135,10 +128,10 @@ export default function RegistroEstablecimiento() {
       if (!authService.isAuthenticated()) return;
 
       try {
-        const response = await fetch(ENDPOINTS.MI_LOCAL, {
-          method: "GET",
-          headers: authService.getAuthHeaders(),
-        });
+      const response = await fetch(ENDPOINTS.MI_LOCAL, {
+        method: "GET",
+        headers: authService.getAuthHeaders(), 
+      });
 
         if (response.ok) {
           const datosExistentes = await response.json();
@@ -157,17 +150,10 @@ export default function RegistroEstablecimiento() {
   const selectClasses = "form-select bg-dark text-white border-secondary";
 
   const buscarMiNegocio = async () => {
-    if (!cifBusqueda || !password)
-      return alert("Por favor, introduce CIF y contraseña");
+    if (!cifBusqueda) return alert("Por favor, introduce un CIF");
     setLoading(true);
     try {
-      const res = await fetch(`${ENDPOINTS.BUSCAR_CIF}${cifBusqueda}/`, {
-        method: "POST", // Usamos POST para poder enviar la password de forma segura
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          password: password, // La contraseña viaja protegida
-        }),
-      });
+      const res = await fetch(`${ENDPOINTS.BUSCAR_CIF}${cifBusqueda}/`);
       const data = await res.json();
 
       if (res.ok) {
@@ -286,6 +272,7 @@ export default function RegistroEstablecimiento() {
     e.preventDefault();
     setLoading(true);
 
+
     // Validación: Si editamos, necesitamos el token
     if (editId && !authService.isAuthenticated()) {
       alert(
@@ -308,13 +295,6 @@ export default function RegistroEstablecimiento() {
           : formData.subcategoria,
     };
 
-    if (password) {
-      datosAEnviar.password = password;
-    } else if (!editId) {
-      alert("La contraseña es obligatoria para nuevos registros.");
-      setLoading(false);
-      return;
-    }
     const url = editId
       ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
       : ENDPOINTS.ESTABLECIMIENTOS;
@@ -359,7 +339,7 @@ export default function RegistroEstablecimiento() {
       className="container py-5"
       style={{
         backgroundColor: "#1a3a3a",
-        backgroundImage: `linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8))`,
+        backgroundImage: `linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8)), url('/formularios.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -376,7 +356,7 @@ export default function RegistroEstablecimiento() {
           className="bg-white d-inline-block rounded-circle p-3 mb-2"
           style={{ width: "80px", height: "80px" }}
         >
-          <img src="" alt="logo" style={{ width: "100%" }} />
+          <img src="/tu-icono.png" alt="logo" style={{ width: "100%" }} />
         </div>
         <h1 className="text-white fw-bold h3">Gestión de Negocio</h1>
       </div>
@@ -418,20 +398,10 @@ export default function RegistroEstablecimiento() {
               value={cifBusqueda}
               onChange={(e) => setCifBusqueda(e.target.value.toUpperCase())}
             />
-            <div className="mb-3">
-              <label className="text-white-50 small">Contraseña</label>
-              <input
-                type="password"
-                className={inputClasses}
-                placeholder="Tu contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
             <button
               className="btn btn-warning w-100 mt-3 py-2 fw-bold"
               onClick={buscarMiNegocio}
-              disabled={loading || !cifBusqueda || !password}
+              disabled={loading}
             >
               {loading ? "Buscando..." : "CARGAR DATOS"}
             </button>
