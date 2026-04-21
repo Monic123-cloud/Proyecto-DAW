@@ -27,5 +27,5 @@ COPY . /app/
 RUN python manage.py collectstatic --noinput
 
 # 8. Esto SIEMPRE en el CMD (Se ejecuta en el Deploy, con la DB real conectada)
-CMD gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
+CMD gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2
 
