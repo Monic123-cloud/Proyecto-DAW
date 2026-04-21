@@ -24,10 +24,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. Código del proyecto
 COPY . /app/
 
-# 7. Puerto 
-ENV PORT 8080
+#7. Ejecutar tareas de Django en build (NO en CMD)
+RUN python manage.py collectstatic --noinput
 
-# 8. Comando de arranque real con Gunicorn
-CMD python manage.py collectstatic --noinput && \
-    python manage.py migrate --noinput && \
-    gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+# 8. Comando final: SOLO Gunicorn
+CMD python manage.py migrate --noinput && \
+    gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
