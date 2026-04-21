@@ -100,16 +100,27 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
 db_from_env = env.db_url("DATABASE_URL", default=None)
 
-if db_from_env:
-    # Si estamos en Railway, esto configura todo automáticamente (host, user, pass...)
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=env("DATABASE_URL"), conn_max_age=600, ssl_require=True
-        )
-    }
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+        # SI ESTAMOS EN RAILWAY (Deploy)
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=True
+            )
+        }
 else:
+
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": ":memory:",
+            }
+        }
+
     # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
-    DATABASES = {
+"""DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": env("DB_NAME", default="tu_db_nombre"),
@@ -121,7 +132,7 @@ else:
                 "sslmode": "disable",
             },
         }
-    }
+    }"""
 
 
 # Password validation
