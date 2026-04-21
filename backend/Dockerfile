@@ -24,8 +24,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. Código del proyecto
 COPY . /app/
 
-# 7. Puerto
-EXPOSE 8000
+# 7. Puerto 
+ENV PORT 8080
 
-# 8. Comando de arranque
-CMD ["python", "manage.py", "check"]
+# 8. Comando de arranque real con Gunicorn
+CMD python manage.py collectstatic --noinput && \
+    python manage.py migrate && \
+    python manage.py createsuperuser --noinput || true && \
+    gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
