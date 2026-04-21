@@ -17,6 +17,14 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
+        if not extra_fields.get("cif_nif"):
+            extra_fields["cif_nif"] = "admin1234"
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
         return self.create_user(email, password, **extra_fields)
 
 
@@ -41,8 +49,12 @@ class CustomUser(AbstractUser):
     provincia = models.CharField(max_length=100, blank=True, null=True)
     cp = models.CharField(max_length=10, blank=True, null=True)
 
-    latitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
-    longitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
+    latitud = models.DecimalField(
+        max_digits=12, decimal_places=9, blank=True, null=True
+    )
+    longitud = models.DecimalField(
+        max_digits=12, decimal_places=9, blank=True, null=True
+    )
 
     voluntariado = models.BooleanField(default=False)
 
