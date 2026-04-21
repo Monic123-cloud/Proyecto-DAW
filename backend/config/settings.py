@@ -45,8 +45,6 @@ DEBUG = True
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-CORS_ALLOW_ALL_ORIGINS = True
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -119,9 +117,9 @@ else:
             "PASSWORD": env("DB_PASSWORD", default=""),
             "HOST": env("DB_HOST", default="localhost"),
             "PORT": env("DB_PORT", default="5432"),
-            'OPTIONS': {
-            'sslmode': 'disable',
-        },
+            "OPTIONS": {
+                "sslmode": "disable",
+            },
         }
     }
 
@@ -144,7 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -155,7 +152,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -175,7 +171,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://app-comercio-red.vercel.app"]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://app-comercio-red.vercel.app",
+    "https://proyecto-daw-production.up.railway.app",
+]
 
 # Configuración de Django REST Framework para usar JWT y permitir cualquier permiso
 REST_FRAMEWORK = {
@@ -200,7 +211,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # CONFIGURACIÓN DE EMAIL
 # para pruebas para ver los emails de matching
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # para mandar emails reales
 # EMAIL_HOST = 'smtp.gmail.com'
@@ -210,13 +221,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 
 
-google_creds_env = os.getenv('GOOGLE_ANALYTICS_JSON')
+google_creds_env = os.getenv("GOOGLE_ANALYTICS_JSON")
 
 if google_creds_env:
     # Si estamos en la nube, convertimos el texto de la variable en un diccionario
     GOOGLE_ANALYTICS_CREDENTIALS = json.loads(google_creds_env)
 else:
-    # Si estamos en local, usamos la ruta al archivo físico 
-    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(BASE_DIR, 'credentials', 'google-analytics-key.json')
+    # Si estamos en local, usamos la ruta al archivo físico
+    GOOGLE_ANALYTICS_CREDENTIALS = os.path.join(
+        BASE_DIR, "credentials", "google-analytics-key.json"
+    )
 
-GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv('GOOGLE_ANALYTICS_PROPERTY_ID')
+GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv("GOOGLE_ANALYTICS_PROPERTY_ID")

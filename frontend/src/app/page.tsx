@@ -3,13 +3,15 @@
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
-import Buscador from "../components/Buscador";
 import Header from "@/components/header";
-import Mapa from "@/components/Mapa";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { IconButton } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import dynamic from 'next/dynamic';
+
+const Buscador = dynamic(() => import("../components/Buscador"), { ssr: false });
+const Mapa = dynamic(() => import("@/components/Mapa"), { ssr: false });
 
 export default function HomePage() {
   const [esPantallaCompleta, setEsPantallaCompleta] = useState(false);
