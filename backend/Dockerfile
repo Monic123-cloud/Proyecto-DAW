@@ -28,5 +28,4 @@ COPY . /app/
 RUN python manage.py collectstatic --noinput
 
 # 8. Comando final: SOLO Gunicorn
-CMD python manage.py migrate --noinput && \
-    gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
+CMD python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:$PORT
