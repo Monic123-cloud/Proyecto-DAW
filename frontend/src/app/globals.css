@@ -71,7 +71,7 @@ button {
 
 .brand-logo-img {
   width: auto;
-  height: 56px;
+  height: auto;
   object-fit: contain;
   display: block;
 }
