@@ -186,6 +186,9 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://app-comercio-red.vercel.app",
     "https://proyecto-daw-production.up.railway.app",
+    "https://*.vercel.app",
+    "https://*.up.railway.app",
+    "http://localhost:5173",
 ]
 
 # Configuración de Django REST Framework para usar JWT y permitir cualquier permiso
