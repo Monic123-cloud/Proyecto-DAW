@@ -29,6 +29,5 @@ ENV PORT 8080
 
 # 8. Comando de arranque real con Gunicorn
 CMD python manage.py collectstatic --noinput && \
-    python manage.py migrate && \
-    python manage.py createsuperuser --noinput || true && \
+    python manage.py migrate --noinput && \
     gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
