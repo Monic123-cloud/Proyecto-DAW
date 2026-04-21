@@ -7,7 +7,6 @@ ENV PYTHONUNBUFFERED 1
 
 # 3. Directorio de trabajo
 WORKDIR /app
-ENV PYTHONPATH=/app
 
 # 4. INSTALACIÓN DE DEPENDENCIAS PARA POSTGRES (MUY IMPORTANTE)
 # Instalamos libpq-dev para que la librería 'psycopg2' pueda compilarse
@@ -28,5 +27,5 @@ COPY . /app/
 RUN python manage.py collectstatic --noinput
 
 # 8. Esto SIEMPRE en el CMD (Se ejecuta en el Deploy, con la DB real conectada)
-CMD python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+CMD ["sh", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120"]
 
