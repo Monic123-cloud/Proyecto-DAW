@@ -26,7 +26,7 @@ COPY . /app/
 
 #7. Ejecutar tareas de Django en build (NO en CMD)
 RUN python manage.py collectstatic --noinput
+RUN python manage.py migrate --noinput
 
 # 8. Comando final: SOLO Gunicorn
-CMD python manage.py migrate --noinput && \
-    gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--timeout", "120"
