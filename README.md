@@ -38,6 +38,24 @@ Para que el proyecto funcione en tu ordenador con las nuevas librerías de **COR
     Diagrama de Casos de Uso
     Diseño App (UI)
 
+## Resumen
+
+Creamos una app para poner en contacto a usuarios, comercios, tiendas de barrio, productores locales y personas que ofrecen su trabajo en su zona.
+La funcionalidad de la app consiste en que los usuarios puedan registrarse para obtener información de todos los servicios, comercios, y productores locales de su barrio. Asimismo, los comercios y productores pueden registrarse para aparecer en las búsquedas de los usuarios.
+Los usuarios disponen de la posibilidad de ofrecer sus servicios profesionales en el barrio, valorar los comercios y productores de la zona, así como apuntarse de voluntariado para hacer gestiones sociales a las personas más vulnerables de su barrio.
+Un productor local o un comerciante de barrio, puede registrarse en la web para que aparezca en la búsqueda de los clientes de su zona e incluso si lo desean, pueden vender sus productos a través de nuestra tienda Online.
+Para los emprendedores disponemos de un servicio, empleando Inteligencia Artificial, donde analiza el tipo de negocio del que carece cada zona.
+Aquellas personas del barrio más vulnerables pueden solicitar servicio de ayuda para que nuestros voluntarios de la zona, puedan echarles una mano en tareas y gestiones. Tenemos un sistema de seguimiento para que sea más efectivo y uno más personalizado para nuestros mayores
+
+Abstract
+
+We create an app to help users, stores, local businesses, local producers and people offer their services in their area.
+The idea behind the app is to allow users to sign up to access information about all the services, businesses and local producers in their neighborhood. At the same time businesses and producers can sign up to appear in users searches nearby.
+Users can offer their professional services in their area, rate services and businesses. Also, users can sign up to volunteer to help the most vulnerable people in their neighborhood.
+Local producers or local business owners can sign up on the website to appear in searches and if they wish use our online shop.
+For entrepreneurs, we offer AI to analyze the types of business missing in each area.
+The people from the neighborhood that need assistance can request it through our website, so that local volunteers can help them with any task or running errands.We have a tracking system to ensure effectiveness and a personalized approach for our seniors.
+
 ## Justificación del proyecto:
 
 En una sociedad que prioriza y da valor a la gestión de su tiempo, creamos una aplicación donde ponga al alcance de todos, los productos y servicios cotidianos de primera necesidad y de bienestar en tu zona más próxima
