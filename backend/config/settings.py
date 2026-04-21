@@ -100,6 +100,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
 db_from_env = env.db_url("DATABASE_URL", default=None)
 
+print(f"DEBUG: Intentando conectar a HOST: {os.environ.get('DB_HOST')}")
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if os.environ.get("DB_HOST"):
     DATABASES = {
