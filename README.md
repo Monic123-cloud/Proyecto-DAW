@@ -25,6 +25,7 @@ Para que el proyecto funcione en tu ordenador con las nuevas librerías de **COR
 
 ## Índice
 
+    Resumen
     Justificación proyecto
     Objetivos
         Objetivo general
