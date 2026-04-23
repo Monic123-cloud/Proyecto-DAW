@@ -30,4 +30,5 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/buscador/", include("buscador.urls")),
     path('api/analytics/', analytics_dashboard_view, name='analytics_view'),
+    path("", include("users.urls")),
 ]
