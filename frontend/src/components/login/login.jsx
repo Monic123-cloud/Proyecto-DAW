@@ -3,33 +3,49 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import AxiosInstance from '../AxiosInstance'
+import AxiosInstance from "../AxiosInstance";
 
 import MyTextField from "./forms/MyTextField";
 import MyPassField from "./forms/MyPassField";
 import MyButton from "./forms/MyButton";
 
-const LoginForm= () =>{
- const {handleSubmit, control} = useForm()
- const router = useRouter()
+const LoginForm = () => {
+  const { handleSubmit, control } = useForm({
+    defaultValues: { email: "", password: "" },
+  });
+
+  const router = useRouter();
 
   const submission = (data) => {
-        AxiosInstance.post(`login/`,{
-            email: data.email, 
-            password: data.password,
-        })
+    AxiosInstance.post(`login/`, {
+      email: data.email,
+      password: data.password,
+    })
+      .then((response) => {
+        // Token knox
+        localStorage.setItem("knox_token", response.data.token);
 
-        .then((response) => {
-            console.log(response)
-            localStorage.setItem('Token', response.data.token)
-            router.push(`/`)
-        })
-        .catch((error) => {
-            //setShowMessage(true)
-            console.error('Error during login', error)
-        })
-    }
-  
+        // User safe
+        const user = response.data.user || {};
+        localStorage.setItem("user_email", user.email ?? "");
+        localStorage.setItem("user_id", String(user.id ?? ""));
+
+        // Role
+        const role = response.data.role || "cliente";
+        localStorage.setItem("role", role);
+
+        // ✅ Redirect por rol
+        router.replace(role === "comercio" ? "/comercio" : "/cliente");
+      })
+      .catch((err) => {
+        const msg =
+          err?.response?.data?.error ||
+          err?.response?.data?.detail ||
+          err?.message ||
+          "Error de login";
+        console.error("Error during login:", msg);
+      });
+  };
 
   return (
     <Box
@@ -38,8 +54,7 @@ const LoginForm= () =>{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background:
-          "linear-gradient(135deg, rgb(233,255,235), rgb(250,255,217))",
+        background: "linear-gradient(135deg, rgb(233,255,235), rgb(250,255,217))",
         p: 2,
       }}
     >
@@ -50,7 +65,6 @@ const LoginForm= () =>{
           maxWidth: 400,
           borderRadius: "20px",
           background: "rgba(255,255,255,0.95)",
-          border: '4px solid #10b981'
         }}
       >
         <Typography
@@ -83,15 +97,11 @@ const LoginForm= () =>{
             }}
           />
 
-          <MyButton
-            type={"submit"}
-            label={"Entrar"}
-            fullWidth
-            sx={{ mt: 2 }}
-          />
+          <MyButton type={"submit"} label={"Entrar"} fullWidth sx={{ mt: 2 }} />
         </form>
       </Paper>
     </Box>
   );
-  };
-export default LoginForm
+};
+
+export default LoginForm;
