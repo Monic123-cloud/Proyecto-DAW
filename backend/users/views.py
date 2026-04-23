@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model, authenticate
 from .serializers import RegisterSerializer, LoginSerializer
 from knox.models import AuthToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenSerializer
 
 User = get_user_model()
 
@@ -23,7 +25,7 @@ class RegisterViewset(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginViewset(viewsets.ViewSet):
+""" class LoginViewset(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
 
@@ -44,4 +46,7 @@ class LoginViewset(viewsets.ViewSet):
             else: 
                 return Response({"error":"Invalid credentials"}, status=401)    
         else: 
-            return Response(serializer.errors,status=400)
+            return Response(serializer.errors,status=400) """
+
+class LoginView(TokenObtainPairView):
+    serializer_class = CustomTokenSerializer

@@ -366,7 +366,7 @@ def gestionar_formulario(request, pk=None):
     # POST (Registro de nuevo usuario + local)
     elif request.method == "POST":
         datos = request.data
-        email = datos.get("correo")
+        email = datos.get("correo") 
         password = datos.get("password")
         cif_nif = datos.get("cif_nif")
 
@@ -388,7 +388,7 @@ def gestionar_formulario(request, pk=None):
             with transaction.atomic():
                 # A. Crear Usuario
                 nuevo_usuario = User.objects.create_user(
-                    username=email, email=email, password=password
+                    username=email, email=email, password=password,tipo='comercio'
                 )
 
                 # B. Mapeo de tipos

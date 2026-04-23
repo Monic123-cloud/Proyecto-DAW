@@ -68,3 +68,10 @@ export const validarCP = (cp: string | null | undefined): boolean => {
     if (!cp) return false;
     return /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/.test(cp.trim());
 };
+
+export const logout = () => {
+    localStorage.removeItem('Token')
+    localStorage.removeItem('tipo')
+
+    window.location.href = '/login'
+}

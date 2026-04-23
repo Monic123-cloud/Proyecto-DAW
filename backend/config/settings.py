@@ -98,13 +98,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
-db_from_env = env.db_url("DATABASE_URL", default=None)
+DATABASE_URL = env("DATABASE_URL", default=None)
 
-if db_from_env:
+if DATABASE_URL:
     # Si estamos en Railway, esto configura todo automáticamente (host, user, pass...)
     DATABASES = {
-        "default": dj_database_url.config(
-            default=env("DATABASE_URL"), conn_max_age=600, ssl_require=True
+        "default": env.db_url(
+            "DATABASE_URL",
+            conn_max_age=600,
+            ssl_require=True
         )
     }
 else:
@@ -115,7 +117,7 @@ else:
             "NAME": env("DB_NAME", default="tu_db_nombre"),
             "USER": env("DB_USER", default="tu_usuario"),
             "PASSWORD": env("DB_PASSWORD", default=""),
-            "HOST": env("DB_HOST", default="localhost"),
+            "HOST": env("DB_HOST", default="db"),
             "PORT": env("DB_PORT", default="5432"),
             "OPTIONS": {
                 "sslmode": "disable",

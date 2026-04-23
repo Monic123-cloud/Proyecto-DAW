@@ -21,7 +21,7 @@ const Register = () => {
       password: data.password,
       nombre: data.nombre,
       apellidos: data.apellidos,
-      auth_id: crypto.randomUUID(),
+
 
       sexo: data.sexo,
       fecha_nacimiento: data.fecha_nacimiento,
@@ -41,11 +41,40 @@ const Register = () => {
       voluntariado: data.voluntariado,
     })
 
-      .then(() => {
-        router.push(`/`)
-        
-      }
-      )
+      .then(async () => {
+
+        try {
+          // Login automático
+          const loginRes = await AxiosInstance.post('login/', {
+            username: data.email, 
+            password: data.password,
+          })
+
+          // guardar token
+          const token = loginRes.data.access
+          localStorage.setItem('Token', token)
+
+          // decodificar token
+          const base64Url = token.split('.')[1]
+          const decoded = JSON.parse(atob(base64Url))
+
+          // guardar tipo
+          localStorage.setItem('tipo', decoded.tipo)
+
+          // redirección
+          if (decoded.is_superuser) {
+            router.push('/admin')
+          } else if (decoded.tipo === 'comercio') {
+            router.push('/dashboard')
+          } else {
+            router.push('/')
+          }
+
+        } catch (error) {
+          console.error("Error en login automático", error)
+          router.push('/login') 
+        }
+      })
       .catch(err => {
         console.log("ERROR:", err.response.data)
       })
@@ -131,8 +160,8 @@ const Register = () => {
 
 
             <Box className={"itemBox"}>
-              <DatePicker 
-              name={"fecha_nacimiento"}/>
+              <DatePicker
+                name={"fecha_nacimiento"} />
             </Box>
 
 

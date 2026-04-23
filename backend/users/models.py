@@ -29,6 +29,12 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
+    TIPO_USUARIO = (
+    ('user', 'Usuario'),
+    ('comercio', 'Comercio'),
+    )
+
+    tipo = models.CharField(max_length=20, choices=TIPO_USUARIO)
     email = models.EmailField(max_length=200, unique=True)
     username = models.CharField(max_length=200, null=True, blank=True)
     cif_nif = models.CharField(max_length=20, unique=True)

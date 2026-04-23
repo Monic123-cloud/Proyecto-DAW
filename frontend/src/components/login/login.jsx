@@ -4,7 +4,7 @@ import { Box, Paper, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import AxiosInstance from '../AxiosInstance'
-
+import { useAuth } from "../components/context/AuthContext";
 import MyTextField from "./forms/MyTextField";
 import MyPassField from "./forms/MyPassField";
 import MyButton from "./forms/MyButton";
@@ -18,16 +18,33 @@ const LoginForm= () =>{
             email: data.email, 
             password: data.password,
         })
-
         .then((response) => {
-            console.log(response)
-            localStorage.setItem('Token', response.data.token)
-            router.push(`/`)
-        })
-        .catch((error) => {
-            //setShowMessage(true)
-            console.error('Error during login', error)
-        })
+
+       
+        const { login } = useAuth();
+        login(response.data.access);
+
+       
+        const base64Url = response.data.access.split('.')[1]
+        const decoded = JSON.parse(atob(base64Url))
+
+        console.log(decoded)
+
+        
+        localStorage.setItem('tipo', decoded.tipo)
+
+        
+        if (decoded.is_superuser) {
+            router.push('/admin')
+        } else if (decoded.tipo === 'comercio') {
+            router.push('/dashboard')
+        } else {
+            router.push('/')
+        }
+    })
+    .catch((error) => {
+        console.error('Error during login', error)
+    })
     }
   
 
