@@ -119,7 +119,7 @@ class BuscadorAPIView(APIView):
         user_lng = request.query_params.get("lng")
         radio_km = float(request.query_params.get("radio", 5))
         cp_buscado = request.query_params.get("cp")
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         data_final = []
 
@@ -201,7 +201,7 @@ class BuscadorAPIView(APIView):
 
         # 2: Busca en EN GOOGLE MAPS
         # Solo llamamos a Google si el usuario ha puesto un CP o coordenadas
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         # Busca en GOOGLE MAPS (Rojos)
         if api_key:
@@ -278,9 +278,9 @@ class GoogleMapsProxyView(APIView):
     def get(self, request):
         location = request.query_params.get("location")
         radius = request.query_params.get("radius", "1500")
-        api_key = getattr(
-            settings, "GOOGLE_MAPS_API_KEY", ""
-        )  # lee la clave secreta desde el archivo settings.py
+        api_key = os.getenv(
+            "GOOGLE_MAPS_API_KEY", ""
+        )  # lee la clave secreta desde la variable de entorno
 
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&key={api_key}"
         response = requests.get(url)
@@ -697,11 +697,11 @@ def analizar_mercado(request):
     import json
 
     try:
-        cp = request.GET.get('cp')
+        cp = request.GET.get("cp")
         if not cp:
             return JsonResponse({"error": "Falta el parámetro CP"}, status=400)
         # Configuración básica
-        api_key = os.environ.get("GEMINI_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
             return JsonResponse({"error": "No hay API KEY en el .env"}, status=500)
 
