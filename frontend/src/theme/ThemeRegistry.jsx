@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { useServerInsertedHTML } from "next/navigation";
-import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
-import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "./theme"; // <-- ajusta si tu tema está en otro path
+import { CacheProvider } from "@emotion/react";
+import createEmotionServer from "@emotion/server/create-instance";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import theme from "./theme";
 
 function createEmotionCache() {
   return createCache({ key: "mui", prepend: true });
@@ -36,21 +37,23 @@ export default function ThemeRegistry({ children }) {
     return { cache, flush };
   });
 
+  const { extractCriticalToChunks } = createEmotionServer(cache);
+
   useServerInsertedHTML(() => {
     const names = flush();
     if (names.length === 0) return null;
 
-    let styles = "";
-    for (const name of names) {
-      styles += cache.inserted[name];
-    }
-
-    return (
-      <style
-        data-emotion={`${cache.key} ${names.join(" ")}`}
-        dangerouslySetInnerHTML={{ __html: styles }}
-      />
+    const chunks = extractCriticalToChunks(
+      `<div data-emotion="${cache.key} ${names.join(" ")}"></div>`
     );
+
+    return chunks.styles.map((style) => (
+      <style
+        key={style.key}
+        data-emotion={`${style.key} ${style.ids.join(" ")}`}
+        dangerouslySetInnerHTML={{ __html: style.css }}
+      />
+    ));
   });
 
   return (

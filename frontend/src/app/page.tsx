@@ -1,13 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
-import Buscador from "../components/Buscador";
 import Header from "@/components/header";
-import Mapa from "@/components/Mapa";
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { IconButton } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import dynamic from 'next/dynamic';
+
+const Buscador = dynamic(() => import("../components/Buscador"), { ssr: false });
+const Mapa = dynamic(() => import("@/components/Mapa"), { ssr: false });
 
 export default function HomePage() {
+  const [esPantallaCompleta, setEsPantallaCompleta] = useState(false);
+  const [resultadosGuardados, setResultadosGuardados] = useState<any[]>([]);
+
   const categories = [
     {
       title: "Alimentación",
@@ -38,27 +47,29 @@ export default function HomePage() {
     "Descubre lo que realmente necesitas en tu zona.",
   ];
 
-  const merchants = [
-    {
-      name: "La Huerta de Barrio",
-      type: "Frutería local",
-      distance: "A 4 min",
-      description: "Productos frescos, trato cercano y reparto de proximidad.",
-    },
-    {
-      name: "Studio Zen",
-      type: "Centro de bienestar",
-      distance: "A 7 min",
-      description: "Servicios de estética y bienestar con reserva rápida.",
-    },
-    {
-      name: "Arreglos Express",
-      type: "Servicios del hogar",
-      distance: "A 9 min",
-      description:
-        "Pequeñas reparaciones y asistencia rápida para tu día a día.",
-    },
-  ];
+    if (esPantallaCompleta) {
+        return (
+          <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col">
+            <Header />
+            <main className="flex-1 pt-24 pb-12 px-4 md:px-10 overflow-y-auto">
+              <div className="max-w-7xl mx-auto relative">
+                <button 
+                  onClick={() => setEsPantallaCompleta(false)}
+                  className="absolute -top-12 right-0 bg-red-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg"
+                >
+                  ✖ Cerrar Explorador
+                </button>
+                
+                {/* Pasamos los resultados que guardamos en la miniatura */}
+                <Buscador 
+                  esMiniatura={false} 
+                  resultadosIniciales={resultadosGuardados} 
+                />
+              </div>
+            </main>
+          </div>
+        );
+      }
 
   return (
     <div className="page page-home">
@@ -90,51 +101,51 @@ export default function HomePage() {
                 <Link href="/acceso/registro" className="btn btn-primary">
                   Soy cliente
                 </Link>
-                <Link
-                  href="/registroM"
-                  className="btn btn-secondary"
-                >
+                <Link href="/registroM" className="btn btn-secondary">
                   Soy comercio
                 </Link>
               </div>
             </div>
 
             <div className="flex flex-col items-center gap-4">
-
               {/* Móvil con mapa */}
               <div className="phone-wrap">
                 <div className="phone-card">
                   <div className="phone-screen">
-                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                      <Mapa puntos={[]} />
-                      <Link
-                        href="/buscador"
-                      >
-                        <IconButton
-                          sx={{
-                            position: "absolute",
-                            top: 16,
-                            right: 16,
-                            backgroundColor: "#1abc8a",
-                            color: "white",
-                            border: "3px solid white",
-                            boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-                            "&:hover": {
-                              backgroundColor: "#17a97c",
-                              transform: "scale(1.05)"
-                            },
-                            transition: "all 0.2s ease"
-                          }}
-                        >
-                          <FullscreenIcon sx={{ fontSize: 40 }} />
-                        </IconButton>
-                      </Link>
+ <div
+                      onClick={() => setEsPantallaCompleta(true)}
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                        cursor: "zoom-in",
+                        overflowY: "auto",
+                        padding: "10px",
+                        backgroundColor: "#1abc8a"
+                      }}
+                    >
+                      <Buscador 
+                        esMiniatura={true} 
+                        onResultadosChange={(data) => setResultadosGuardados(data)} // Guardamos los datos aquí
+                      />
+                      
+                      <div style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        zIndex: 50,
+                        backgroundColor: "#1abc8a",
+                        borderRadius: "50%",
+                        padding: "4px",
+                        border: "2px solid white",
+                        pointerEvents: "none"
+                      }}>
+                        <FullscreenIcon sx={{ fontSize: 20, color: "white" }} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-
             </div>
           </div>
         </section>
@@ -237,7 +248,6 @@ export default function HomePage() {
               <Link href="/registroM" className="btn btn-light">
                 Unir mi negocio
               </Link>
-              
             </div>
           </div>
         </section>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 
@@ -27,35 +27,80 @@ type PedidoLinea = {
   subtotal: number;
 };
 
+type PedidosMeResp = { ok: true; items: Pedido[] } | { ok: false; error: string };
+
 type PedidoDetalleResp =
   | { ok: true; pedido: Pedido; items: PedidoLinea[] }
   | { ok: false; error: string };
 
+function eur(n: number) {
+  return `${Number(n || 0).toFixed(2)} €`;
+}
+
 export default function ClientePage() {
+  const [email, setEmail] = useState<string>("");
+
+  const [token, setToken] = useState<string | null>(null);
+
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  // desplegable
+  // desplegable por pedido
   const [openId, setOpenId] = useState<number | null>(null);
-  const [detailsById, setDetailsById] = useState<Record<number, { loading: boolean; err?: string; items?: PedidoLinea[] }>>({});
+  const [detailsById, setDetailsById] = useState<
+    Record<number, { loading: boolean; err?: string; items?: PedidoLinea[] }>
+  >({});
 
-  const token = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("knox_token");
+  // 1) Leer localStorage SOLO en cliente (evita hydration mismatch)
+  useEffect(() => {
+    const t = localStorage.getItem("knox_token");
+    const e = localStorage.getItem("user_email") ?? "";
+    setToken(t);
+    setEmail(e);
+
+    if (!t) window.location.href = "/acceso/login";
   }, []);
 
   const headers = useMemo(() => {
     return token ? { Authorization: `Token ${token}` } : {};
   }, [token]);
 
+  const kpis = useMemo(() => {
+    const total = pedidos.length;
+    const pagados = pedidos.filter((p) => (p.estado ?? "").toLowerCase() === "pagado").length;
+    const gasto = pedidos.reduce((acc, p) => acc + Number(p.importe_total || 0), 0);
+    const ticket = total > 0 ? gasto / total : 0;
+    return { total, pagados, gasto, ticket };
+  }, [pedidos]);
+
   const loadPedidos = async () => {
+    if (!token) return;
+
     setLoading(true);
     setErr(null);
+
     try {
       const r = await fetch(`${API_BASE}/api/pedidos/me/`, { headers });
-      if (!r.ok) throw new Error(`Error cargando pedidos (${r.status})`);
-      const d = await r.json();
+      const raw = await r.text();
+
+      let data: any = null;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        throw new Error(`La API no devolvió JSON (HTTP ${r.status}).`);
+      }
+
+      if (!r.ok) {
+        const msg = data?.error ?? `Error cargando pedidos (${r.status})`;
+        throw new Error(msg);
+      }
+
+      const d = data as PedidosMeResp;
+      if (!("ok" in d) || d.ok !== true) {
+        throw new Error((d as any)?.error ?? "Respuesta inválida");
+      }
+
       setPedidos(d.items ?? []);
     } catch (e: any) {
       setErr(e?.message ?? "Error");
@@ -65,39 +110,45 @@ export default function ClientePage() {
   };
 
   useEffect(() => {
-    if (!token) {
-      window.location.href = "/acceso/login";
-      return;
-    }
-    loadPedidos();
+    if (token) loadPedidos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
-  const togglePedido = async (id: number) => {
+  const togglePedido = async (id_pedido: number) => {
+    if (!token) return;
+
     // cerrar si ya está abierto
-    if (openId === id) {
+    if (openId === id_pedido) {
       setOpenId(null);
       return;
     }
 
-    setOpenId(id);
+    setOpenId(id_pedido);
 
-    // si ya lo tenemos en cache, no vuelvas a pedirlo
-    if (detailsById[id]?.items || detailsById[id]?.loading) return;
+    // cache
+    if (detailsById[id_pedido]?.items || detailsById[id_pedido]?.loading) return;
 
-    setDetailsById((p) => ({ ...p, [id]: { loading: true } }));
+    setDetailsById((p) => ({ ...p, [id_pedido]: { loading: true } }));
 
     try {
-      const r = await fetch(`${API_BASE}/api/pedidos/${id}/`, { headers });
-      const d = (await r.json()) as PedidoDetalleResp;
+      const r = await fetch(`${API_BASE}/api/pedidos/${id_pedido}/`, { headers });
+      const raw = await r.text();
 
+      let data: any = null;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        throw new Error(`La API no devolvió JSON (HTTP ${r.status}).`);
+      }
+
+      const d = data as PedidoDetalleResp;
       if (!r.ok || !d.ok) {
         throw new Error("error" in d ? d.error : `HTTP ${r.status}`);
       }
 
-      setDetailsById((p) => ({ ...p, [id]: { loading: false, items: d.items } }));
+      setDetailsById((p) => ({ ...p, [id_pedido]: { loading: false, items: d.items } }));
     } catch (e: any) {
-      setDetailsById((p) => ({ ...p, [id]: { loading: false, err: e?.message ?? "Error" } }));
+      setDetailsById((p) => ({ ...p, [id_pedido]: { loading: false, err: e?.message ?? "Error" } }));
     }
   };
 
@@ -105,17 +156,28 @@ export default function ClientePage() {
     <div className="page">
       <main className="tienda-page">
         <div className="tienda-container">
-          <div className="est-card" style={{ padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {/* Header card */}
+          <div
+            className="est-card"
+            style={{ padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          >
             <div>
-              <h1 className="tienda-title" style={{ margin: 0 }}>Mi cuenta</h1>
+              <h1 className="tienda-title" style={{ margin: 0 }}>
+                Mi cuenta <span className="tienda-muted" style={{ fontSize: 14, fontWeight: 600 }}>Panel de cliente</span>
+              </h1>
               <p className="tienda-muted" style={{ margin: "6px 0 0" }}>
-                Sesión iniciada como <strong>{typeof window !== "undefined" ? localStorage.getItem("user_email") : ""}</strong>
+                Sesión iniciada como{" "}
+                <strong suppressHydrationWarning>{email}</strong>
               </p>
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link className="btn btn-secondary" href="/tienda">Ver tienda</Link>
-              <Link className="btn btn-secondary" href="/carrito">Carrito</Link>
+              <Link className="btn btn-secondary" href="/tienda">
+                Ver tienda
+              </Link>
+              <Link className="btn btn-secondary" href="/carrito">
+                Carrito
+              </Link>
               <button
                 className="btn btn-secondary"
                 onClick={() => {
@@ -130,6 +192,31 @@ export default function ClientePage() {
             </div>
           </div>
 
+          {/* KPI cards */}
+          <div className="kpi-grid" style={{ marginTop: 14 }}>
+            <div className="kpi-card">
+              <div className="kpi-label">Pedidos</div>
+              <div className="kpi-value">{kpis.total}</div>
+              <div className="kpi-sub">Total pedidos</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Pagados</div>
+              <div className="kpi-value">{kpis.pagados}</div>
+              <div className="kpi-sub">Pedidos con estado pagado</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Gasto total</div>
+              <div className="kpi-value">{eur(kpis.gasto)}</div>
+              <div className="kpi-sub">Suma de importe_total</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Ticket medio</div>
+              <div className="kpi-value">{eur(kpis.ticket)}</div>
+              <div className="kpi-sub">Gasto / pedidos</div>
+            </div>
+          </div>
+
+          {/* Pedidos */}
           <div className="est-card" style={{ marginTop: 14 }}>
             <div className="section-head">
               <h2 className="section-title">Mis pedidos</h2>
@@ -152,8 +239,11 @@ export default function ClientePage() {
                   const det = detailsById[o.id_pedido];
 
                   return (
-                    <div key={o.id_pedido} className="order-card" style={{ cursor: "pointer" }} onClick={() => togglePedido(o.id_pedido)}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div key={o.id_pedido} className="order-card">
+                      <div
+                        style={{ display: "flex", justifyContent: "space-between", gap: 12, cursor: "pointer" }}
+                        onClick={() => togglePedido(o.id_pedido)}
+                      >
                         <div>
                           <p className="order-title" style={{ margin: 0 }}>
                             Pedido #{o.id_pedido}
@@ -172,7 +262,7 @@ export default function ClientePage() {
                         </div>
 
                         <div className="order-price">
-                          {Number(o.importe_total).toFixed(2)} €
+                          {eur(Number(o.importe_total))}
                           <div className="tienda-muted" style={{ marginTop: 10, textAlign: "right" }}>
                             {isOpen ? "▲ Ocultar" : "▼ Ver detalle"}
                           </div>
@@ -204,8 +294,8 @@ export default function ClientePage() {
                                     <tr key={l.id_detalle} style={{ background: "white" }}>
                                       <td style={tdCell()}><strong>{l.producto}</strong></td>
                                       <td style={tdCell()}>{l.cantidad}</td>
-                                      <td style={tdCell()}>{Number(l.precio_unitario).toFixed(2)} €</td>
-                                      <td style={tdCell({ fontWeight: 900, color: "#059669" })}>{Number(l.subtotal).toFixed(2)} €</td>
+                                      <td style={tdCell()}>{eur(Number(l.precio_unitario))}</td>
+                                      <td style={tdCell({ fontWeight: 900, color: "#059669" })}>{eur(Number(l.subtotal))}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -221,6 +311,7 @@ export default function ClientePage() {
             )}
           </div>
 
+          {/* CTA */}
           <div className="est-card" style={{ marginTop: 14, textAlign: "center" }}>
             <p className="tienda-muted" style={{ margin: 0 }}>¿Te apetece seguir comprando cerca de ti?</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 12, flexWrap: "wrap" }}>

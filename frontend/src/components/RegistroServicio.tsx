@@ -62,6 +62,8 @@ const RegistroServicio = () => {
         body: JSON.stringify(datos),
       });
 
+      const resData = await response.json();
+
       if (response.ok) {
         setMensaje({
           texto: "¡Servicio publicado con éxito!",

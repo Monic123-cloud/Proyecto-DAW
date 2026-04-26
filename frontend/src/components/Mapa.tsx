@@ -9,51 +9,45 @@ const LIBRARIES: (
   | "drawing"
   | "geometry"
   | "visualization"
-)[] = ["marker"];
+)[] = ["marker", "places", "geometry"];
 const CONTAINER_STYLE = { width: "100%", height: "400px" };
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
 
-interface Punto {
+interface ResultadoBusqueda {
   id_establecimiento: string | number;
   nombre_comercio: string;
   direccion: string;
   latitud: number;
   longitud: number;
+  tipo: "comercio_propio" | "servicio_propio" | "google"; // Esto es clave
   promedio_valoraciones?: number;
   numero_valoraciones?: number;
-}
-
-interface Servicio {
-  id_servicio: number;
-  categoria: string;
-  latitud: number;
-  longitud: number;
-  nombre_profesional: string;
-  precio_hora: string;
+  categoria?: string;
+  nombre_profesional?: string;
 }
 
 function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
   useEffect(() => {
+    if (!map || !window.google?.maps?.marker) return;
     if (!map) return;
-
-    // Lógica del ID numérico para el color azul
-    const esNuestro = typeof p.id_establecimiento === "number";
 
     let contenido;
 
-    if (esServicio) {
-      // Círculo verde para servicios (como lo tenías antes)
+    // Decidimos el color según el "tipo" que viene de Django
+    if (p.tipo === "servicio_propio") {
+      // Círculo VERDE para servicios
       contenido = document.createElement("div");
       contenido.style.width = "14px";
       contenido.style.height = "14px";
-      contenido.style.backgroundColor = "#22c55e";
+      contenido.style.backgroundColor = "#22c55e"; // Verde
       contenido.style.borderRadius = "50%";
       contenido.style.border = "2px solid white";
       contenido.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
     } else {
-      // Pin oficial: Azul si es BBDD propia azul y si no, rojo
+      // Pin Avanzado de Google
+      const colorPin = p.tipo === "comercio_propio" ? "#4285F4" : "#EA4335"; // Azul vs Rojo
       const pinElement = new window.google.maps.marker.PinElement({
-        background: esNuestro ? "#4285F4" : "#EA4335",
+        background: colorPin,
         borderColor: "white",
         glyphColor: "white",
       });
@@ -63,10 +57,10 @@ function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
     const marker = new window.google.maps.marker.AdvancedMarkerElement({
       map,
       position: {
-        lat: Number(p.latitud || p.lat),
-        lng: Number(p.longitud || p.lng),
+        lat: Number(p.latitud),
+        lng: Number(p.longitud),
       },
-      title: p.nombre_comercio || p.categoria,
+      title: p.nombre_comercio,
       content: contenido,
     });
 
@@ -76,18 +70,12 @@ function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
       google.maps.event.removeListener(listener);
       marker.map = null;
     };
-  }, [map, p, onClick, esServicio]);
+  }, [map, p, onClick]);
 
   return null;
 }
 
-export default function Mapa({
-  puntos = [],
-  servicios = [],
-}: {
-  puntos: Punto[];
-  servicios?: Servicio[];
-}) {
+export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -105,18 +93,13 @@ export default function Mapa({
         lng: Number(puntos[0].longitud),
       };
     }
-    if (servicios && servicios.length > 0) {
-      return {
-        lat: Number(servicios[0].latitud),
-        lng: Number(servicios[0].longitud),
-      };
-    }
+
     return defaultCenter;
-  }, [puntos, servicios]);
+  }, [puntos]);
 
   // Ajuste automático de zoom
   useEffect(() => {
-    if (map && (puntos.length > 0 || servicios.length > 0)) {
+    if (map && puntos.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
       let hayDatos = false;
 
@@ -125,16 +108,11 @@ export default function Mapa({
         hayDatos = true;
       });
 
-      servicios.forEach((s) => {
-        bounds.extend({ lat: Number(s.latitud), lng: Number(s.longitud) });
-        hayDatos = true;
-      });
-
       if (hayDatos) {
         map.fitBounds(bounds);
       }
     }
-  }, [map, puntos, servicios]);
+  }, [map, puntos]);
 
   if (!isLoaded)
     return (
@@ -147,75 +125,63 @@ export default function Mapa({
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
   );
   return (
-    <div style={{width:"100%", height:"100%"}}>
-    <GoogleMap
-      mapContainerStyle={CONTAINER_STYLE}
-      center={center}
-      zoom={14}
-      onLoad={(m) => setMap(m)}
-      onClick={() => setSelected(null)}
-      options={{
-        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
-        streetViewControl: false,
-        mapTypeControl: false,
-      }}
-    >
-      {/* Marcadores de Comercios */}
-      {Array.isArray(puntos) &&
-        puntos.map((p) => (
-          <MarcadorInteligente
-            key={p.id_establecimiento}
-            map={map} // Le pasamos el mapa
-            p={p}
-            onClick={() => setSelected(p)}
-          />
-        ))}
-      {/* Marcadores de Servicios (Puntos verdes) */}
-      {Array.isArray(servicios) &&
-        servicios.map((s) => (
-          <MarcadorInteligente
-            key={`servicio-${s.id_servicio}`}
-            map={map}
-            p={s} // Le pasamos el servicio completo
-            esServicio={true}
-            position={{ lat: Number(s.latitud), lng: Number(s.longitud) }}
-            onClick={() => setSelected(s)}
-          />
-        ))}
+    <div style={{ width: "100%", height: "100%" }}>
+      <GoogleMap
+        mapContainerStyle={CONTAINER_STYLE}
+        center={center}
+        zoom={14}
+        onLoad={(m) => setMap(m)}
+        onClick={() => setSelected(null)}
+        options={{
+          mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
+          streetViewControl: false,
+          mapTypeControl: false,
+        }}
+      >
+        {/* Marcadores de Comercios */}
+        {Array.isArray(puntos) &&
+          puntos.map((p) => (
+            <MarcadorInteligente
+              key={p.id_establecimiento}
+              map={map} // Le pasamos el mapa
+              p={p}
+              onClick={() => setSelected(p)}
+            />
+          ))}
 
-      {/* Ventana de información */}
-      {selected && (
-        <InfoWindowF
-          position={{
-            lat: Number(selected.latitud || selected.lat),
-            lng: Number(selected.longitud || selected.lng),
-          }}
-          onCloseClick={() => setSelected(null)}
-        >
-          <div className="p-2 text-black max-w-[200px]">
-            <h4 className="font-bold text-blue-700 text-sm mb-1">
-              {selected.nombre_comercio || selected.categoria}
-            </h4>
+        {/* Ventana de información */}
+        {selected && (
+          <InfoWindowF
+            position={{
+              lat: Number(selected.latitud || selected.lat),
+              lng: Number(selected.longitud || selected.lng),
+            }}
+            onCloseClick={() => setSelected(null)}
+          >
+            <div className="p-2 text-black max-w-[200px]">
+              <h4 className="font-bold text-blue-700 text-sm mb-1">
+                {selected.nombre_comercio || selected.categoria}
+              </h4>
 
-            {selected.promedio_valoraciones !== undefined && (
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-yellow-500 text-xs">
-                  {"★".repeat(Math.floor(selected.promedio_valoraciones))}
-                  {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
-                </span>
-                <span className="text-[10px] text-gray-500">
-                  ({selected.promedio_valoraciones})
-                </span>
-              </div>
-            )}
+              {selected.promedio_valoraciones !== undefined && (
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-yellow-500 text-xs">
+                    {"★".repeat(Math.floor(selected.promedio_valoraciones))}
+                    {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
+                  </span>
+                  <span className="text-[10px] text-gray-500">
+                    ({selected.promedio_valoraciones})
+                  </span>
+                </div>
+              )}
 
-            <p className="text-xs text-gray-600 leading-tight">
-              {selected.direccion || `Pro: ${selected.nombre_profesional}`}
-            </p>
-          </div>
-        </InfoWindowF>
-      )}
-    </GoogleMap>
+              <p className="text-xs text-gray-600 leading-tight">
+                {selected.direccion || `Pro: ${selected.nombre_profesional}`}
+              </p>
+            </div>
+          </InfoWindowF>
+        )}
+      </GoogleMap>
     </div>
   );
 }

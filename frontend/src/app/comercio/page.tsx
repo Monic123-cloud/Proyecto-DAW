@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 type Establecimiento = {
@@ -47,66 +48,38 @@ type Pedido = {
   id_usuario: number;
 };
 
-type PedidoLinea = {
-  id_detalle: number;
-  id_producto: number;
-  producto: string;
-  cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
-};
-
-type PedidoDetalleResp =
-  | { ok: true; pedido: Pedido; lineas: PedidoLinea[] }
-  | { ok: false; error: string };
-
 type Tab = "resumen" | "productos" | "pedidos" | "ajustes";
 
 export default function ComercioDashboardPage() {
-  // UI
   const [tab, setTab] = useState<Tab>("resumen");
-
-  // auth
-  const [token, setToken] = useState<string | null>(null);
-
-  // data
   const [est, setEst] = useState<Establecimiento | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
-
-  // page state
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  // detalle pedidos (desplegable)
-  const [openPedidoId, setOpenPedidoId] = useState<number | null>(null);
-  const [detalleByPedido, setDetalleByPedido] = useState<Record<number, PedidoLinea[]>>({});
-  const [detalleLoading, setDetalleLoading] = useState<Record<number, boolean>>({});
-  const [detalleErr, setDetalleErr] = useState<Record<number, string | null>>({});
+  const token = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("knox_token");
+  }, []);
 
-  // headers (si hay token)
   const headers = useMemo(() => {
     return token
       ? { Authorization: `Token ${token}`, "Content-Type": "application/json" }
       : { "Content-Type": "application/json" };
   }, [token]);
 
-  // --- helpers auth ---
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem("knox_token");
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_id");
-    window.location.href = "/acceso/login";
+    window.location.href = "/login";
   };
 
-  // --- load main dashboard ---
   const loadAll = async () => {
-    if (!token) return;
-
     setLoading(true);
     setErr(null);
-
-    try {
+   try {
       const [rMe, rProds, rPeds] = await Promise.all([
         fetch(`${API_BASE}/api/comercio/me/`, { headers }),
         fetch(`${API_BASE}/api/comercio/me/productos/`, { headers }),
@@ -124,9 +97,6 @@ export default function ComercioDashboardPage() {
       setEst(dMe.establecimiento ?? null);
       setProductos(dProds.items ?? []);
       setPedidos(dPeds.items ?? []);
-
-      // si cambian pedidos, cierro detalle abierto (evita confusión)
-      setOpenPedidoId(null);
     } catch (e: any) {
       setErr(e?.message ?? "Error");
     } finally {
@@ -134,60 +104,17 @@ export default function ComercioDashboardPage() {
     }
   };
 
-  // --- load detalle pedido (comercio) ---
-  const loadDetalle = async (id_pedido: number) => {
-    if (!token) return;
-
-    // si ya lo tengo, no repito
-    if (detalleByPedido[id_pedido]) return;
-
-    setDetalleLoading((p) => ({ ...p, [id_pedido]: true }));
-    setDetalleErr((p) => ({ ...p, [id_pedido]: null }));
-
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/comercio/me/pedidos/${id_pedido}/detalle/`,
-        { headers }
-      );
-
-      const raw = await res.text();
-      let data: PedidoDetalleResp | null = null;
-
-      try {
-        data = raw ? (JSON.parse(raw) as PedidoDetalleResp) : null;
-      } catch {
-        throw new Error(`La API no devolvió JSON (HTTP ${res.status}).`);
-      }
-
-      if (!res.ok || !data || !("ok" in data) || !data.ok) {
-        throw new Error((data as any)?.error ?? `HTTP ${res.status}`);
-      }
-
-      setDetalleByPedido((p) => ({ ...p, [id_pedido]: data!.lineas }));
-    } catch (e: any) {
-      setDetalleErr((p) => ({ ...p, [id_pedido]: e?.message ?? "Error cargando detalle" }));
-    } finally {
-      setDetalleLoading((p) => ({ ...p, [id_pedido]: false }));
-    }
-  };
-
-  // --- init token & first load ---
   useEffect(() => {
+    // ✅ Si no hay token, fuera
     const t = localStorage.getItem("knox_token");
     if (!t) {
-      window.location.href = "/acceso/login";
+      window.location.href = "/login";
       return;
     }
-    setToken(t);
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
     loadAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, []);
 
-  // --- KPIs ---
   const kpis = useMemo(() => {
     const totalPedidos = pedidos.length;
     const ingresos = pedidos.reduce((acc, p) => acc + Number(p.importe_total || 0), 0);
@@ -201,19 +128,12 @@ export default function ComercioDashboardPage() {
 
   return (
     <div className="page">
+
+
       <main className="tienda-page">
         <div className="tienda-container">
-          {/* Top bar */}
-          <div
-            className="est-card"
-            style={{
-              padding: "16px 16px",
-              display: "flex",
-              gap: 14,
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+          {/* Top bar tipo merchant */}
+          <div className="est-card" style={{ padding: "16px 16px", display: "flex", gap: 14, alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                 <h1 className="tienda-title" style={{ margin: 0 }}>
@@ -237,13 +157,13 @@ export default function ComercioDashboardPage() {
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <button className="btn btn-secondary" onClick={loadAll} disabled={loading || !token}>
+              <button className="btn btn-secondary" onClick={loadAll} disabled={loading}>
                 ↻ Actualizar
               </button>
               <Link className="btn btn-secondary" href="/tienda">
                 Ver tienda
               </Link>
-              <Link className="btn btn-primary" href="/tienda/alta-producto">
+              <Link className="btn btn-primary" href="alta_producto">
                 + Nuevo producto
               </Link>
               <button className="btn btn-secondary" onClick={logout}>
@@ -254,43 +174,25 @@ export default function ComercioDashboardPage() {
 
           {/* Tabs */}
           <div className="tienda-chips" style={{ marginTop: 14 }}>
-            <button
-              className={`tienda-chip ${tab === "resumen" ? "is-active" : ""}`}
-              onClick={() => setTab("resumen")}
-            >
+            <button className={`tienda-chip ${tab === "resumen" ? "is-active" : ""}`} onClick={() => setTab("resumen")}>
               Resumen
             </button>
-            <button
-              className={`tienda-chip ${tab === "productos" ? "is-active" : ""}`}
-              onClick={() => setTab("productos")}
-            >
+            <button className={`tienda-chip ${tab === "productos" ? "is-active" : ""}`} onClick={() => setTab("productos")}>
               Productos
             </button>
-            <button
-              className={`tienda-chip ${tab === "pedidos" ? "is-active" : ""}`}
-              onClick={() => setTab("pedidos")}
-            >
+            <button className={`tienda-chip ${tab === "pedidos" ? "is-active" : ""}`} onClick={() => setTab("pedidos")}>
               Pedidos
             </button>
-            <button
-              className={`tienda-chip ${tab === "ajustes" ? "is-active" : ""}`}
-              onClick={() => setTab("ajustes")}
-            >
+            <button className={`tienda-chip ${tab === "ajustes" ? "is-active" : ""}`} onClick={() => setTab("ajustes")}>
               Ajustes
             </button>
           </div>
 
-          {loading && (
-            <p className="tienda-muted" style={{ marginTop: 14 }}>
-              Cargando panel…
-            </p>
-          )}
+          {loading && <p className="tienda-muted" style={{ marginTop: 14 }}>Cargando panel…</p>}
 
           {err && (
             <div className="est-card" style={{ marginTop: 14 }}>
-              <p className="notice-err" style={{ margin: 0 }}>
-                {err}
-              </p>
+              <p className="notice-err" style={{ margin: 0 }}>{err}</p>
               <p className="tienda-muted" style={{ marginTop: 10 }}>
                 Si ves 401/403: token ausente o inválido. Vuelve a iniciar sesión.
               </p>
@@ -302,83 +204,66 @@ export default function ComercioDashboardPage() {
               {/* ===== RESUMEN ===== */}
               {tab === "resumen" && (
                 <>
-                  <div className="section-card">
-                    <div className="kpi-grid">
-                      <div className="kpi-card">
-                        <p className="kpi-label">Ingresos</p>
-                        <p className="kpi-value">{kpis.ingresos.toFixed(2)} €</p>
-                        <p className="kpi-meta">Total facturado (importe_total)</p>
-                      </div>
+                  <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+                    <div className="est-card">
+                      <div className="prod-grid">
+                        <div className="prod-card">
+                          <p className="prod-title">Ingresos</p>
+                          <div className="prod-price">{kpis.ingresos.toFixed(2)} €</div>
+                          <div className="prod-meta">Total facturado (importe_total)</div>
+                        </div>
 
-                      <div className="kpi-card">
-                        <p className="kpi-label">Pedidos</p>
-                        <p className="kpi-value">{kpis.totalPedidos}</p>
-                        <p className="kpi-meta">Pedidos recibidos</p>
-                      </div>
+                        <div className="prod-card">
+                          <p className="prod-title">Pedidos</p>
+                          <div className="prod-price">{kpis.totalPedidos}</div>
+                          <div className="prod-meta">Pedidos recibidos</div>
+                        </div>
 
-                      <div className="kpi-card">
-                        <p className="kpi-label">Ticket medio</p>
-                        <p className="kpi-value">{kpis.ticketMedio.toFixed(2)} €</p>
-                        <p className="kpi-meta">Ingresos / pedidos</p>
-                      </div>
+                        <div className="prod-card">
+                          <p className="prod-title">Ticket medio</p>
+                          <div className="prod-price">{kpis.ticketMedio.toFixed(2)} €</div>
+                          <div className="prod-meta">Ingresos / pedidos</div>
+                        </div>
 
-                      <div className="kpi-card">
-                        <p className="kpi-label">Stock bajo</p>
-                        <p className="kpi-value">{kpis.stockBajo}</p>
-                        <p className="kpi-meta">Productos con stock 1–5</p>
-                      </div>
+                        <div className="prod-card">
+                          <p className="prod-title">Stock bajo</p>
+                          <div className="prod-price">{kpis.stockBajo}</div>
+                          <div className="prod-meta">Productos con stock 1–5</div>
+                        </div>
 
-                      <div className="kpi-card">
-                        <p className="kpi-label">Sin stock</p>
-                        <p className="kpi-value">{kpis.sinStock}</p>
-                        <p className="kpi-meta">Productos con stock 0</p>
+                        <div className="prod-card">
+                          <p className="prod-title">Sin stock</p>
+                          <div className="prod-price">{kpis.sinStock}</div>
+                          <div className="prod-meta">Productos con stock 0</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="section-card">
-                    <div className="section-head">
-                      <h2 className="section-title">Últimos pedidos</h2>
-                      <button className="btn-soft" onClick={() => setTab("pedidos")}>
-                        Ver todos
-                      </button>
-                    </div>
+                    {/* Últimos pedidos */}
+                    <div className="est-card">
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                        <h2 style={{ margin: 0, color: "#0f172a" }}>Últimos pedidos</h2>
+                        <button className="btn btn-secondary" onClick={() => setTab("pedidos")}>Ver todos</button>
+                      </div>
 
-                    {pedidos.length === 0 ? (
-                      <p className="tienda-muted" style={{ marginTop: 12 }}>
-                        Aún no hay pedidos.
-                      </p>
-                    ) : (
-                      <div className="order-list">
-                        {pedidos.slice(0, 5).map((o) => {
-                          const estado = (o.estado ?? "").toLowerCase();
-                          const badgeClass = estado.includes("pag")
-                            ? "badge-violet"
-                            : estado.includes("pend")
-                            ? "badge-warn"
-                            : "badge-ok";
-
-                          return (
-                            <div key={o.id_pedido} className="order-card">
-                              <div>
-                                <p className="order-title">Pedido #{o.id_pedido}</p>
-                                <p className="order-meta">
-                                  {new Date(o.fecha).toLocaleString()} · {o.metodo_pago} ·{" "}
-                                  {o.metodo_entrega}
-                                </p>
-                                <span className={`badge-status ${badgeClass}`}>
-                                  Estado: {o.estado}
-                                </span>
+                      {pedidos.length === 0 ? (
+                        <p className="tienda-muted" style={{ marginTop: 10 }}>Aún no hay pedidos.</p>
+                      ) : (
+                        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+                          {pedidos.slice(0, 5).map((o) => (
+                            <div key={o.id_pedido} className="prod-card">
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                                <p className="prod-title" style={{ margin: 0 }}>Pedido #{o.id_pedido}</p>
+                                <div className="prod-price">{Number(o.importe_total).toFixed(2)} €</div>
                               </div>
-
-                              <div className="order-price">
-                                {Number(o.importe_total).toFixed(2)} €
+                              <div className="prod-meta">
+                                {new Date(o.fecha).toLocaleString()} · {o.metodo_pago} · {o.metodo_entrega} · Estado: <strong>{o.estado}</strong>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -386,14 +271,7 @@ export default function ComercioDashboardPage() {
               {/* ===== PRODUCTOS ===== */}
               {tab === "productos" && (
                 <div className="est-card" style={{ marginTop: 14 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      alignItems: "baseline",
-                    }}
-                  >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
                     <h2 style={{ margin: 0, color: "#0f172a" }}>Productos</h2>
                     <div className="tienda-muted">{productos.length} productos</div>
                   </div>
@@ -404,13 +282,7 @@ export default function ComercioDashboardPage() {
                     </p>
                   ) : (
                     <div style={{ overflowX: "auto", marginTop: 12 }}>
-                      <table
-                        style={{
-                          width: "100%",
-                          borderCollapse: "separate",
-                          borderSpacing: "0 10px",
-                        }}
-                      >
+                      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 10px" }}>
                         <thead>
                           <tr style={{ textAlign: "left", color: "#64748b", fontSize: 13 }}>
                             <th>ID</th>
@@ -425,22 +297,10 @@ export default function ComercioDashboardPage() {
                           {productos.map((p) => (
                             <tr key={p.id_producto} style={{ background: "white" }}>
                               <td style={tdCell()}>{p.id_producto}</td>
-                              <td style={tdCell()}>
-                                <strong>{p.producto}</strong>
-                              </td>
+                              <td style={tdCell()}><strong>{p.producto}</strong></td>
                               <td style={tdCell()}>{p.tipo_producto}</td>
                               <td style={tdCell()}>
-                                <span
-                                  style={{
-                                    fontWeight: 900,
-                                    color:
-                                      p.stock <= 0
-                                        ? "#dc2626"
-                                        : p.stock <= 5
-                                        ? "#b45309"
-                                        : "#059669",
-                                  }}
-                                >
+                                <span style={{ fontWeight: 900, color: p.stock <= 0 ? "#dc2626" : p.stock <= 5 ? "#b45309" : "#059669" }}>
                                   {p.stock}
                                 </span>
                               </td>
@@ -455,123 +315,53 @@ export default function ComercioDashboardPage() {
                         </tbody>
                       </table>
                       <p className="tienda-muted" style={{ marginTop: 8 }}>
-                        * “Editar” para cuando se integre todo
+                        * “Editar” para cuando se integre
                       </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ===== PEDIDOS (con desplegable detalle) ===== */}
+              {/* ===== PEDIDOS ===== */}
               {tab === "pedidos" && (
-                <div className="section-card" style={{ marginTop: 14 }}>
-                  <div className="section-head">
-                    <h2 className="section-title">Pedidos</h2>
+                <div className="est-card" style={{ marginTop: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                    <h2 style={{ margin: 0, color: "#0f172a" }}>Pedidos</h2>
                     <div className="tienda-muted">{pedidos.length} pedidos</div>
                   </div>
 
                   {pedidos.length === 0 ? (
-                    <p className="tienda-muted" style={{ marginTop: 12 }}>
-                      Aún no tienes pedidos.
-                    </p>
+                    <p className="tienda-muted" style={{ marginTop: 10 }}>Aún no tienes pedidos.</p>
                   ) : (
-                    <div className="order-list" style={{ marginTop: 12 }}>
-                      {pedidos.map((o) => {
-                        const isOpen = openPedidoId === o.id_pedido;
-
-                        const estado = (o.estado ?? "").toLowerCase();
-                        const badgeClass = estado.includes("pag")
-                          ? "badge-violet"
-                          : estado.includes("pend")
-                          ? "badge-warn"
-                          : "badge-ok";
-
-                        return (
-                          <div key={o.id_pedido} className="order-card" style={{ alignItems: "flex-start" }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                                <div>
-                                  <p className="order-title">Pedido #{o.id_pedido}</p>
-                                  <p className="order-meta">
-                                    {new Date(o.fecha).toLocaleString()} · {o.metodo_pago} · {o.metodo_entrega}
-                                  </p>
-                                  <span className={`badge-status ${badgeClass}`}>Estado: {o.estado}</span>
-                                </div>
-
-                                <div style={{ textAlign: "right" }}>
-                                  <div className="order-price">{Number(o.importe_total).toFixed(2)} €</div>
-
-                                  <button
-                                    className="btn-soft"
-                                    style={{ marginTop: 8 }}
-                                    onClick={async () => {
-                                      const next = isOpen ? null : o.id_pedido;
-                                      setOpenPedidoId(next);
-
-                                      if (!isOpen) {
-                                        await loadDetalle(o.id_pedido);
-                                      }
-                                    }}
-                                  >
-                                    {isOpen ? "Ocultar" : "Ver detalle"}
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* desplegable */}
-                              {isOpen && (
-                                <div style={{ marginTop: 12 }}>
-                                  {detalleLoading[o.id_pedido] && (
-                                    <p className="tienda-muted">Cargando detalle…</p>
-                                  )}
-
-                                  {detalleErr[o.id_pedido] && (
-                                    <p className="notice-err" style={{ marginTop: 8 }}>
-                                      {detalleErr[o.id_pedido]}
-                                    </p>
-                                  )}
-
-                                  {!detalleLoading[o.id_pedido] && !detalleErr[o.id_pedido] && (
-                                    <div style={{ display: "grid", gap: 10 }}>
-                                      {(detalleByPedido[o.id_pedido] ?? []).map((l) => (
-                                        <div
-                                          key={l.id_detalle}
-                                          style={{
-                                            border: "1px solid rgba(15,23,42,.10)",
-                                            borderRadius: 14,
-                                            padding: 12,
-                                            background: "rgba(15,23,42,.02)",
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            gap: 12,
-                                          }}
-                                        >
-                                          <div style={{ minWidth: 0 }}>
-                                            <div style={{ fontWeight: 900 }}>{l.producto}</div>
-                                            <div className="tienda-muted" style={{ marginTop: 4 }}>
-                                              {l.cantidad} × {Number(l.precio_unitario).toFixed(2)} €
-                                            </div>
-                                          </div>
-
-                                          <div style={{ fontWeight: 900, color: "#059669", whiteSpace: "nowrap" }}>
-                                            {Number(l.subtotal).toFixed(2)} €
-                                          </div>
-                                        </div>
-                                      ))}
-
-                                      {(detalleByPedido[o.id_pedido] ?? []).length === 0 && (
-                                        <p className="tienda-muted">
-                                          Este pedido no tiene líneas (detalle_pedido vacío).
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <div style={{ overflowX: "auto", marginTop: 12 }}>
+                      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 10px" }}>
+                        <thead>
+                          <tr style={{ textAlign: "left", color: "#64748b", fontSize: 13 }}>
+                            <th>Pedido</th>
+                            <th>Fecha</th>
+                            <th>Pago</th>
+                            <th>Entrega</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pedidos.map((o) => (
+                            <tr key={o.id_pedido} style={{ background: "white" }}>
+                              <td style={tdCell()}><strong>#{o.id_pedido}</strong></td>
+                              <td style={tdCell()}>{new Date(o.fecha).toLocaleString()}</td>
+                              <td style={tdCell()}>{o.metodo_pago}</td>
+                              <td style={tdCell()}>{o.metodo_entrega}</td>
+                              <td style={tdCell()}>
+                                <span style={pill(o.estado)}>{o.estado}</span>
+                              </td>
+                              <td style={tdCell({ fontWeight: 900, color: "#059669" })}>
+                                {Number(o.importe_total).toFixed(2)} €
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>
@@ -587,39 +377,21 @@ export default function ComercioDashboardPage() {
 
                   {est ? (
                     <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
-                      <div className="tienda-muted">
-                        <strong>Nombre:</strong> {est.nombre_comercio}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Categoría:</strong> {est.categoria ?? "-"}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Subcategoría:</strong> {est.subcategoria ?? "-"}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Dirección:</strong> {est.direccion ?? "-"} {est.numero ?? ""}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Municipio:</strong> {est.municipio ?? "-"}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Teléfono:</strong> {est.telefono ?? "-"}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Email:</strong> {est.correo ?? "-"}
-                      </div>
-                      <div className="tienda-muted">
-                        <strong>Web:</strong> {est.url_web ?? "-"}
-                      </div>
+                      <div className="tienda-muted"><strong>Nombre:</strong> {est.nombre_comercio}</div>
+                      <div className="tienda-muted"><strong>Categoría:</strong> {est.categoria ?? "-"}</div>
+                      <div className="tienda-muted"><strong>Subcategoría:</strong> {est.subcategoria ?? "-"}</div>
+                      <div className="tienda-muted"><strong>Dirección:</strong> {est.direccion ?? "-"} {est.numero ?? ""}</div>
+                      <div className="tienda-muted"><strong>Municipio:</strong> {est.municipio ?? "-"}</div>
+                      <div className="tienda-muted"><strong>Teléfono:</strong> {est.telefono ?? "-"}</div>
+                      <div className="tienda-muted"><strong>Email:</strong> {est.correo ?? "-"}</div>
+                      <div className="tienda-muted"><strong>Web:</strong> {est.url_web ?? "-"}</div>
 
                       <button className="btn btn-secondary" disabled style={{ width: "fit-content" }}>
                         Editar (próximo)
                       </button>
                     </div>
                   ) : (
-                    <p className="tienda-muted" style={{ marginTop: 12 }}>
-                      No se pudo cargar la ficha del comercio.
-                    </p>
+                    <p className="tienda-muted" style={{ marginTop: 12 }}>No se pudo cargar la ficha del comercio.</p>
                   )}
                 </div>
               )}
@@ -639,4 +411,21 @@ function tdCell(extra: React.CSSProperties = {}): React.CSSProperties {
     borderBottom: "1px solid rgba(15,23,42,.08)",
     ...extra,
   };
+}
+
+function pill(estado: string): React.CSSProperties {
+  const s = (estado || "").toLowerCase();
+  const base: React.CSSProperties = {
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontWeight: 900,
+    fontSize: 12,
+    border: "1px solid rgba(15,23,42,.10)",
+  };
+
+  if (s.includes("pag")) return { ...base, background: "rgba(209,179,255,.35)", color: "#0f172a" };
+  if (s.includes("pend")) return { ...base, background: "rgba(255,204,172,.40)", color: "#0f172a" };
+  if (s.includes("cancel")) return { ...base, background: "rgba(220,38,38,.12)", color: "#dc2626" };
+  return { ...base, background: "rgba(178,216,178,.35)", color: "#065f46" };
 }

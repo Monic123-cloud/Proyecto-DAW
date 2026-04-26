@@ -3,17 +3,16 @@
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 
 export type CartItem = {
-  id: string; // id único del carrito (puede ser `${id_establecimiento}-${id_producto}`)
-  id_producto: number;
-  id_establecimiento: number;
-
+  id: string;
   name: string;
-  price: number; // euros
+  price: number; // en euros (ej: 2.5)
   qty: number;
   image?: string;
 };
 
-type CartState = { items: CartItem[] };
+type CartState = {
+  items: CartItem[];
+};
 
 type CartContextValue = {
   items: CartItem[];
@@ -25,6 +24,7 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
+
 const STORAGE_KEY = "close4u_cart_v1";
 
 function loadCart(): CartItem[] {
@@ -61,7 +61,6 @@ function reducer(state: CartState, action: Action): CartState {
         next[idx] = { ...next[idx], qty: next[idx].qty + qty };
         return { items: next };
       }
-
       return { items: [...state.items, { ...action.item, qty }] };
     }
 
@@ -84,10 +83,12 @@ function reducer(state: CartState, action: Action): CartState {
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { items: [] });
 
+  // Cargar del localStorage al montar
   useEffect(() => {
     dispatch({ type: "SET_ALL", items: loadCart() });
   }, []);
 
+  // Persistir cambios
   useEffect(() => {
     saveCart(state.items);
   }, [state.items]);

@@ -27,4 +27,3 @@ dist/
 .next
 .next
 .env*.local
-backend/credentials/google-analytics-key.json

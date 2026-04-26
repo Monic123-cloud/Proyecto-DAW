@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
+from datetime import date
 
 
 class DetallePedido(models.Model):
@@ -27,6 +28,7 @@ class Establecimiento(models.Model):
         ("comercio", "Comercio"),
         ("productor", "Productor Local"),
     ]
+
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -47,19 +49,14 @@ class Establecimiento(models.Model):
     municipio = models.CharField(max_length=100, blank=True, null=True)
     provincia = models.CharField(max_length=100, blank=True, null=True)
     cp = models.CharField(max_length=10, blank=True, null=True)
-    latitud = models.DecimalField(
-        max_digits=12, decimal_places=9, blank=True, null=True
-    )
-    longitud = models.DecimalField(
-        max_digits=12, decimal_places=9, blank=True, null=True
-    )
+    latitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
+    longitud = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
     url_web = models.CharField(max_length=255, blank=True, null=True)
 
     @property
     def promedio_valoraciones(self):
         from django.db.models import Avg
-        # Calculamos la media de las valoraciones relacionadas
-        promedio = self.valoraciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+        promedio = self.valoraciones.aggregate(Avg("puntuacion"))["puntuacion__avg"]
         return round(promedio, 1) if promedio else 0
 
     @property
@@ -77,9 +74,10 @@ class Establecimiento(models.Model):
 
     def geocodificar(self):
         try:
-            if not settings.GOOGLE_MAPS_API_KEY:
+            if not getattr(settings, "GOOGLE_MAPS_API_KEY", ""):
                 print("Falta la API KEY de Google Maps")
                 return
+
             gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
             componentes = [
                 self.direccion or "",
@@ -102,7 +100,10 @@ class Establecimiento(models.Model):
 
 class Evento(models.Model):
     id_evento = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
+    # ✅ antes: ForeignKey("Usuario"...)
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
+    )
     nombre_evento = models.CharField(max_length=255)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
@@ -124,15 +125,14 @@ class Pedido(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
-    importe_total = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
+    # ✅ antes: ForeignKey("Usuario"...)
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
     )
+    importe_total = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
-    descuento = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
-    )
+    descuento = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
     metodo_entrega = models.CharField(max_length=50, blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
 
@@ -162,53 +162,44 @@ class Producto(models.Model):
 
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
+    )
     descripcion = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=100, blank=True, null=True)
-    precio_hora = models.DecimalField(
-        max_digits=10, decimal_places=5, blank=True, null=True
-    )
+    precio_hora = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
+    # Ubicación para mapa
+    cp = models.CharField(max_length=10, blank=True, null=True)
     lat = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
     lng = models.DecimalField(max_digits=12, decimal_places=9, blank=True, null=True)
-    cp = models.CharField(max_length=10, blank=True, null=True)
+
+    @property
+    def promedio_valoraciones(self):
+        from django.db.models import Avg
+        promedio = self.valoraciones.aggregate(Avg("puntuacion"))["puntuacion__avg"]
+        return round(promedio, 1) if promedio else 0
+
+    @property
+    def numero_valoraciones(self):
+        return self.valoraciones.count()
 
     class Meta:
         managed = True
         db_table = "servicio"
 
 
-"""class Usuario(models.Model):
-    id_usuario = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=100)
-    apellidos = models.CharField(max_length=100)
-    correo = models.CharField(unique=True, max_length=150)
-    auth_id = models.CharField(unique=True, max_length=255)
-    sexo = models.CharField(max_length=20, blank=True, null=True)
-    fecha_nacimiento = models.DateField(blank=True, null=True)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
-    direccion = models.CharField(max_length=255, blank=True, null=True)
-    numero = models.CharField(max_length=10, blank=True, null=True)
-    piso = models.CharField(max_length=10, blank=True, null=True)
-    letra = models.CharField(max_length=10, blank=True, null=True)
-    municipio = models.CharField(max_length=100, blank=True, null=True)
-    provincia = models.CharField(max_length=100, blank=True, null=True)
-    cp = models.CharField(max_length=10, blank=True, null=True)
-    latitud = models.DecimalField(
-        max_digits=12, decimal_places=9, blank=True, null=True
-    )
-    longitud = models.DecimalField(
-        max_digits=12, decimal_places=9, blank=True, null=True
-    )
-
-    class Meta:
-        managed = True
-        db_table = "usuario" """
-
-
 class Valoracion(models.Model):
     id_valoracion = models.AutoField(primary_key=True)
+
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column="id_usuario",
+        blank=True,
+        null=True,
+    )
     id_establecimiento = models.ForeignKey(
         Establecimiento,
         models.CASCADE,
@@ -217,13 +208,19 @@ class Valoracion(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
+    id_servicio = models.ForeignKey(
+        Servicio,
+        models.CASCADE,
+        db_column="id_servicio",
+        related_name="valoraciones",
+        blank=True,
+        null=True,
     )
-    # Validamos que solo sea de 1 a 5
+
     puntuacion = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)], blank=True, null=True
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        blank=True,
+        null=True,
     )
     fecha = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField(blank=True, null=True)
@@ -231,19 +228,27 @@ class Valoracion(models.Model):
     class Meta:
         managed = True
         db_table = "valoracion"
-        unique_together = ("id_establecimiento", "id_usuario")
+        unique_together = [
+            ("id_establecimiento", "id_usuario"),
+            ("id_servicio", "id_usuario"),
+        ]
 
 
 class Voluntario(models.Model):
-    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='perfil_voluntario')
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="perfil_voluntario",
+    )
     cp = models.CharField(max_length=5)
-    dias_disponibles = models.CharField(max_length=100) 
+    dias_disponibles = models.CharField(max_length=100)
     horario_inicio = models.TimeField()
     horario_fin = models.TimeField()
     activo = models.BooleanField(default=True)
 
     class Meta:
-        db_table = 'voluntario' # Nombre para la nueva tabla
+        db_table = "voluntario"
+
 
 class SolicitudAyuda(models.Model):
     nombre_completo = models.CharField(max_length=150)
@@ -252,27 +257,35 @@ class SolicitudAyuda(models.Model):
     cp = models.CharField(max_length=5)
     descripcion = models.TextField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_nacimiento = models.DateField() 
+    fecha_nacimiento = models.DateField()
     encuesta_enviada = models.BooleanField(default=False)
     requiere_llamada = models.BooleanField(default=False)
     puntuacion = models.IntegerField(null=True, blank=True)
 
     @property
     def es_persona_mayor(self):
-        # Consideramos mayor a +65 años
         return (timezone.now().date() - self.fecha_nacimiento).days > (65 * 365)
 
+    def save(self, *args, **kwargs):
+        hoy = date.today()
+        edad = hoy.year - self.fecha_nacimiento.year - (
+            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        )
+        if edad >= 65:
+            self.requiere_llamada = True
+        super().save(*args, **kwargs)
+
     class Meta:
-        db_table = 'solicitud_ayuda'
+        db_table = "solicitud_ayuda"
+
 
 class EncuestaSatisfaccion(models.Model):
-    # Relación con la solicitud original
-    solicitud = models.OneToOneField(SolicitudAyuda, on_delete=models.CASCADE, related_name='encuesta')
-    
-    # Preguntas de la encuesta
-    puntuacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)]) # 1 a 5 estrellas
+    solicitud = models.OneToOneField(
+        SolicitudAyuda, on_delete=models.CASCADE, related_name="encuesta"
+    )
+    puntuacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comentario = models.TextField(blank=True, null=True)
     fecha_completada = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'encuesta_satisfaccion'
+        db_table = "encuesta_satisfaccion"
