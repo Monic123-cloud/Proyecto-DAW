@@ -26,33 +26,24 @@ interface ResultadoBusqueda {
   nombre_profesional?: string;
 }
 
-function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
+function MarcadorInteligente({ map, p, onClick }: any) {
   useEffect(() => {
     if (!map || !window.google?.maps?.marker) return;
-    if (!map) return;
 
-    let contenido;
-
-    // Decidimos el color según el "tipo" que viene de Django
+    let colorPin;
     if (p.tipo === "servicio_propio") {
-      // Círculo VERDE para servicios
-      contenido = document.createElement("div");
-      contenido.style.width = "14px";
-      contenido.style.height = "14px";
-      contenido.style.backgroundColor = "#22c55e"; // Verde
-      contenido.style.borderRadius = "50%";
-      contenido.style.border = "2px solid white";
-      contenido.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+      colorPin = "#22c55e"; // Verde
+    } else if (p.tipo === "comercio_propio") {
+      colorPin = "#4285F4"; // Azul
     } else {
-      // Pin Avanzado de Google
-      const colorPin = p.tipo === "comercio_propio" ? "#4285F4" : "#EA4335"; // Azul vs Rojo
-      const pinElement = new window.google.maps.marker.PinElement({
-        background: colorPin,
-        borderColor: "white",
-        glyphColor: "white",
-      });
-      contenido = pinElement.element;
+      colorPin = "#EA4335"; // Rojo
     }
+
+    const pinElement = new window.google.maps.marker.PinElement({
+      background: colorPin,
+      borderColor: "white",
+      glyphColor: "white",
+    });
 
     const marker = new window.google.maps.marker.AdvancedMarkerElement({
       map,
@@ -61,13 +52,13 @@ function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
         lng: Number(p.longitud),
       },
       title: p.nombre_comercio,
-      content: contenido,
+      content: pinElement.element, 
     });
 
     const listener = marker.addListener("click", onClick);
 
     return () => {
-      google.maps.event.removeListener(listener);
+      if (listener) google.maps.event.removeListener(listener);
       marker.map = null;
     };
   }, [map, p, onClick]);

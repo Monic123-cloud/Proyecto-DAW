@@ -8,9 +8,11 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { IconButton } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const Buscador = dynamic(() => import("../components/Buscador"), { ssr: false });
+const Buscador = dynamic(() => import("../components/Buscador"), {
+  ssr: false,
+});
 const Mapa = dynamic(() => import("@/components/Mapa"), { ssr: false });
 
 export default function HomePage() {
@@ -47,29 +49,29 @@ export default function HomePage() {
     "Descubre lo que realmente necesitas en tu zona.",
   ];
 
-    if (esPantallaCompleta) {
-        return (
-          <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col">
-            <Header />
-            <main className="flex-1 pt-24 pb-12 px-4 md:px-10 overflow-y-auto">
-              <div className="max-w-7xl mx-auto relative">
-                <button 
-                  onClick={() => setEsPantallaCompleta(false)}
-                  className="absolute -top-12 right-0 bg-red-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg"
-                >
-                  ✖ Cerrar Explorador
-                </button>
-                
-                {/* Pasamos los resultados que guardamos en la miniatura */}
-                <Buscador 
-                  esMiniatura={false} 
-                  resultadosIniciales={resultadosGuardados} 
-                />
-              </div>
-            </main>
+  if (esPantallaCompleta) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1 pt-24 pb-12 px-4 md:px-10 overflow-y-auto">
+          <div className="max-w-7xl mx-auto relative">
+            <button
+              onClick={() => setEsPantallaCompleta(false)}
+              className="absolute -top-12 right-0 bg-red-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg"
+            >
+              ✖ Cerrar Explorador
+            </button>
+
+            {/* Pasamos los resultados que guardamos en la miniatura */}
+            <Buscador
+              esMiniatura={false}
+              resultadosIniciales={resultadosGuardados}
+            />
           </div>
-        );
-      }
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="page page-home">
@@ -112,7 +114,7 @@ export default function HomePage() {
               <div className="phone-wrap">
                 <div className="phone-card">
                   <div className="phone-screen">
- <div
+                    <div
                       onClick={() => setEsPantallaCompleta(true)}
                       style={{
                         position: "relative",
@@ -121,25 +123,30 @@ export default function HomePage() {
                         cursor: "zoom-in",
                         overflowY: "auto",
                         padding: "10px",
-                        backgroundColor: "#1abc8a"
+                        backgroundColor: "#1abc8a",
                       }}
                     >
-                      <Buscador 
-                        esMiniatura={true} 
-                        onResultadosChange={(data) => setResultadosGuardados(data)} // Guardamos los datos aquí
+                      <Buscador
+                        esMiniatura={true}
+                        onResultadosChange={(data) => {
+                          console.log("Datos capturados en miniatura:", data);
+                          setResultadosGuardados(data);
+                        }}
                       />
-                      
-                      <div style={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        zIndex: 50,
-                        backgroundColor: "#1abc8a",
-                        borderRadius: "50%",
-                        padding: "4px",
-                        border: "2px solid white",
-                        pointerEvents: "none"
-                      }}>
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 10,
+                          right: 10,
+                          zIndex: 50,
+                          backgroundColor: "#1abc8a",
+                          borderRadius: "50%",
+                          padding: "4px",
+                          border: "2px solid white",
+                          pointerEvents: "none",
+                        }}
+                      >
                         <FullscreenIcon sx={{ fontSize: 20, color: "white" }} />
                       </div>
                     </div>

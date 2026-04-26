@@ -242,9 +242,9 @@ class GeolocalizadorAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .views import BuscadorAPIView
+        buscador = BuscadorAPIView()
+        return buscador.get(request)
 
-        return BuscadorAPIView().get(request)
 
     def post(
         self, request
@@ -404,7 +404,7 @@ def gestionar_formulario(request, pk=None):
                 nuevo_establecimiento = Establecimiento.objects.create(
                     usuario=nuevo_usuario,
                     nombre_comercio=datos.get("nombre_comercio"),
-                    cif_nif=cif_nif,
+                    cif_nif=cif_nif.strip().upper(),
                     tipo_negocio=tipo_final,
                     grupo=datos.get("grupo"),
                     categoria=datos.get("categoria"),

@@ -6,10 +6,10 @@ import { ENDPOINTS } from "../app/config";
 import { validarDocumentoCompleto, validarCP } from "../app/utils";
 import { authService } from "../services/authService";
 
-const GOOGLE_MAPS_LIBRARIES: ("places" | "geometry" | "marker")[] = [
+const GOOGLE_MAPS_LIBRARIES: ("marker" | "places" | "geometry")[] = [
+  "marker",
   "places",
   "geometry",
-  "marker",
 ];
 
 const ESTRUCTURA = {
@@ -97,9 +97,6 @@ export default function RegistroEstablecimiento() {
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  if (!isLoaded) return <div>Cargando mapa...</div>;
-  if (loadError) return <div>Error al cargar el mapa</div>;
-
   const [vista, setVista] = useState<"seleccion" | "busqueda" | "formulario">(
     "seleccion",
   );
@@ -152,6 +149,9 @@ export default function RegistroEstablecimiento() {
     };
     cargarDatos();
   }, []);
+
+  if (!isLoaded) return <div>Cargando mapa...</div>;
+  if (loadError) return <div>Error al cargar el mapa</div>;
 
   const inputClasses = "form-control bg-dark text-white border-secondary";
   const selectClasses = "form-select bg-dark text-white border-secondary";
@@ -286,35 +286,44 @@ export default function RegistroEstablecimiento() {
     e.preventDefault();
     setLoading(true);
 
-    // Validación: Si editamos, necesitamos el token
+    // 1. Validación de Sesión para Edición
     if (editId && !authService.isAuthenticated()) {
       alert(
         "Sesión expirada o no encontrada. Por favor, busca tu negocio de nuevo.",
+      );
+      authService.logout();
+      setVista("seleccion");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Validación de Contraseña para Nuevos Registros
+    if (!editId && (!password || password.length < 8)) {
+      alert(
+        "La contraseña es obligatoria para nuevos registros (mínimo 8 caracteres).",
       );
       setLoading(false);
       return;
     }
 
+    // 3. Preparación de los datos (Mapeo de Categorías Libres y limpieza)
+    const { categoria_libre, subcategoria_libre, ...restoFormData } = formData;
+
     const datosAEnviar = {
-      ...formData,
-      password: password,
+      ...restoFormData,
+      // Enviamos la password si existe (siempre en POST, opcional en PUT)
+      ...(password ? { password } : {}),
       categoria:
         formData.categoria === "Otros..."
-          ? formData.categoria_libre
+          ? categoria_libre
           : formData.categoria,
       subcategoria:
         formData.subcategoria === "Otros..."
-          ? formData.subcategoria_libre
+          ? subcategoria_libre
           : formData.subcategoria,
     };
 
-    if (password) {
-      datosAEnviar.password = password;
-    } else if (!editId) {
-      alert("La contraseña es obligatoria para nuevos registros.");
-      setLoading(false);
-      return;
-    }
+    // 4. Configuración de la Petición
     const url = editId
       ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
       : ENDPOINTS.ESTABLECIMIENTOS;
@@ -324,9 +333,14 @@ export default function RegistroEstablecimiento() {
     try {
       const response = await fetch(url, {
         method: method,
-        headers: authService.getAuthHeaders(),
+        headers: {
+          ...authService.getAuthHeaders(),
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(datosAEnviar),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         alert(
@@ -334,12 +348,15 @@ export default function RegistroEstablecimiento() {
             ? "¡Cambios guardados correctamente!"
             : "¡Negocio registrado con éxito!",
         );
-        setVista("seleccion"); // Regresa al menú principal
+
+        // Volver al menú principal y limpiar password
+        setVista("seleccion");
+        setPassword("");
       } else {
-        const errorData = await response.json();
-        alert(
-          `Error: ${errorData.error || "No se pudo procesar la solicitud"}`,
-        );
+        // Manejo de errores del backend
+        const errorMsg =
+          data.error || data.detail || "No se pudo procesar la solicitud";
+        alert(`Error: ${errorMsg}`);
       }
     } catch (error) {
       console.error("Error en el envío:", error);
@@ -348,11 +365,6 @@ export default function RegistroEstablecimiento() {
       setLoading(false);
     }
   };
-
-  if (!isLoaded)
-    return (
-      <div className="text-white text-center py-5">Cargando buscador...</div>
-    );
 
   return (
     <div
@@ -593,8 +605,28 @@ export default function RegistroEstablecimiento() {
               </div>
             )}
 
+            {/* CAMPO LIBRE SI ELIGE OTROS EN CATEGORÍA */}
+            {formData.categoria === "Otros..." && (
+              <div className="mb-3 animate__animated animate__fadeIn">
+                <input
+                  type="text"
+                  className={`${inputClasses} border-warning`}
+                  placeholder="Escribe tu categoría..."
+                  value={formData.categoria_libre}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      categoria_libre: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            )}
+
             {/* SUBCATEGORÍA */}
             {formData.categoria &&
+              formData.categoria !== "Otros..." &&
               Array.isArray(
                 (
                   ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any
@@ -636,6 +668,10 @@ export default function RegistroEstablecimiento() {
               <Autocomplete
                 onLoad={(ref) => (autocompleteRef.current = ref)}
                 onPlaceChanged={onPlaceChanged}
+                options={{
+                  componentRestrictions: { country: "es" },
+                  types: ["address"], // Opcional: para que priorice direcciones completas
+                }}
               >
                 <input
                   type="text"

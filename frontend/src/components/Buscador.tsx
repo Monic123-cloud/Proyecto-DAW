@@ -47,10 +47,18 @@ export default function Buscador({
   useEffect(() => {
     if (resultadosIniciales && resultadosIniciales.length > 0) {
       setResultados(resultadosIniciales);
-      // Buscamos el CP en el primer resultado que venga del backend
-      const cpDelBack = resultadosIniciales[0].cp;
-      if (cpDelBack) {
-        setCp(cpDelBack.toString()); // Esto rellena el input y activa a Gemini
+
+      // Buscamos el CP en el primer resultado que lo tenga
+      const conCP = resultadosIniciales.find((r: any) => r.cp);
+
+      if (conCP && conCP.cp) {
+        const valorCP = conCP.cp.toString().trim();
+
+        // Si tiene 5 cifras, lo grabamos en el estado local
+        // Esto hará que 'cp.length === 5' sea verdadero y aparezca Gemini
+        if (valorCP.length === 5) {
+          setCp(valorCP);
+        }
       }
     }
   }, [resultadosIniciales]);
@@ -172,7 +180,7 @@ export default function Buscador({
               e.stopPropagation();
               obtenerUbicacionActual();
             }}
-            className={`bg-gray-100 hover:bg-gray-200 rounded-xl transition-all ${esMiniatura ? "p-2 text-lg" : "px-5 text-2xl"}`}
+            className={`bg-gray-100 hover:bg-gray-200 rounded-xl transition-all ${esMiniatura ? "p-2 text-lg" : "p-5 text-xl flex-1"}`}
           >
             📍
           </button>
@@ -181,7 +189,7 @@ export default function Buscador({
             placeholder={
               esMiniatura ? "CP..." : "Introduce tu código postal..."
             }
-            className={`border-2 border-gray-300 rounded-xl flex-1 focus:border-blue-500 outline-none text-black ${esMiniatura ? "p-2 text-sm" : "p-4"}`}
+            className={`border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none text-black font-bold shadow-sm ${esMiniatura ? "!p-3 text-base !w-32" : "!p-5 text-2xl flex-1"}`}
             value={cp}
             onClick={(e) => e.stopPropagation()} // Evita el zoom al escribir
             onChange={(e) => setCp(e.target.value)}
