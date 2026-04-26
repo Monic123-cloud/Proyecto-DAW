@@ -1,7 +1,8 @@
 "use client"; //Indica que este componente se ejecuta en el navegador
 
-import { GoogleMap, useJsApiLoader, InfoWindowF } from "@react-google-maps/api";
+import { GoogleMap,  InfoWindowF } from "@react-google-maps/api";
 import { useMemo, useEffect, useState } from "react";
+import { useGoogleMaps } from "./providers/GoogleMapsProvider";
 
 const LIBRARIES: (
   | "marker"
@@ -76,11 +77,7 @@ function MarcadorInteligente({ map, p, onClick, esServicio = false }: any) {
 }
 
 export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: LIBRARIES,
-  });
+  const { isLoaded } = useGoogleMaps();
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selected, setSelected] = useState<any | null>(null);

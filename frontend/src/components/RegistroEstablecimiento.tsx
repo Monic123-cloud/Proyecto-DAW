@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
+import { Autocomplete, } from "@react-google-maps/api";
 import { ENDPOINTS } from "../app/config";
 import { validarDocumentoCompleto, validarCP } from "../app/utils";
 import { authService } from "../services/authService";
+import { Box, Container, Typography, Button, Paper, Avatar, Stack, TextField, Divider, MenuItem, Grid, CircularProgress } from "@mui/material";
+import { useGoogleMaps } from "./providers/GoogleMapsProvider";
 
-const GOOGLE_MAPS_LIBRARIES: ("places" | "geometry" | "marker")[] = [
-  "places",
-  "geometry",
-  "marker",
-];
+
 
 const ESTRUCTURA = {
   "Educación y Cultura": {
@@ -91,14 +89,9 @@ const ESTRUCTURA = {
 };
 
 export default function RegistroEstablecimiento() {
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
+  const { isLoaded, loadError } = useGoogleMaps();
 
-  if (!isLoaded) return <div>Cargando mapa...</div>;
-  if (loadError) return <div>Error al cargar el mapa</div>;
+
 
   const [vista, setVista] = useState<"seleccion" | "busqueda" | "formulario">(
     "seleccion",
@@ -348,474 +341,680 @@ export default function RegistroEstablecimiento() {
       setLoading(false);
     }
   };
-
+  if (!isLoaded) return <div>Cargando mapa...</div>;
+  if (loadError) return <div>Error al cargar el mapa</div>;
   if (!isLoaded)
     return (
       <div className="text-white text-center py-5">Cargando buscador...</div>
     );
 
   return (
-    <div
-      className="container py-5"
-      style={{
-        backgroundColor: "#1a3a3a",
-        backgroundImage: `linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8))`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        borderRadius: "15px",
-      }}
-    >
-      {/* CABECERA */}
-      <div className="text-center mb-4">
-        <div
-          className="bg-white d-inline-block rounded-circle p-3 mb-2"
-          style={{ width: "80px", height: "80px" }}
-        >
-          <img src="" alt="logo" style={{ width: "100%" }} />
-        </div>
-        <h1 className="text-white fw-bold h3">Gestión de Negocio</h1>
-      </div>
 
-      <div className="mx-auto w-100" style={{ maxWidth: "450px" }}>
-        {/* VISTA 1: SELECCIÓN INICIAL */}
-        {vista === "seleccion" && (
-          <div className="bg-dark p-4 rounded-4 shadow text-center border border-secondary">
-            <h4 className="text-white mb-4">Bienvenido</h4>
-            <button
-              className="btn btn-warning w-100 mb-3 py-3 fw-bold"
-              onClick={() => {
-                setEditId(null);
-                setVista("formulario");
+    <Container maxWidth={false} disableGutters>
+      <Box
+        sx={{
+          py: 5,
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          borderRadius: 2,
+          backgroundColor: "#1a3a3a",
+          backgroundImage:
+            "linear-gradient(rgba(26,58,58,0.8), rgba(26,58,58,0.8))",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}
+      >
+        {/* CABECERA */}
+        <Box textAlign="center" mb={4}>
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              mx: "auto",
+              mb: 2,
+              bgcolor: "white",
+            }}
+          >
+            {/* aquí puedes poner logo */}
+          </Avatar>
+
+          <Typography variant="h5" fontWeight="bold" color="white">
+            Gestión de Negocio
+          </Typography>
+        </Box>
+
+        {/* CONTENIDO */}
+        <Box width="100%" maxWidth={450}>
+
+          {/* VISTA SELECCIÓN */}
+          {vista === "seleccion" && (
+            <Paper
+              elevation={4}
+              sx={{
+                p: 4,
+                textAlign: "center",
+                bgcolor: "#1e1e1e",
+                border: "1px solid #444",
+                borderRadius: 3,
               }}
             >
-              NUEVO REGISTRO
-            </button>
-            <button
-              className="btn btn-outline-light w-100 py-3 fw-bold"
-              onClick={() => setVista("busqueda")}
-            >
-              YA ESTOY REGISTRADO
-            </button>
-          </div>
-        )}
+              <Typography variant="h6" color="white" mb={3}>
+                Bienvenido
+              </Typography>
 
-        {/* VISTA 2: BUSCADOR POR CIF */}
-        {vista === "busqueda" && (
-          <div className="bg-dark p-4 rounded-4 shadow border border-warning">
-            <h4 className="text-warning mb-3">Buscar mi Ficha</h4>
-            <p className="text-white-50 small">
-              Introduce tu CIF/NIF para editar tus datos:
-            </p>
-            <input
-              type="text"
-              className={inputClasses}
-              placeholder="B12345678"
-              value={cifBusqueda}
-              onChange={(e) => setCifBusqueda(e.target.value.toUpperCase())}
-            />
-            <div className="mb-3">
-              <label className="text-white-50 small">Contraseña</label>
-              <input
+              <Stack spacing={2}>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  size="large"
+                  fullWidth
+                  onClick={() => {
+                    setEditId(null);
+                    setVista("formulario");
+                  }}
+                >
+                  NUEVO REGISTRO
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  fullWidth
+                  onClick={() => setVista("busqueda")}
+                  sx={{
+                    color: "white",
+                    borderColor: "white",
+                    "&:hover": {
+                      borderColor: "#ccc",
+                    },
+                  }}
+                >
+                  YA ESTOY REGISTRADO
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+          {vista === "busqueda" && (
+            <Paper
+              elevation={4}
+              sx={{
+                p: 4,
+                bgcolor: "#1e1e1e",
+                border: "1px solid orange",
+                borderRadius: 3,
+              }}
+            >
+              <Typography color="warning.main" mb={2}>
+                Buscar mi Ficha
+              </Typography>
+
+              <Typography color="gray" mb={2}>
+                Introduce tu CIF/NIF para editar tus datos
+              </Typography>
+
+              <TextField
+                fullWidth
+                placeholder="B12345678"
+                value={cifBusqueda}
+                onChange={(e) =>
+                  setCifBusqueda(e.target.value.toUpperCase())
+                }
+                sx={{ mb: 2 }}
+              />
+
+              <TextField
+                fullWidth
                 type="password"
-                className={inputClasses}
-                placeholder="Tu contraseña"
+                label="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <button
-              className="btn btn-warning w-100 mt-3 py-2 fw-bold"
-              onClick={buscarMiNegocio}
-              disabled={loading || !cifBusqueda || !password}
-            >
-              {loading ? "Buscando..." : "CARGAR DATOS"}
-            </button>
-            <button
-              className="btn btn-link text-white-50 w-100 mt-2"
-              onClick={() => setVista("seleccion")}
-            >
-              Volver
-            </button>
-          </div>
-        )}
-
-        {/* VISTA 3: EL FORMULARIO (Híbrido Registro/Edición) */}
-        {vista === "formulario" && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-dark p-4 rounded-4 shadow border border-secondary"
-          >
-            <h4 className="text-white mb-4 text-center">
-              {editId ? "Editar Negocio" : "Nuevo Registro"}
-            </h4>
-
-            {/* TIPO DE NEGOCIO */}
-            <div className="mb-3">
-              <label className="form-label text-white-50 small fw-bold">
-                TIPO DE NEGOCIO
-              </label>
-              <div className="d-flex gap-2">
-                {["Comercio", "Productor Local"].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={`btn btn-sm w-50 ${formData.tipo_negocio === t ? "btn-warning" : "btn-outline-secondary text-white"}`}
-                    onClick={() =>
-                      setFormData({ ...formData, tipo_negocio: t })
-                    }
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* NOMBRE */}
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Nombre del Negocio
-              </label>
-              <input
-                type="text"
-                className={inputClasses}
-                value={formData.nombre_comercio}
-                onChange={(e) =>
-                  setFormData({ ...formData, nombre_comercio: e.target.value })
-                }
-                placeholder="Ej: Cafetería Central"
-                required
-              />
-            </div>
-
-            {/* CIF / NIF */}
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                CIF / NIF *
-              </label>
-              <input
-                type="text"
-                /* Combinamos tus clases base con 'is-invalid' si la validación falla */
-                className={`${inputClasses} ${
-                  formData.cif_nif &&
-                  !validarDocumentoCompleto(formData.cif_nif)
-                    ? "is-invalid"
-                    : ""
-                }`}
-                value={formData.cif_nif}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    cif_nif: e.target.value.toUpperCase().trim(),
-                  })
-                }
-                required
-                placeholder="Ej: 12345678Z o B12345678"
+                sx={{ mb: 2 }}
               />
 
-              {/* El mensaje de error debe ir fuera del input para que Bootstrap lo muestre */}
-              {formData.cif_nif &&
-                !validarDocumentoCompleto(formData.cif_nif) && (
-                  <div
-                    className="invalid-feedback"
-                    style={{ display: "block" }}
-                  >
-                    El número de identificación no es válido (letra de control o
-                    formato incorrecto).
-                  </div>
-                )}
-            </div>
-
-            <hr className="text-secondary my-4" />
-
-            {/* BLOQUE DE ACTIVIDAD */}
-            <div className="mb-3">
-              <label
-                className="form-label text-white fw-bold text-uppercase"
-                style={{ fontSize: "0.75rem", letterSpacing: "1px" }}
+              <Button
+                variant="contained"
+                color="warning"
+                fullWidth
+                disabled={loading || !cifBusqueda || !password}
+                onClick={buscarMiNegocio}
               >
-                1. Bloque de Actividad
-              </label>
-              <select
-                className={selectClasses}
-                value={formData.grupo}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    grupo: e.target.value,
-                    categoria: "",
-                    subcategoria: "",
-                  })
-                }
-              >
-                <option value="">Selecciona bloque...</option>
-                {Object.keys(ESTRUCTURA).map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {loading ? "Buscando..." : "CARGAR DATOS"}
+              </Button>
 
-            {/* CATEGORÍA */}
-            {formData.grupo && (
-              <div className="mb-3 animate__animated animate__fadeIn">
-                <label
-                  className="form-label text-white fw-bold text-uppercase"
-                  style={{ fontSize: "0.75rem" }}
+              <Button
+                fullWidth
+                sx={{ mt: 2, color: "gray" }}
+                onClick={() => setVista("seleccion")}
+              >
+                Volver
+              </Button>
+            </Paper>
+          )}
+          {vista === "formulario" && (
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{
+                p: 4,
+                borderRadius: 3,
+                bgcolor: "#1e1e1e",
+                border: "1px solid #444",
+                boxShadow: 3,
+              }}
+            >
+              {/* TÍTULO */}
+              <Typography
+                variant="h6"
+                align="center"
+                sx={{ color: "white", mb: 3 }}
+              >
+                {editId ? "Editar Negocio" : "Nuevo Registro"}
+              </Typography>
+
+              {/* TIPO DE NEGOCIO */}
+              <Box mb={3}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "#bbb", fontWeight: "bold" }}
                 >
-                  2. Categoría
-                </label>
-                <select
-                  className={selectClasses}
-                  value={formData.categoria}
+                  TIPO DE NEGOCIO
+                </Typography>
+
+                <Stack direction="row" spacing={2} mt={1}>
+                  {["Comercio", "Productor Local"].map((t) => (
+                    <Button
+                      key={t}
+                      fullWidth
+                      variant={
+                        formData.tipo_negocio === t
+                          ? "contained"
+                          : "outlined"
+                      }
+                      color={
+                        formData.tipo_negocio === t
+                          ? "warning"
+                          : "inherit"
+                      }
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          tipo_negocio: t,
+                        })
+                      }
+                      sx={{
+                        color:
+                          formData.tipo_negocio === t
+                            ? "black"
+                            : "white",
+                        borderColor: "#666",
+                      }}
+                    >
+                      {t}
+                    </Button>
+                  ))}
+                </Stack>
+              </Box>
+
+
+              {/* NOMBRE */}
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="Nombre del Negocio"
+                  value={formData.nombre_comercio}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      categoria: e.target.value,
+                      nombre_comercio: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: Cafetería Central"
+                  required
+                  variant="outlined"
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* CIF / NIF */}
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="CIF / NIF"
+                  value={formData.cif_nif}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      cif_nif: e.target.value.toUpperCase().trim(),
+                    })
+                  }
+                  placeholder="Ej: 12345678Z o B12345678"
+                  required
+                  error={
+                    !!formData.cif_nif &&
+                    !validarDocumentoCompleto(formData.cif_nif)
+                  }
+                  helperText={
+                    formData.cif_nif &&
+                      !validarDocumentoCompleto(formData.cif_nif)
+                      ? "El número de identificación no es válido"
+                      : ""
+                  }
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              <Divider sx={{ my: 4, borderColor: "#555" }} />
+
+              {/* BLOQUE DE ACTIVIDAD */}
+              <Box mb={3}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#bbb",
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  1. Bloque de Actividad
+                </Typography>
+
+                <TextField
+                  select
+                  fullWidth
+                  value={formData.grupo}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      grupo: e.target.value,
+                      categoria: "",
                       subcategoria: "",
                     })
                   }
+                  sx={{
+                    mt: 1,
+                    input: { color: "white" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
                 >
-                  <option value="">Selecciona categoría...</option>
-                  {Object.keys(
-                    ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] || {},
-                  ).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                  <MenuItem value="">Selecciona bloque...</MenuItem>
+                  {Object.keys(ESTRUCTURA).map((g) => (
+                    <MenuItem key={g} value={g}>
+                      {g}
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-            )}
+                </TextField>
+              </Box>
 
-            {/* SUBCATEGORÍA */}
-            {formData.categoria &&
-              Array.isArray(
-                (
-                  ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any
-                )?.[formData.categoria],
-              ) && (
-                <div className="mb-3 animate__animated animate__fadeIn">
-                  <label
-                    className="form-label text-warning fw-bold text-uppercase"
-                    style={{ fontSize: "0.75rem" }}
+              {/* CATEGORÍA */}
+              {formData.grupo && (
+                <Box mb={3}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "#bbb",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
                   >
-                    3. Detalle Especialidad
-                  </label>
-                  <select
-                    className={`${selectClasses} border-warning`}
-                    value={formData.subcategoria}
+                    2. Categoría
+                  </Typography>
+
+                  <TextField
+                    select
+                    fullWidth
+                    value={formData.categoria}
                     onChange={(e) =>
-                      setFormData({ ...formData, subcategoria: e.target.value })
+                      setFormData({
+                        ...formData,
+                        categoria: e.target.value,
+                        subcategoria: "",
+                      })
                     }
+                    sx={{
+                      mt: 1,
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": { borderColor: "#555" },
+                      },
+                    }}
                   >
-                    <option value="">Selecciona detalle...</option>
-                    {(
-                      ESTRUCTURA[
-                        formData.grupo as keyof typeof ESTRUCTURA
-                      ] as any
-                    )[formData.categoria].map((s: string) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
+                    <MenuItem value="">Selecciona categoría...</MenuItem>
+                    {Object.keys(
+                      ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] || {}
+                    ).map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
                     ))}
-                  </select>
-                </div>
+                  </TextField>
+                </Box>
               )}
 
-            {/* DIRECCIÓN CON AUTOCOMPLETE */}
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Busca tu Dirección *
-              </label>
-              <Autocomplete
-                onLoad={(ref) => (autocompleteRef.current = ref)}
-                onPlaceChanged={onPlaceChanged}
-              >
-                <input
-                  type="text"
-                  className={inputClasses}
-                  placeholder="Calle, número..."
-                  value={formData.direccion}
-                  onChange={(e) =>
-                    setFormData({ ...formData, direccion: e.target.value })
-                  }
-                />
-              </Autocomplete>
-            </div>
+              {/* SUBCATEGORÍA */}
+              {formData.categoria &&
+                Array.isArray(
+                  (ESTRUCTURA[formData.grupo as keyof typeof ESTRUCTURA] as any)?.[
+                  formData.categoria
+                  ]
+                ) && (
+                  <Box mb={3}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "warning.main",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      3. Detalle Especialidad
+                    </Typography>
 
-            {/* NÚMERO / PORTAL (El que faltaba) */}
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Número / Portal *
-              </label>
-              <input
-                type="text"
-                className={inputClasses}
-                value={formData.numero}
-                onChange={(e) =>
-                  setFormData({ ...formData, numero: e.target.value })
-                }
-                placeholder="Ej: 12, 3B o S/N"
-                required
-              />
-            </div>
-            {/*MUNICIPIO, CP y Provincia */}
-            <div className="row mb-3 g-2">
-              <div className="col-8">
-                <label className="form-label text-white-50 small">
-                  Municipio
-                </label>
-                <input
-                  type="text"
-                  className={inputClasses}
-                  placeholder="Municipio"
-                  value={formData.municipio}
-                  readOnly
-                />
-              </div>
-              <div className="col-4">
-                <label className="form-label text-white-50 small">C.P.</label>
-                <input
-                  type="text"
-                  className={inputClasses}
-                  placeholder="C.P."
-                  value={formData.cp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cp: e.target.value })
-                  }
-                />
-              </div>
-              <div className="col-4">
-                <label className="form-label text-white-50 small">
-                  Provincia
-                </label>
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value={formData.provincia}
-                  readOnly
-                />
-              </div>
-            </div>
-
-            {/* CONTACTO */}
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                className={inputClasses}
-                value={formData.correo}
-                onChange={(e) =>
-                  setFormData({ ...formData, correo: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Crea una contraseña para gestionar tu negocio:
-              </label>
-              <input
-                type="password"
-                className={inputClasses} // Añade la variable de clase
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 8 caracteres"
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label text-white fw-bold small">
-                Teléfono de contacto *
-              </label>
-              <input
-                type="tel"
-                className={inputClasses}
-                value={formData.telefono}
-                onChange={(e) =>
-                  setFormData({ ...formData, telefono: e.target.value })
-                }
-                placeholder="Ej: 600000000"
-                required
-              />
-            </div>
-
-            {/* BOTONES FINALES */}
-            <div className="d-grid gap-2 mt-4">
-              <button
-                type="submit"
-                /* Se bloquea si está cargando O si el CIF es inválido O si el CP es inválido */
-                disabled={
-                  loading ||
-                  !validarDocumentoCompleto(formData.cif_nif) ||
-                  !validarCP(formData.cp)
-                }
-                className="btn btn-warning fw-bold py-3 text-uppercase shadow-sm w-100 mb-3"
-                style={{
-                  color: "#275656",
-                  cursor:
-                    loading ||
-                    !validarDocumentoCompleto(formData.cif_nif) ||
-                    !validarCP(formData.cp)
-                      ? "not-allowed"
-                      : "pointer",
-                  opacity:
-                    loading ||
-                    !validarDocumentoCompleto(formData.cif_nif) ||
-                    !validarCP(formData.cp)
-                      ? 0.6
-                      : 1,
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
-                    Procesando...
-                  </>
-                ) : editId ? (
-                  "Guardar Cambios"
-                ) : (
-                  "Finalizar Registro"
+                    <TextField
+                      select
+                      fullWidth
+                      value={formData.subcategoria}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          subcategoria: e.target.value,
+                        })
+                      }
+                      sx={{
+                        mt: 1,
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": {
+                            borderColor: "orange",
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Selecciona detalle...</MenuItem>
+                      {(
+                        ESTRUCTURA[
+                        formData.grupo as keyof typeof ESTRUCTURA
+                        ] as any
+                      )[formData.categoria].map((s: string) => (
+                        <MenuItem key={s} value={s}>
+                          {s}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
                 )}
-              </button>
-
-              <div className="d-flex justify-content-between align-items-center">
-                {/* BOTÓN ELIMINAR (Solo en modo edición) */}
-                {editId && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm border-0"
-                    onClick={eliminarNegocio}
-                  >
-                    <i className="bi bi-trash me-1"></i> Eliminar este negocio
-                  </button>
-                )}
-
-                {/* BOTÓN CANCELAR */}
-                <button
-                  type="button"
-                  className="btn btn-link text-white-50 text-decoration-none"
-                  onClick={() => setVista("seleccion")}
+              {/* DIRECCIÓN CON AUTOCOMPLETE */}
+              <Box mb={3}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "white", fontWeight: "bold" }}
                 >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
+                  Busca tu Dirección *
+                </Typography>
+
+                <Autocomplete
+                  onLoad={(ref) => (autocompleteRef.current = ref)}
+                  onPlaceChanged={onPlaceChanged}
+                >
+                  <TextField
+                    fullWidth
+                    placeholder="Calle, número..."
+                    value={formData.direccion}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        direccion: e.target.value,
+                      })
+                    }
+                    sx={{
+                      mt: 1,
+                      input: { color: "white" },
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": { borderColor: "#555" },
+                      },
+                    }}
+                  />
+                </Autocomplete>
+              </Box>
+
+              {/* NÚMERO / PORTAL */}
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="Número / Portal"
+                  value={formData.numero}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      numero: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: 12, 3B o S/N"
+                  required
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* MUNICIPIO / CP / PROVINCIA */}
+              <Box mb={3}>
+                <Stack direction="row" spacing={2} mb={2}>
+                  {/* MUNICIPIO */}
+                  <Box flex={2}>
+                    <TextField
+                      fullWidth
+                      label="Municipio"
+                      value={formData.municipio}
+                      slotProps={{
+                        input: {
+                          readOnly: true,
+                        },
+                      }}
+                      sx={{
+                        input: { color: "white" },
+                        label: { color: "#bbb" },
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": { borderColor: "#555" },
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  {/* CP */}
+                  <Box flex={1}>
+                    <TextField
+                      fullWidth
+                      label="C.P."
+                      value={formData.cp}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          cp: e.target.value,
+                        })
+                      }
+                      sx={{
+                        input: { color: "white" },
+                        label: { color: "#bbb" },
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": { borderColor: "#555" },
+                        },
+                      }}
+                    />
+                  </Box>
+                </Stack>
+
+                {/* PROVINCIA */}
+                <TextField
+                  fullWidth
+                  label="Provincia"
+                  value={formData.provincia}
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                    },
+                  }}
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+              {/* CONTACTO */}
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="Correo electrónico"
+                  type="email"
+                  value={formData.correo}
+                  onChange={(e) =>
+                    setFormData({ ...formData, correo: e.target.value })
+                  }
+                  required
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="Contraseña"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box mb={3}>
+                <TextField
+                  fullWidth
+                  label="Teléfono de contacto"
+                  type="tel"
+                  value={formData.telefono}
+                  onChange={(e) =>
+                    setFormData({ ...formData, telefono: e.target.value })
+                  }
+                  placeholder="Ej: 600000000"
+                  required
+                  sx={{
+                    input: { color: "white" },
+                    label: { color: "#bbb" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#555" },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* BOTONES */}
+              <Box mt={4}>
+                <Stack spacing={2}>
+                  {/* BOTÓN PRINCIPAL */}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="warning"
+                    fullWidth
+                    disabled={
+                      loading ||
+                      !validarDocumentoCompleto(formData.cif_nif) ||
+                      !validarCP(formData.cp)
+                    }
+                    sx={{
+                      py: 2,
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {loading ? (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CircularProgress size={20} color="inherit" />
+                        <span>Procesando...</span>
+                      </Stack>
+                    ) : editId ? (
+                      "Guardar Cambios"
+                    ) : (
+                      "Finalizar Registro"
+                    )}
+                  </Button>
+
+                  {/* ACCIONES SECUNDARIAS */}
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    {/* ELIMINAR */}
+                    {editId && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={eliminarNegocio}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
+
+                    {/* CANCELAR */}
+                    <Button
+                      variant="text"
+                      sx={{ color: "#aaa" }}
+                      onClick={() => setVista("seleccion")}
+                    >
+                      Cancelar
+                    </Button>
+                  </Box>
+                </Stack>
+              </Box>
+            </Box>
+          )}
+
+
+        </Box>
+      </Box>
+
+    </Container>);
 }
+
+
+
+
+

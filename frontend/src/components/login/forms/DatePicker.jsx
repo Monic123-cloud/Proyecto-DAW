@@ -1,14 +1,22 @@
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Controller } from "react-hook-form";
 
-export default function BasicDatePicker() {
+export default function MyDatePicker({ control, name, label }) {
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DemoContainer components={['DatePicker']}>
-        <DatePicker label="Fecha de Nacimiento" />
-      </DemoContainer>
-    </LocalizationProvider>
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <DatePicker
+          value={field.value || null}
+          onChange={(newValue) => field.onChange(newValue)}
+          slotProps={{
+            textField: {
+              fullWidth: true,
+            },
+          }}
+        />
+      )}
+    />
   );
 }

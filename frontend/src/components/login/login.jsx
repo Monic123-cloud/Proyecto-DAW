@@ -14,14 +14,14 @@ const LoginForm= () =>{
  const router = useRouter()
 
   const submission = (data) => {
-        AxiosInstance.post(`login/`,{
+        AxiosInstance.post(`/auth/login/`,{
             email: data.email, 
             password: data.password,
         })
 
         .then((response) => {
             console.log(response)
-            localStorage.setItem('Token', response.data.token)
+            localStorage.setItem('token', response.data.token)
             router.push(`/`)
         })
         .catch((error) => {

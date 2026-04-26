@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions,mixins
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model, authenticate
 from .serializers import RegisterSerializer, LoginSerializer
@@ -9,7 +9,7 @@ from knox.models import AuthToken
 User = get_user_model()
 
 
-class RegisterViewset(viewsets.ViewSet):
+class RegisterViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request):
         serializer = RegisterSerializer(data=request.data)
 

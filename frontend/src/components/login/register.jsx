@@ -7,8 +7,9 @@ import MyButton from './forms/MyButton'
 import Link from 'next/link'
 import AxiosInstance from '../AxiosInstance'
 import MySelect from './forms/MySelect.jsx'
-import DatePicker from './forms/DatePicker'
+
 import { Paper, Box, Button, Stack, Checkbox, FormControlLabel } from "@mui/material";
+import MyDatePicker from "./forms/DatePicker";
 
 const Register = () => {
   const router = useRouter()
@@ -43,7 +44,7 @@ const Register = () => {
 
       .then(() => {
         router.push(`/`)
-        
+
       }
       )
       .catch(err => {
@@ -131,8 +132,10 @@ const Register = () => {
 
 
             <Box className={"itemBox"}>
-              <DatePicker 
-              name={"fecha_nacimiento"}/>
+              <MyDatePicker
+                name={"fecha_nacimiento"}
+                label="Fecha"
+                control={control} />
             </Box>
 
 

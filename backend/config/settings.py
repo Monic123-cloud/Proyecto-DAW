@@ -98,12 +98,33 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database. Intenta usar la URL de la base de datos proporcionada por Railway, si no está disponible, usa variables de .env
-db_from_env = env.db_url("DATABASE_URL", default=None)
+#db_from_env = env.db_url("DATABASE_URL", default=None)
 
 print(f"DEBUG: Intentando conectar a HOST: {os.environ.get('DB_HOST')}")
 
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
-if os.environ.get("DB_HOST"):
+
+if DATABASE_URL:
+    #  PRODUCCIÓN (Railway)
+    DATABASES = {
+        "default": env.db_url("DATABASE_URL")
+    }
+else:
+    #  LOCAL (Docker)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": os.environ.get("DB_HOST", "db"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
+
+
+"""if os.environ.get("DB_HOST"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -112,19 +133,17 @@ if os.environ.get("DB_HOST"):
             "PASSWORD": env("DB_PASSWORD", default=""),
             "HOST": env("DB_HOST", default=""),
             "PORT": env("DB_PORT"),
-            "OPTIONS": {
-                "sslmode": "require",  # OBLIGATORIO en Railway
-            },
+            
         }
-    }
-else:
+    } """
+""" else:
     # Este bloque salva el "Build" de quedarse colgado
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": ":memory:",
         }
-    }
+    } """
     # Si no hay DATABASE_URL, usamos la configuración local de PostgreSQL
 
 # Password validation
@@ -195,12 +214,16 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Configuración de Django REST Framework para usar JWT y permitir cualquier permiso
+APPEND_SLASH = True
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ]
 }
 
 # Duración de Tokens
