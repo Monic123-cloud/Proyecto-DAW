@@ -1,0 +1,21 @@
+# Entornos virtuales (pesan mucho y son locales)
+venv/
+env/
+.env
+
+# Archivos de Python innecesarios
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local (PostgreSQL en Railway)
+*.sqlite3
+
+# Git
+.git
+.gitignore
+
+# Archivos de sistema y carpetas de IDE
+.vscode/
+.DS_Store

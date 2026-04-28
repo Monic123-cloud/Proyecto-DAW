@@ -1,0 +1,30 @@
+
+# No subir archivos de configuración local (contraseñas)
+.env
+
+# Python & Django
+__pycache__/
+*.pyc
+db.sqlite3
+.venv/
+venv/
+env/
+
+
+# Frontend y dependencias
+node_modules/
+vendor/
+.next/
+out/
+dist/
+*.log
+
+# IDEs y Sistema
+.vscode/
+.idea/
+.DS_Store
+*.log
+.next
+.next
+.env*.local
+backend/credentials/google-analytics-key.json
