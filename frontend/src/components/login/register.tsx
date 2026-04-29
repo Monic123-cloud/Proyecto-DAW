@@ -1,18 +1,25 @@
-'use client'
+"use client";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from 'react-hook-form'
-import MyTextField from './forms/MyTextField'
-import MyPassField from './forms/MyPassField'
-import MyButton from './forms/MyButton'
-import Link from 'next/link'
-import AxiosInstance from '../AxiosInstance'
-import MySelect from './forms/MySelect.js'
+import { useForm, Controller } from "react-hook-form";
+import MyTextField from "./forms/MyTextField";
+import MyPassField from "./forms/MyPassField";
+import MyButton from "./forms/MyButton";
+import Link from "next/link";
+import AxiosInstance from "../AxiosInstance";
+import MySelect from "./forms/MySelect";
 
-import { Paper, Box, Button, Stack, Checkbox, FormControlLabel } from "@mui/material";
+import {
+  Paper,
+  Box,
+  Button,
+  Stack,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
 import MyDatePicker from "./forms/DatePicker";
 
 const Register = () => {
-  const router = useRouter()
+  const router = useRouter();
   type RegisterForm = {
     email: string;
     password: string;
@@ -42,9 +49,26 @@ const Register = () => {
     },
   });
 
-
-  const submission = (data: { email: any; password: any; nombre: any; apellidos: any; sexo: any; fecha_nacimiento: any; telefono: any; direccion: any; numero: any; piso: any; letra: any; municipio: any; provincia: any; cp: any; latitud: any; longitud: any; voluntariado: any; }) => {
-    AxiosInstance.post('register/', {
+  const submission = (data: {
+    email: any;
+    password: any;
+    nombre: any;
+    apellidos: any;
+    sexo: any;
+    fecha_nacimiento: any;
+    telefono: any;
+    direccion: any;
+    numero: any;
+    piso: any;
+    letra: any;
+    municipio: any;
+    provincia: any;
+    cp: any;
+    latitud: any;
+    longitud: any;
+    voluntariado: any;
+  }) => {
+    AxiosInstance.post("register/", {
       email: data.email,
       password: data.password,
       nombre: data.nombre,
@@ -70,17 +94,14 @@ const Register = () => {
     })
 
       .then(() => {
-        router.push(`/`)
-
-      }
-      )
-      .catch(err => {
-        console.log("ERROR:", err.response.data)
+        router.push(`/`);
       })
-  }
+      .catch((err) => {
+        console.log("ERROR:", err.response.data);
+      });
+  };
 
   return (
-
     <Box
       sx={{
         minHeight: "100vh",
@@ -102,25 +123,27 @@ const Register = () => {
           borderRadius: "20px",
           width: "100%",
           maxWidth: 600,
-          border: '4px solid #10b981'
+          border: "4px solid #10b981",
         }}
       >
         <form onSubmit={handleSubmit(submission)}>
-          <Box className={"whiteBox"} >
-
-            <Box className={"itemBox"} >
-              <Box sx={{ typography: 'h4', textAlign: 'center', fontWeight: 'bold', color: 'primary.dark' }}>Alta de usuario</Box>
+          <Box className={"whiteBox"}>
+            <Box className={"itemBox"}>
+              <Box
+                sx={{
+                  typography: "h4",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  color: "primary.dark",
+                }}
+              >
+                Alta de usuario
+              </Box>
             </Box>
-
 
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"Nombre"}
-                name={"nombre"}
-                control={control}
-              />
+              <MyTextField label={"Nombre"} name={"nombre"} control={control} />
             </Box>
-
 
             <Box className={"itemBox"}>
               <MyTextField
@@ -130,17 +153,9 @@ const Register = () => {
               />
             </Box>
 
-
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"Correo"}
-                name={"email"}
-                control={control}
-              />
+              <MyTextField label={"Correo"} name={"email"} control={control} />
             </Box>
-
-
-
 
             <Box className={"itemBox"}>
               <MySelect
@@ -152,19 +167,18 @@ const Register = () => {
                   { value: "Mujer", label: "Mujer" },
                   { value: "Hombre", label: "Hombre" },
                   { value: "Otro", label: "Otro" },
-                  { value: "No decirlo", label: "Prefiero no decirlo" }
+                  { value: "No decirlo", label: "Prefiero no decirlo" },
                 ]}
               />
             </Box>
-
 
             <Box className={"itemBox"}>
               <MyDatePicker
                 name={"fecha_nacimiento"}
                 label="Fecha"
-                control={control} />
+                control={control}
+              />
             </Box>
-
 
             <Box className={"itemBox"}>
               <MyTextField
@@ -174,7 +188,6 @@ const Register = () => {
               />
             </Box>
 
-
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Dirección"}
@@ -183,33 +196,17 @@ const Register = () => {
               />
             </Box>
 
-
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"Número"}
-                name={"numero"}
-                control={control}
-              />
+              <MyTextField label={"Número"} name={"numero"} control={control} />
             </Box>
 
-
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"Piso"}
-                name={"piso"}
-                control={control}
-              />
+              <MyTextField label={"Piso"} name={"piso"} control={control} />
             </Box>
 
-
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"Letra"}
-                name={"letra"}
-                control={control}
-              />
+              <MyTextField label={"Letra"} name={"letra"} control={control} />
             </Box>
-
 
             <Box className={"itemBox"}>
               <MyTextField
@@ -219,7 +216,6 @@ const Register = () => {
               />
             </Box>
 
-
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Provincia"}
@@ -228,19 +224,11 @@ const Register = () => {
               />
             </Box>
 
-
             <Box className={"itemBox"}>
-              <MyTextField
-                label={"CP"}
-                name={"cp"}
-                control={control}
-              />
+              <MyTextField label={"CP"} name={"cp"} control={control} />
             </Box>
 
-
-
-
-            <Box >
+            <Box>
               <MyPassField<RegisterForm>
                 label="Contraseña"
                 name="password"
@@ -255,8 +243,7 @@ const Register = () => {
               />
             </Box>
 
-
-            <Box >
+            <Box>
               <MyPassField<RegisterForm>
                 label="Confirmar contraseña"
                 name="password2"
@@ -264,7 +251,8 @@ const Register = () => {
                 rules={{
                   required: "Debes confirmar la contraseña",
                   validate: (value, formValues) =>
-                    value === formValues.password || "Las contraseñas no coinciden",
+                    value === formValues.password ||
+                    "Las contraseñas no coinciden",
                 }}
               />
             </Box>
@@ -288,8 +276,7 @@ const Register = () => {
               />
             </Box>
 
-
-            <Box >
+            <Box>
               <MyButton
                 type={"submit"}
                 label={"Registrar"}
@@ -297,8 +284,6 @@ const Register = () => {
                 sx={{ mt: 2 }}
               />
             </Box>
-
-
           </Box>
         </form>
         <Stack spacing={1} mt={2}>
@@ -307,12 +292,12 @@ const Register = () => {
             href="/registroM"
             variant="outlined"
             sx={{
-              color: 'white',
-              borderColor: '#10b981',
+              color: "white",
+              borderColor: "#10b981",
               backgroundColor: "#d1b3ff",
               "&:hover": {
-                backgroundColor: "#c49eff"
-              }
+                backgroundColor: "#c49eff",
+              },
             }}
             fullWidth
           >
@@ -324,12 +309,12 @@ const Register = () => {
             href="/acceso/login"
             variant="outlined"
             sx={{
-              color: 'white',
-              borderColor: '#10b981',
+              color: "white",
+              borderColor: "#10b981",
               backgroundColor: "#d1b3ff",
               "&:hover": {
-                backgroundColor: "#c49eff"
-              }
+                backgroundColor: "#c49eff",
+              },
             }}
             fullWidth
           >
@@ -337,14 +322,8 @@ const Register = () => {
           </Button>
         </Stack>
       </Paper>
-
-
     </Box>
+  );
+};
 
-  )
-
-}
-
-
-
-export default Register
+export default Register;
