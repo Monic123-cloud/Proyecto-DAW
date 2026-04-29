@@ -52,7 +52,7 @@ export default function Buscador({
       const conCP = resultadosIniciales.find((r: any) => r.cp);
 
       if (conCP && conCP.cp) {
-        const valorCP = conCP.cp.toString().trim();
+        const valorCP = conCP?.cp?.toString().trim() || "";
 
         // Si tiene 5 cifras, lo grabamos en el estado local
         // Esto hará que 'cp.length === 5' sea verdadero y aparezca Gemini
@@ -77,7 +77,7 @@ export default function Buscador({
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        mode: "cors", // Forzamos explícitamente el modo CORS
+        mode: "cors",
       }); //envía la petición HTTP al backend y espera la respuesta
       if (!response.ok) throw new Error("Error en la respuesta");
 
@@ -224,7 +224,7 @@ export default function Buscador({
       <div
         className={`rounded-2xl overflow-hidden shadow-inner border border-gray-50 ${esMiniatura ? "h-[180px]" : "h-[450px]"}`}
       >
-        <Mapa puntos={resultados} />
+        <Mapa puntos={Array.isArray(resultados) ? resultados : []} />
       </div>
 
       {/* 3. LISTADO DE TARJETAS (Con scroll si es miniatura) */}

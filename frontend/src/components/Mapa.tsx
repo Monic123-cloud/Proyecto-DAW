@@ -1,15 +1,9 @@
 "use client"; //Indica que este componente se ejecuta en el navegador
-import { useGoogleMaps } from "../components/providers/GoogleMapsProvider";
+
 import { GoogleMap, useJsApiLoader, InfoWindowF } from "@react-google-maps/api";
 import { useMemo, useEffect, useState } from "react";
 
-const LIBRARIES: (
-  | "marker"
-  | "places"
-  | "drawing"
-  | "geometry"
-  | "visualization"
-)[] = ["marker", "places", "geometry"];
+const LIBRARIES: any = ["places", "geometry", "marker"];
 const CONTAINER_STYLE = { width: "100%", height: "400px" };
 const defaultCenter = { lat: 40.4167, lng: -3.7037 };
 
@@ -67,10 +61,11 @@ function MarcadorInteligente({ map, p, onClick }: any) {
 }
 
 export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
-  const { isLoaded, loadError } = useGoogleMaps();
-
-  if (loadError) return <div>Error al cargar mapas</div>;
-  if (!isLoaded) return <div>Cargando mapa...</div>;
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: LIBRARIES,
+  });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selected, setSelected] = useState<any | null>(null);
@@ -103,17 +98,17 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
       }
     }
   }, [map, puntos]);
-
+  console.log(
+    "Comprobando Map ID:",
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
+  );
   if (!isLoaded)
     return (
       <div className="h-full w-full bg-gray-100 animate-pulse flex items-center justify-center text-gray-400 text-sm">
         Cargando mapa...
       </div>
     );
-  console.log(
-    "Comprobando Map ID:",
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
-  );
+
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <GoogleMap
