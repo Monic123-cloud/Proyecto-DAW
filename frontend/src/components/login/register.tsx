@@ -6,17 +6,44 @@ import MyPassField from './forms/MyPassField'
 import MyButton from './forms/MyButton'
 import Link from 'next/link'
 import AxiosInstance from '../AxiosInstance'
-import MySelect from './forms/MySelect.jsx'
+import MySelect from './forms/MySelect.js'
 
 import { Paper, Box, Button, Stack, Checkbox, FormControlLabel } from "@mui/material";
 import MyDatePicker from "./forms/DatePicker";
 
 const Register = () => {
   const router = useRouter()
+  type RegisterForm = {
+    email: string;
+    password: string;
+    password2: string;
+    nombre: string;
+    apellidos: string;
+    sexo: string;
+    fecha_nacimiento: string;
+    telefono: string;
+    direccion: string;
+    numero: string;
+    piso: string;
+    letra: string;
+    municipio: string;
+    provincia: string;
+    cp: string;
+    latitud: number;
+    longitud: number;
+    voluntariado: boolean;
+  };
 
-  const { handleSubmit, control } = useForm()
+  const { control, handleSubmit } = useForm<RegisterForm>({
+    defaultValues: {
+      email: "",
+      password: "",
+      password2: "",
+    },
+  });
 
-  const submission = (data) => {
+
+  const submission = (data: { email: any; password: any; nombre: any; apellidos: any; sexo: any; fecha_nacimiento: any; telefono: any; direccion: any; numero: any; piso: any; letra: any; municipio: any; provincia: any; cp: any; latitud: any; longitud: any; voluntariado: any; }) => {
     AxiosInstance.post('register/', {
       email: data.email,
       password: data.password,
@@ -214,19 +241,31 @@ const Register = () => {
 
 
             <Box >
-              <MyPassField
-                label={"Password"}
-                name={"password"}
+              <MyPassField<RegisterForm>
+                label="Contraseña"
+                name="password"
                 control={control}
+                rules={{
+                  required: "La contraseña es obligatoria",
+                  minLength: {
+                    value: 6,
+                    message: "Mínimo 6 caracteres",
+                  },
+                }}
               />
             </Box>
 
 
             <Box >
-              <MyPassField
-                label={"Confirm password"}
-                name={"password2"}
+              <MyPassField<RegisterForm>
+                label="Confirmar contraseña"
+                name="password2"
                 control={control}
+                rules={{
+                  required: "Debes confirmar la contraseña",
+                  validate: (value, formValues) =>
+                    value === formValues.password || "Las contraseñas no coinciden",
+                }}
               />
             </Box>
 

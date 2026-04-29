@@ -1,5 +1,10 @@
 "use client";
-
+import {
+  Control,
+  FieldValues,
+  Path,
+  RegisterOptions,
+} from "react-hook-form";
 import { Box, Paper, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -9,27 +14,33 @@ import MyTextField from "./forms/MyTextField";
 import MyPassField from "./forms/MyPassField";
 import MyButton from "./forms/MyButton";
 
-const LoginForm= () =>{
- const {handleSubmit, control} = useForm()
- const router = useRouter()
+const LoginForm = () => {
 
-  const submission = (data) => {
-        AxiosInstance.post(`/auth/login/`,{
-            email: data.email, 
-            password: data.password,
-        })
+  type RegisterForm = {
+    email: string;
+    password: string;
 
-        .then((response) => {
-            console.log(response)
-            localStorage.setItem('token', response.data.token)
-            router.push(`/`)
-        })
-        .catch((error) => {
-            //setShowMessage(true)
-            console.error('Error during login', error)
-        })
-    }
-  
+  };
+  const { handleSubmit, control } = useForm<RegisterForm>()
+  const router = useRouter()
+
+  const submission = (data: { email: any; password: any; }) => {
+    AxiosInstance.post(`/auth/login/`, {
+      email: data.email,
+      password: data.password,
+    })
+
+      .then((response) => {
+        console.log(response)
+        localStorage.setItem('token', response.data.token)
+        router.push(`/`)
+      })
+      .catch((error) => {
+        //setShowMessage(true)
+        console.error('Error during login', error)
+      })
+  }
+
 
   return (
     <Box
@@ -61,7 +72,7 @@ const LoginForm= () =>{
         </Typography>
 
         <form onSubmit={handleSubmit(submission)}>
-          <MyTextField
+          <MyTextField<RegisterForm>
             label={"Email"}
             name={"email"}
             control={control}
@@ -93,5 +104,5 @@ const LoginForm= () =>{
       </Paper>
     </Box>
   );
-  };
+};
 export default LoginForm

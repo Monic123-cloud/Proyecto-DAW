@@ -119,7 +119,7 @@ class BuscadorAPIView(APIView):
         user_lng = request.query_params.get("lng")
         radio_km = float(request.query_params.get("radio", 5))
         cp_buscado = request.query_params.get("cp")
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv(settings, "GOOGLE_MAPS_API_KEY", "")
 
         data_final = []
 
@@ -201,7 +201,7 @@ class BuscadorAPIView(APIView):
 
         # 2: Busca en EN GOOGLE MAPS
         # Solo llamamos a Google si el usuario ha puesto un CP o coordenadas
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         # Busca en GOOGLE MAPS (Rojos)
         if api_key:
@@ -242,9 +242,10 @@ class GeolocalizadorAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .views import BuscadorAPIView
+        buscador = BuscadorAPIView()
+        return buscador.get(request)
 
-        return BuscadorAPIView().get(request)
+        
 
     def post(
         self, request
@@ -278,9 +279,9 @@ class GoogleMapsProxyView(APIView):
     def get(self, request):
         location = request.query_params.get("location")
         radius = request.query_params.get("radius", "1500")
-        api_key = getattr(
-            settings, "GOOGLE_MAPS_API_KEY", ""
-        )  # lee la clave secreta desde el archivo settings.py
+        api_key = os.getenv(
+            "GOOGLE_MAPS_API_KEY", ""
+        )  # lee la clave secreta desde la variable de entorno
 
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&key={api_key}"
         response = requests.get(url)
@@ -404,7 +405,7 @@ def gestionar_formulario(request, pk=None):
                 nuevo_establecimiento = Establecimiento.objects.create(
                     usuario=nuevo_usuario,
                     nombre_comercio=datos.get("nombre_comercio"),
-                    cif_nif=cif_nif,
+                    cif_nif=cif_nif.strip().upper(),
                     tipo_negocio=tipo_final,
                     grupo=datos.get("grupo"),
                     categoria=datos.get("categoria"),
@@ -467,6 +468,7 @@ def buscar_y_login_por_cif(request, cif):
                 {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
+                    "tipo": "comercio",
                     **serializer.data,  # Enviamos todos los datos del local
                 },
                 status=200,
@@ -697,11 +699,11 @@ def analizar_mercado(request):
     import json
 
     try:
-        cp = request.GET.get('cp')
+        cp = request.GET.get("cp")
         if not cp:
             return JsonResponse({"error": "Falta el parámetro CP"}, status=400)
         # Configuración básica
-        api_key = os.environ.get("GEMINI_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
             return JsonResponse({"error": "No hay API KEY en el .env"}, status=500)
 

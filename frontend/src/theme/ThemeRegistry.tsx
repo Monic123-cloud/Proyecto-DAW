@@ -5,8 +5,14 @@ import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "./theme";
+import { ReactNode } from "react"
 
-export default function ThemeRegistry({ children }) {
+
+type Props = {
+  children: ReactNode;
+};
+
+export default function ThemeRegistry({ children }: Props) {
   const [cache] = React.useState(() =>
     createCache({ key: "mui", prepend: true })
   );

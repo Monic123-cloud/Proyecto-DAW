@@ -1,9 +1,14 @@
 "use client" 
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState,ReactNode } from "react"
 
-const ProtectedRoute = ({ children }) => {
+
+type Props = {
+  children: ReactNode;
+};
+
+const ProtectedRoute = ({ children }: Props) => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
 

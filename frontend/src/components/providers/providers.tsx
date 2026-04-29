@@ -5,8 +5,13 @@ import {GoogleMapsProvider} from "./GoogleMapsProvider"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/es";
+import { ReactNode } from "react";
 
-export default function Providers({ children }) {
+type Props = {
+  children: ReactNode;
+};
+
+export default function Providers({ children }: Props) {
   return (
     <ThemeRegistry>
       <CartProvider>
