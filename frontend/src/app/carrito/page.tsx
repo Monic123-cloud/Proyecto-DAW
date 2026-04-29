@@ -51,13 +51,7 @@ export default function CarritoPage() {
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.4fr 0.6fr",
-                gap: 18,
-              }}
-            >
+            <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.6fr", gap: 18 }}>
               {/* Lista */}
               <div className="card" style={{ borderRadius: 24 }}>
                 <div style={{ display: "grid", gap: 14 }}>
@@ -110,13 +104,7 @@ export default function CarritoPage() {
                   ))}
                 </div>
 
-                <div
-                  style={{
-                    marginTop: 16,
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
+                <div style={{ marginTop: 16, display: "flex", justifyContent: "space-between" }}>
                   <button onClick={clear} className="btn btn-secondary">
                     Vaciar carrito
                   </button>
@@ -128,43 +116,20 @@ export default function CarritoPage() {
               </div>
 
               {/* Resumen */}
-              <div
-                className="card"
-                style={{ borderRadius: 24, height: "fit-content" }}
-              >
+              <div className="card" style={{ borderRadius: 24, height: "fit-content" }}>
                 <h3 style={{ marginTop: 0 }}>Resumen</h3>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 8,
-                  }}
-                >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                   <span>Artículos</span>
                   <strong>{totals.count}</strong>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 16,
-                  }}
-                >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                   <span>Subtotal</span>
                   <strong>{formatEUR(totals.subtotal)}</strong>
                 </div>
 
-                <Link
-                  href="/checkout"
-                  className="btn btn-primary"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    textAlign: "center",
-                  }}
-                >
+                <button className="btn btn-primary" style={{ width: "100%" }}>
                   Continuar
-                </Link>
+                </button>
 
                 <p style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>
                   * En el siguiente paso añadimos recogida/entrega y pago.

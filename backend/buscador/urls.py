@@ -12,8 +12,7 @@ from .views import (
     ServicioViewSet,
     lista_solicitudes_ayuda,
     buscar_y_login_por_cif,
-    ValoracionViewSet,
-    ProductoViewSet
+    ValoracionViewSet
 )
 
 # Definimos el router
@@ -22,8 +21,6 @@ router = DefaultRouter()
 router.register(r'servicios', ServicioViewSet, basename='servicio')
 # Registramos el ViewSet de valoraciones
 router.register(r'valoraciones', ValoracionViewSet, basename='valoracion')
-# Registramos productos para tienda online
-router.register(r'productos', ProductoViewSet, basename='producto')
 
 urlpatterns = [
     # El mapa visual (HTML)
@@ -42,11 +39,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
     path('experto-mercado/', views.analizar_mercado, name='analizar_mercado'),
-    # Descuenta cantidad del stock de los productos
-    path(
-        "checkout/descontar-stock/",
-        views.descontar_stock_productos,
-        name="descontar_stock_productos"
-),
 
 ]

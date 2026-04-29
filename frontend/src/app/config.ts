@@ -17,5 +17,4 @@ export const ENDPOINTS = {
     MI_LOCAL: `${API_BASE_URL}/api/buscador/establecimiento/mi_local/`,
     SERVICIOS: `${API_BASE_URL}/api/buscador/servicios/`,
     VALORACIONES: `${API_BASE_URL}/api/buscador/valoraciones/`,
-    PRODUCTOS: `${API_BASE_URL}/api/buscador/productos/`,
 };

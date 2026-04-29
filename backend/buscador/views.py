@@ -119,7 +119,7 @@ class BuscadorAPIView(APIView):
         user_lng = request.query_params.get("lng")
         radio_km = float(request.query_params.get("radio", 5))
         cp_buscado = request.query_params.get("cp")
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv(settings, "GOOGLE_MAPS_API_KEY", "")
 
         data_final = []
 
@@ -201,7 +201,7 @@ class BuscadorAPIView(APIView):
 
         # 2: Busca en EN GOOGLE MAPS
         # Solo llamamos a Google si el usuario ha puesto un CP o coordenadas
-        api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         # Busca en GOOGLE MAPS (Rojos)
         if api_key:
@@ -242,9 +242,10 @@ class GeolocalizadorAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .views import BuscadorAPIView
+        buscador = BuscadorAPIView()
+        return buscador.get(request)
 
-        return BuscadorAPIView().get(request)
+        
 
     def post(
         self, request
@@ -278,9 +279,9 @@ class GoogleMapsProxyView(APIView):
     def get(self, request):
         location = request.query_params.get("location")
         radius = request.query_params.get("radius", "1500")
-        api_key = getattr(
-            settings, "GOOGLE_MAPS_API_KEY", ""
-        )  # lee la clave secreta desde el archivo settings.py
+        api_key = os.getenv(
+            "GOOGLE_MAPS_API_KEY", ""
+        )  # lee la clave secreta desde la variable de entorno
 
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&key={api_key}"
         response = requests.get(url)
@@ -404,7 +405,7 @@ def gestionar_formulario(request, pk=None):
                 nuevo_establecimiento = Establecimiento.objects.create(
                     usuario=nuevo_usuario,
                     nombre_comercio=datos.get("nombre_comercio"),
-                    cif_nif=cif_nif,
+                    cif_nif=cif_nif.strip().upper(),
                     tipo_negocio=tipo_final,
                     grupo=datos.get("grupo"),
                     categoria=datos.get("categoria"),
@@ -467,6 +468,7 @@ def buscar_y_login_por_cif(request, cif):
                 {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
+                    "tipo": "comercio",
                     **serializer.data,  # Enviamos todos los datos del local
                 },
                 status=200,
@@ -536,8 +538,8 @@ def ver_mi_local(request):
 
 
 from rest_framework import viewsets, permissions
-from .models import Servicio, Producto
-from .serializers import ServicioSerializer, ProductoSerializer
+from .models import Servicio
+from .serializers import ServicioSerializer
 from rest_framework.decorators import action
 from .models import Valoracion
 from .serializers import ValoracionSerializer
@@ -697,11 +699,11 @@ def analizar_mercado(request):
     import json
 
     try:
-        cp = request.GET.get('cp')
+        cp = request.GET.get("cp")
         if not cp:
             return JsonResponse({"error": "Falta el parámetro CP"}, status=400)
         # Configuración básica
-        api_key = os.environ.get("GEMINI_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
             return JsonResponse({"error": "No hay API KEY en el .env"}, status=500)
 
@@ -758,166 +760,4 @@ def analizar_mercado(request):
                 ),
             },
             status=500,
-        )
-
-
-class ProductoViewSet(viewsets.ModelViewSet):
-    """
-    API para listar y gestionar productos de los comercios.
-
-    - GET /api/buscador/productos/  -> público
-    - GET /api/buscador/productos/?q=pan&cp=28942 -> búsqueda pública
-    - POST/PUT/DELETE -> reservado a usuarios autenticados
-    """
-
-    serializer_class = ProductoSerializer
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
-
-    def get_queryset(self):
-        from django.db.models import Q
-
-        queryset = Producto.objects.select_related("id_establecimiento").all().order_by("producto")
-
-        # En acciones privadas, el comercio solo puede gestionar sus propios productos.
-        if self.action not in ["list", "retrieve"] and self.request.user.is_authenticated:
-            queryset = queryset.filter(id_establecimiento__usuario=self.request.user)
-
-        q = self.request.query_params.get("q")
-        tipo = self.request.query_params.get("tipo")
-        cp = self.request.query_params.get("cp")
-        establecimiento = self.request.query_params.get("establecimiento")
-
-        if q:
-            queryset = queryset.filter(
-                Q(producto__icontains=q)
-                | Q(tipo_producto__icontains=q)
-                | Q(id_establecimiento__nombre_comercio__icontains=q)
-            )
-
-        if tipo:
-            queryset = queryset.filter(tipo_producto__icontains=tipo)
-
-        if cp:
-            queryset = queryset.filter(id_establecimiento__cp=cp)
-
-        if establecimiento:
-            queryset = queryset.filter(id_establecimiento_id=establecimiento)
-
-        return queryset
-
-    def perform_create(self, serializer):
-        from rest_framework.exceptions import ValidationError
-
-        try:
-            establecimiento = Establecimiento.objects.get(usuario=self.request.user)
-            serializer.save(id_establecimiento=establecimiento)
-        except Establecimiento.DoesNotExist:
-            raise ValidationError("Debes tener un comercio asociado para crear productos.")
-
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def descontar_stock_productos(request):
-    """
-    Descuenta stock de la tabla producto cuando el cliente finaliza una compra.
-
-    Recibe desde React un JSON con esta estructura:
-    {
-        "items": [
-            {"id_producto": 1, "cantidad": 2}
-        ]
-    }
-
-    Importante:
-    - Comprueba que hay stock suficiente.
-    - Descuenta las unidades de forma segura usando transaction.atomic().
-    - Todavía no crea registros en las tablas pedido / detalle_pedido.
-    """
-
-    from django.db import transaction
-
-    items = request.data.get("items", [])
-
-    if not items:
-        return Response(
-            {"error": "No hay productos en el carrito."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    productos_actualizados = []
-
-    try:
-        with transaction.atomic():
-            for item in items:
-                # Aceptamos ambos nombres por seguridad:
-                # id_producto/cantidad desde el checkout nuevo
-                # id/qty por si viene directamente del carrito
-                id_producto = item.get("id_producto") or item.get("id")
-                cantidad = item.get("cantidad") or item.get("qty") or 0
-
-                try:
-                    cantidad = int(cantidad)
-                except (TypeError, ValueError):
-                    return Response(
-                        {"error": "La cantidad del producto no es válida."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                if not id_producto or cantidad <= 0:
-                    return Response(
-                        {"error": "Producto o cantidad no válidos."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                try:
-                    producto = Producto.objects.select_for_update().get(
-                        id_producto=id_producto
-                    )
-                except Producto.DoesNotExist:
-                    return Response(
-                        {"error": f"El producto con ID {id_producto} no existe."},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-
-                stock_actual = producto.stock or 0
-
-                if stock_actual < cantidad:
-                    return Response(
-                        {
-                            "error": (
-                                f"No hay stock suficiente para {producto.producto}. "
-                                f"Stock disponible: {stock_actual}"
-                            )
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                producto.stock = stock_actual - cantidad
-                producto.save(update_fields=["stock"])
-
-                productos_actualizados.append(
-                    {
-                        "id_producto": producto.id_producto,
-                        "producto": producto.producto,
-                        "stock_restante": producto.stock,
-                    }
-                )
-
-        return Response(
-            {
-                "mensaje": "Stock actualizado correctamente.",
-                "productos": productos_actualizados,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    except Exception as e:
-        return Response(
-            {"error": f"Error al descontar stock: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

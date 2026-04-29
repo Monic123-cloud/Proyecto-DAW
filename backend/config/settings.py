@@ -118,7 +118,7 @@ else:
             "NAME": os.environ.get("DB_NAME"),
             "USER": os.environ.get("DB_USER"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
-            "HOST": os.environ.get("DB_HOST", "db"),
+            "HOST": os.environ.get("DB_HOST", 'db'),
             "PORT": os.environ.get("DB_PORT", "5432"),
         }
     }
@@ -218,7 +218,6 @@ APPEND_SLASH = True
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "knox.auth.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),

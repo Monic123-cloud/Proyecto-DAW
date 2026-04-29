@@ -3,6 +3,16 @@
 import React, { useState } from "react";
 import { authService } from "../services/authService";
 import { ENDPOINTS } from "../app/config";
+import {
+  Box,
+  TextField,
+  MenuItem,
+  Button,
+  Typography,
+  Alert,
+  Paper,
+  Avatar,
+} from "@mui/material";
 
 const CATEGORIAS_SERVICIOS = {
   Educación: [
@@ -36,8 +46,7 @@ const RegistroServicio = () => {
   const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
   const [loading, setLoading] = useState(false);
 
-  const inputClasses = "form-control bg-dark text-white border-secondary";
-  const selectClasses = "form-select bg-dark text-white border-secondary";
+  
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -71,9 +80,9 @@ const RegistroServicio = () => {
         });
         setDatos({ categoria: "", descripcion: "", precio_hora: "" });
       } else {
-       const errorMsg = resData.error || 
-                         (resData && typeof resData === 'object' ? Object.values(resData)[0] : "Error al publicar");
-        
+        const errorMsg = resData.error ||
+          (resData && typeof resData === 'object' ? Object.values(resData)[0] : "Error al publicar");
+
         setMensaje({
           texto: Array.isArray(errorMsg) ? errorMsg[0] : errorMsg,
           tipo: "error",
@@ -87,118 +96,149 @@ const RegistroServicio = () => {
     } finally {
       setLoading(false);
     }
-  };
 
+
+  };
+  const fieldStyles = {
+    mb: 3,
+    input: { color: "white" },
+    textarea: { color: "white" },
+    label: { color: "white" },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "#6c757d" },
+      "&:hover fieldset": { borderColor: "white" },
+      "&.Mui-focused fieldset": { borderColor: "#ffc107" },
+    },
+  };
   return (
-    <div
-      className="container py-5"
-      style={{
+
+    <Box
+      sx={{
+        py: 5,
+        px: 2,
         backgroundColor: "#1a3a3a",
-        backgroundImage: `linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8)), url('/formularios.png')`,
+        backgroundImage:
+          "linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8)), url('/formularios.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundAttachment: "fixed",
         minHeight: "100vh",
         display: "flex",
-        flexDirection: "column",
+        justifyContent: "center",
         alignItems: "center",
-        borderRadius: "15px",
       }}
     >
-      {/* CABECERA */}
-      <div className="text-center mb-4">
-        <div
-          className="bg-white d-inline-block rounded-circle p-3 mb-2"
-          style={{ width: "80px", height: "80px" }}
-        >
-          <img src="/tu-icono.png" alt="logo" style={{ width: "100%" }} />
-        </div>
-        <h1 className="text-white fw-bold h3">Ofrecer nuevo servicio</h1>
-      </div>
+      <Box sx={{ width: "100%", maxWidth: 450 }}>
 
-      <div className="mx-auto w-100" style={{ maxWidth: "450px" }}>
-        <form
-          onSubmit={handleSubmit}
-          className="bg-dark p-4 rounded-4 shadow border border-secondary"
-        >
-          {mensaje.texto && (
-            <div
-              className={`alert ${mensaje.tipo === "success" ? "alert-success" : "alert-danger"} mb-4`}
-            >
-              {mensaje.texto}
-            </div>
-          )}
+        {/* CABECERA */}
+        <Box textAlign="center" mb={3}>
+          <Avatar
+            src="/tu-icono.png"
+            sx={{ width: 80, height: 80, margin: "0 auto", mb: 1 }}
+          />
+          <Typography variant="h6" fontWeight="bold" color="white">
+            Ofrecer nuevo servicio
+          </Typography>
+        </Box>
 
-          {/* CATEGORÍA */}
-          <div className="mb-3">
-            <label className="form-label text-white fw-bold small">
-              ¿Qué servicio ofreces?
-            </label>
-            <select
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            backgroundColor: "#1e1e1e",
+            borderRadius: 3,
+          }}
+        >
+          <form onSubmit={handleSubmit}>
+
+            {/* MENSAJE */}
+            {mensaje.texto && (
+              <Alert
+                severity={mensaje.tipo === "success" ? "success" : "error"}
+                sx={{ mb: 3 }}
+              >
+                {mensaje.texto}
+              </Alert>
+            )}
+
+            {/* CATEGORÍA */}
+            <TextField
+              select
               name="categoria"
               value={datos.categoria}
               onChange={handleChange}
               required
-              className={selectClasses}
+              fullWidth
+              label="¿Qué servicio ofreces?"
+              sx={fieldStyles}
             >
-              <option value="">Selecciona una opción...</option>
-              {Object.entries(CATEGORIAS_SERVICIOS).map(([grupo, opciones]) => (
-                <optgroup label={grupo} key={grupo} className="bg-secondary">
-                  {opciones.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
+              <MenuItem value="">Selecciona una opción...</MenuItem>
 
-          {/* DESCRIPCIÓN */}
-          <div className="mb-3">
-            <label className="form-label text-white fw-bold small">
-              Descripción del servicio
-            </label>
-            <textarea
+              {Object.entries(CATEGORIAS_SERVICIOS).map(
+                ([grupo, opciones]) => [
+                  <MenuItem key={grupo} disabled>
+                    <strong>{grupo}</strong>
+                  </MenuItem>,
+                  ...opciones.map((opt) => (
+                    <MenuItem key={opt} value={opt}>
+                      {opt}
+                    </MenuItem>
+                  )),
+                ],
+              )}
+            </TextField>
+
+            {/* DESCRIPCIÓN */}
+            <TextField
               name="descripcion"
               value={datos.descripcion}
               onChange={handleChange}
-              placeholder="Ej: Clases de inglés para B2..."
               required
-              className={inputClasses}
-              style={{ height: "120px" }}
+              fullWidth
+              multiline
+              rows={4}
+              label="Descripción del servicio"
+              placeholder="Ej: Clases de inglés para B2..."
+              sx={fieldStyles}
             />
-          </div>
 
-          {/* PRECIO */}
-          <div className="mb-4">
-            <label className="form-label text-white fw-bold small">
-              Precio por hora (€)
-            </label>
-            <input
+            {/* PRECIO */}
+            <TextField
               type="number"
               name="precio_hora"
               value={datos.precio_hora}
               onChange={handleChange}
-              placeholder="0.00"
               required
-              className={inputClasses}
+              fullWidth
+              label="Precio por hora (€)"
+              sx={fieldStyles}
             />
-          </div>
 
-          {/* BOTÓN */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-warning fw-bold py-3 text-uppercase shadow-sm w-100"
-            style={{ color: "#275656" }}
-          >
-            {loading ? "Publicando..." : "Publicar mi servicio"}
-          </button>
-        </form>
-      </div>
-    </div>
+            {/* BOTÓN */}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={loading}
+              sx={{
+                mt: 2,
+                py: 1.5,
+                fontWeight: "bold",
+                backgroundColor: "#ffc107",
+                color: "#275656",
+                "&:hover": {
+                  backgroundColor: "#e0a800",
+                },
+              }}
+            >
+              {loading ? "Publicando..." : "Publicar mi servicio"}
+            </Button>
+          </form>
+        </Paper>
+      </Box>
+    </Box>
   );
+
+
 };
 
 export default RegistroServicio;

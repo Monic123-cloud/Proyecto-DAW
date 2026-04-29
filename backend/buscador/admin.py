@@ -94,13 +94,6 @@ class ServicioAdmin(admin.ModelAdmin):
     list_display = ("id_usuario", "categoria", "precio_hora", "fecha_creacion")
 
 
-@admin.register(Producto)
-class ProductoAdmin(admin.ModelAdmin):
-    list_display = ("id_producto", "producto", "tipo_producto", "precio", "stock", "id_establecimiento")
-    list_filter = ("tipo_producto", "id_establecimiento")
-    search_fields = ("producto", "tipo_producto", "id_establecimiento__nombre_comercio")
-
-
 # Gestión de Pedidos
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):

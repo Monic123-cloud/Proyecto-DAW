@@ -31,15 +31,11 @@ export default function Header() {
         </Link>
 
         <nav className="menu">
-          <Link href="/#servicios">Servicios</Link>
+          <a href="#servicios">Servicios</a>
           <Link href="/about">Quienes Somos</Link>
-          <Link href="/tiendas">Tiendas</Link>
-          <Link href="/productos">Productos</Link>
-          <Link href="/carrito">Carrito</Link>
-          <Link href="/panel-cliente">Panel cliente</Link>
-          <Link href="/panel-comercio">Panel comercio</Link>
-          <Link href="/#eventos">Eventos</Link>
-          <Link href="/#valoraciones">Valoraciones</Link>
+          <Link href="/tiendas">Tienda Online</Link>
+          <a href="#eventos">Eventos</a>
+          <a href="#valoraciones">Valoraciones</a>
           <Link href="/buscador">Buscador</Link>
         </nav>
 
@@ -47,7 +43,7 @@ export default function Header() {
           Empezar
         </Link>
         <Link href="/acceso/login" className="btn btn-primary">
-          Iniciar Sesión
+          Inciar Sesion
         </Link>
 
       </div>
