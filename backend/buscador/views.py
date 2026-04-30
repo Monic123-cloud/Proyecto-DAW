@@ -51,6 +51,11 @@ import google.generativeai as genai
 from .models import Establecimiento
 from config.analytics_service import get_google_analytics_data, get_conversion_data
 from django.contrib.auth import authenticate
+from rest_framework.decorators import (
+    api_view,
+    permission_classes,
+    authentication_classes,
+)
 
 User = (
     get_user_model()
@@ -119,7 +124,7 @@ class BuscadorAPIView(APIView):
         user_lng = request.query_params.get("lng")
         radio_km = float(request.query_params.get("radio", 5))
         cp_buscado = request.query_params.get("cp")
-        api_key = os.getenv(settings, "GOOGLE_MAPS_API_KEY", "")
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         data_final = []
 
@@ -245,8 +250,6 @@ class GeolocalizadorAPIView(APIView):
         buscador = BuscadorAPIView()
         return buscador.get(request)
 
-        
-
     def post(
         self, request
     ):  # se usa POST para enviar datos que el cliente (React) envía en el cuerpo de una petición (request.data)
@@ -291,6 +294,7 @@ class GoogleMapsProxyView(APIView):
 # Formulario de establecimiento
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([AllowAny])
+@authentication_classes([])
 def gestionar_formulario(request, pk=None):
     # 1. Bloqueo de seguridad para edición/borrado
     if request.method in ["PUT", "DELETE"]:
