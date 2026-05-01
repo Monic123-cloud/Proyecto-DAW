@@ -5,6 +5,7 @@ from .views import (
     BuscadorAPIView,
     GeolocalizadorAPIView,
     GoogleMapsProxyView,
+    ProductoViewSet,
     buscador_mapa,
     gestionar_formulario,
     buscar_cif,
@@ -21,6 +22,8 @@ router = DefaultRouter()
 router.register(r'servicios', ServicioViewSet, basename='servicio')
 # Registramos el ViewSet de valoraciones
 router.register(r'valoraciones', ValoracionViewSet, basename='valoracion')
+# Registramos productos para tienda online
+router.register(r'productos', ProductoViewSet, basename='producto')
 
 urlpatterns = [
     # El mapa visual (HTML)
@@ -39,5 +42,11 @@ urlpatterns = [
     path('', include(router.urls)),
     path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
     path('experto-mercado/', views.analizar_mercado, name='analizar_mercado'),
+    path(
+        "checkout/descontar-stock/",
+        views.descontar_stock_productos,
+        name="descontar_stock_productos"
+),
+    
 
 ]

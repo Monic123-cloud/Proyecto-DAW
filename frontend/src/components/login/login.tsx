@@ -32,11 +32,11 @@ const LoginForm = () => {
 
       .then((response) => {
         console.log(response)
-        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('token', response.data.access)
         router.push(`/`)
       })
       .catch((error) => {
-        //setShowMessage(true)
+        
         console.error('Error during login', error)
       })
   }

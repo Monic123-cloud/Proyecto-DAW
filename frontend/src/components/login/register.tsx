@@ -1,12 +1,12 @@
 'use client'
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import MyTextField from './forms/MyTextField'
 import MyPassField from './forms/MyPassField'
 import MyButton from './forms/MyButton'
 import Link from 'next/link'
 import AxiosInstance from '../AxiosInstance'
-import MySelect from './forms/MySelect.js'
+import MySelect from './forms/MySelect'
 
 import { Paper, Box, Button, Stack, Checkbox, FormControlLabel } from "@mui/material";
 import MyDatePicker from "./forms/DatePicker";
@@ -32,6 +32,10 @@ const Register = () => {
     latitud: number;
     longitud: number;
     voluntariado: boolean;
+    dias_disponibles: string;
+    horario_inicio: string;
+    horario_fin: string;
+    acepta_legal: boolean;
   };
 
   const { control, handleSubmit } = useForm<RegisterForm>({
@@ -39,20 +43,40 @@ const Register = () => {
       email: "",
       password: "",
       password2: "",
+      sexo: "",
     },
+  });
+  const voluntarioActivo = useWatch({
+    control,
+    name: "voluntariado",
   });
 
 
-  const submission = (data: { email: any; password: any; nombre: any; apellidos: any; sexo: any; fecha_nacimiento: any; telefono: any; direccion: any; numero: any; piso: any; letra: any; municipio: any; provincia: any; cp: any; latitud: any; longitud: any; voluntariado: any; }) => {
-    AxiosInstance.post('register/', {
+  const submission = (data: RegisterForm) => {
+    const formatDate = (date: any) => {
+      if (!date) return null;
+
+      const d = new Date(date);
+      return d.toISOString().split("T")[0]; 
+    };
+    if (data.voluntariado && (!data.horario_inicio || !data.horario_fin)) {
+      alert("Debes indicar disponibilidad");
+      return;
+    }
+    if (!data.acepta_legal) {
+      alert("Debes aceptar la política de privacidad");
+      return;
+    }
+
+    AxiosInstance.post('auth/register/', {
       email: data.email,
       password: data.password,
       nombre: data.nombre,
       apellidos: data.apellidos,
-      auth_id: crypto.randomUUID(),
+
 
       sexo: data.sexo,
-      fecha_nacimiento: data.fecha_nacimiento,
+      fecha_nacimiento: formatDate(data.fecha_nacimiento),
       telefono: data.telefono,
 
       direccion: data.direccion,
@@ -67,6 +91,9 @@ const Register = () => {
       latitud: data.latitud,
       longitud: data.longitud,
       voluntariado: data.voluntariado,
+      dias_disponibles: data.dias_disponibles,
+      horario_inicio: data.horario_inicio,
+      horario_fin: data.horario_fin,
     })
 
       .then(() => {
@@ -77,9 +104,11 @@ const Register = () => {
       .catch(err => {
         console.log("ERROR:", err.response.data)
       })
+
   }
 
   return (
+
 
     <Box
       sx={{
@@ -284,6 +313,71 @@ const Register = () => {
                     }
                     label="¿Quieres participar en voluntariado?"
                   />
+
+                )}
+              />
+              {voluntarioActivo && (
+                <>
+                  <Box className={"itemBox"}>
+                    <MyTextField
+                      label={"Días disponibles (ej: Lunes, Martes)"}
+                      name={"dias_disponibles"}
+                      control={control}
+                    />
+                  </Box>
+
+                  <Box className={"itemBox"}>
+                    <MyTextField
+                      label={"Horario inicio (HH:mm)"}
+                      name={"horario_inicio"}
+                      control={control}
+                    />
+                  </Box>
+
+                  <Box className={"itemBox"}>
+                    <MyTextField
+                      label={"Horario fin (HH:mm)"}
+                      name={"horario_fin"}
+                      control={control}
+                    />
+                  </Box>
+
+                </>
+              )}
+            </Box>
+            <Box display="flex" justifyContent="center">
+              <Controller
+
+                name="acepta_legal"
+                control={control}
+                defaultValue={false}
+                rules={{
+                  required: "Debes aceptar la política de privacidad",
+                }}
+                render={({ field, fieldState }) => (
+                  <>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      }
+                      label={
+                        <>
+                          Acepto la{" "}
+                          <Link href="/legal" style={{ color: "#10b981" }}>
+                            política de privacidad
+                          </Link>
+                        </>
+                      }
+                    />
+                    {fieldState.error && (
+                      <span style={{ color: "red" }}>
+                        {fieldState.error.message}
+                      </span>
+                    )}
+                  </>
                 )}
               />
             </Box>

@@ -2,7 +2,7 @@
 import  Providers  from "../components/providers/providers";
 
 import "./globals.css";
-import Header from "@/components/header";
+
 
 export const metadata = {
   title: "Close4u",
@@ -16,13 +16,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
-        {/* Cargamos Bootstrap para que el Dashboard tenga forma y tamaño */}
-        {/*  <link 
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
-          rel="stylesheet" 
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
-          crossOrigin="anonymous"
-        />   */}
       </head>
       <body className="bg-light">
         

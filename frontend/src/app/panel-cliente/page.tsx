@@ -5,18 +5,18 @@ import Link from "next/link";
 import Header from "@/components/header";
 import { formatEUR, useCart } from "@/components/cart/CartContext";
 
-function getStoredToken() {
+ function getStoredToken() {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("token") || localStorage.getItem("access_token");
 }
-
+ 
 export default function PanelClientePage() {
   const { items, totals, setQty, removeItem, clear } = useCart();
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     setToken(getStoredToken());
-  }, []);
+  }, []); 
 
   return (
     <div className="page">
