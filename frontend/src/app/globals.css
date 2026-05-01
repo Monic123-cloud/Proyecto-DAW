@@ -869,4 +869,203 @@ button {
   }
 
   .kpi-grid { grid-template-columns: 1fr; }
+
+  
+/* =========================
+   HEADER RESPONSIVE / HAMBURGUESA
+========================= */
+
+.nav-responsive {
+  position: relative;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hamburger-btn {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: #d1b3ff;
+  color: white;
+  font-weight: 950;
+  font-size: 1.7rem;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgba(209, 179, 255, 0.35);
+}
+
+.hamburger-icon {
+  display: block;
+  transform: translateY(-1px);
+}
+
+.mobile-dropdown {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .desktop-menu,
+  .desktop-actions {
+    display: none !important;
+  }
+
+  .nav-responsive {
+    padding: 0.75rem 0;
+  }
+
+  .brand-logo-img {
+    max-width: 48px;
+  }
+
+  .brand-name-img {
+    max-width: 92px;
+  }
+
+  .brand-subtitle {
+    font-size: 0.72rem;
+  }
+
+  .hamburger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .mobile-dropdown {
+    display: block;
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    top: calc(100% + 8px);
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 24px;
+    padding: 1rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .mobile-menu {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .mobile-menu a {
+    display: block;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    color: #005338;
+    font-weight: 850;
+  }
+
+  .mobile-menu a:hover {
+    background: #ecfdf5;
+  }
+
+  .mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .mobile-actions .btn {
+    text-align: center;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-dropdown {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .brand-logo-img {
+    max-width: 42px;
+  }
+
+  .brand-name-img {
+    max-width: 82px;
+  }
+}
+
+/* =========================
+   CORRECCIÓN HEADER ESCRITORIO
+   Ocultar hamburguesa en PC
+========================= */
+
+@media (min-width: 961px) {
+  .hamburger-btn,
+  .mobile-dropdown,
+  header button[aria-label="Abrir menú"],
+  header button[aria-label="Cerrar menú"] {
+    display: none !important;
+  }
+
+  .desktop-menu {
+    display: flex !important;
+  }
+
+  .desktop-actions {
+    display: flex !important;
+  }
+}
+
+/* Ajuste botones header en escritorio */
+
+@media (min-width: 500px) {
+  .header-actions .btn,
+  .desktop-actions .btn {
+    padding: 0.75rem 1rem !important;
+    border-radius: 18px !important;
+    white-space: nowrap !important;
+    font-size: 0.9rem !important;
+  }
+
+  .nav {
+    gap: 1rem !important;
+  }
+
+  .menu {
+    gap: 1rem !important;
+  }
+}
+
+/* =========================================
+   OCULTAR HAMBURGUESA EN ESCRITORIO
+   aunque el botón no tenga clase
+========================================= */
+
+@media (min-width: 769px) {
+  .header .nav > button,
+  .header .nav-responsive > button,
+  header .nav > button,
+  header button[aria-label*="menú"],
+  header button[aria-label*="menu"],
+  header button[aria-label*="Abrir"],
+  header button[aria-label*="Cerrar"] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
 }
