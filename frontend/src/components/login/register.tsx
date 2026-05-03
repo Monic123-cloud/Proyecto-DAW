@@ -289,7 +289,7 @@ const Register = () => {
         <Stack spacing={1} mt={2}>
           <Button
             component={Link}
-            href="/registroM"
+            href="/registroEstablecimiento"
             variant="outlined"
             sx={{
               color: "white",

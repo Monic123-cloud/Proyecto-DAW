@@ -10,7 +10,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 
-const Buscador = dynamic(() => import("../components/Buscador"), { ssr: false });
+const Buscador = dynamic(() => import("../components/Buscador"), {
+  ssr: false,
+});
 const Mapa = dynamic(() => import("@/components/Mapa"), { ssr: false });
 
 export default function HomePage() {
@@ -65,8 +67,6 @@ export default function HomePage() {
               esMiniatura={false}
               resultadosIniciales={resultadosGuardados}
             />
-
-
           </div>
         </main>
       </div>
@@ -103,7 +103,10 @@ export default function HomePage() {
                 <Link href="/acceso/registro" className="btn btn-primary">
                   Soy cliente
                 </Link>
-                <Link href="/registroM" className="btn btn-secondary">
+                <Link
+                  href="/registroEstablecimiento"
+                  className="btn btn-secondary"
+                >
                   Soy comercio
                 </Link>
               </div>
@@ -252,7 +255,7 @@ export default function HomePage() {
                 empieza casi todo: en la búsqueda digital. Más visibilidad, más
                 cercanía y más oportunidades reales de crecer.
               </p>
-              <Link href="/registroM" className="btn btn-light">
+              <Link href="/registroEstablecimiento" className="btn btn-light">
                 Unir mi negocio
               </Link>
             </div>

@@ -8,10 +8,14 @@ from .models import SolicitudAyuda, Voluntario
 def matching_por_cp(sender, instance, created, **kwargs):
     # Solo actuamos si la solicitud es nueva (se acaba de crear en la BBDD)
     if created:
+        #prueba
+        print(f"\n [SIGNAL] Nueva solicitud detectada: {instance.nombre_completo} en CP {instance.cp}")
         # Buscamos voluntarios que tengan el MISMO Código Postal
         voluntarios = Voluntario.objects.filter(cp=instance.cp, activo=True)
+        print(f"🔍 [SIGNAL] Buscando voluntarios... Encontrados: {voluntarios.count()}")
 
         for v in voluntarios:
+            print(f"📧 [SIGNAL] Intentando enviar mail a: {v.usuario.email}")
             # Enviamos el email al usuario voluntario
             send_mail(
                 subject="¡Tienes un nuevo Match de Voluntariado!",

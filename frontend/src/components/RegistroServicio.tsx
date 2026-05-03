@@ -6,12 +6,15 @@ import { ENDPOINTS } from "../app/config";
 import {
   Box,
   TextField,
-  MenuItem,
   Button,
   Typography,
   Alert,
-  Paper,
   Avatar,
+  Container,
+  Card,
+  CardContent,
+  CircularProgress,
+  MenuItem,
 } from "@mui/material";
 
 const CATEGORIAS_SERVICIOS = {
@@ -46,8 +49,6 @@ const RegistroServicio = () => {
   const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
   const [loading, setLoading] = useState(false);
 
-  
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement
@@ -80,8 +81,11 @@ const RegistroServicio = () => {
         });
         setDatos({ categoria: "", descripcion: "", precio_hora: "" });
       } else {
-        const errorMsg = resData.error ||
-          (resData && typeof resData === 'object' ? Object.values(resData)[0] : "Error al publicar");
+        const errorMsg =
+          resData.error ||
+          (resData && typeof resData === "object"
+            ? Object.values(resData)[0]
+            : "Error al publicar");
 
         setMensaje({
           texto: Array.isArray(errorMsg) ? errorMsg[0] : errorMsg,
@@ -96,149 +100,119 @@ const RegistroServicio = () => {
     } finally {
       setLoading(false);
     }
-
-
   };
-  const fieldStyles = {
-    mb: 3,
-    input: { color: "white" },
-    textarea: { color: "white" },
-    label: { color: "white" },
-    "& .MuiOutlinedInput-root": {
-      "& fieldset": { borderColor: "#6c757d" },
-      "&:hover fieldset": { borderColor: "white" },
-      "&.Mui-focused fieldset": { borderColor: "#ffc107" },
-    },
-  };
+
   return (
+    <Container maxWidth="sm">
+      <Box mt={8} mb={5}>
+        <Card elevation={3}>
+          <CardContent sx={{ p: 4 }}>
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              gutterBottom
+              align="center"
+              color="primary"
+            >
+              Publicar Nuevo Servicio
+            </Typography>
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              align="center"
+              sx={{ mb: 4 }}
+            >
+              Completa los datos para ofrecer tus servicios a la comunidad
+            </Typography>
 
-    <Box
-      sx={{
-        py: 5,
-        px: 2,
-        backgroundColor: "#1a3a3a",
-        backgroundImage:
-          "linear-gradient(rgba(26, 58, 58, 0.8), rgba(26, 58, 58, 0.8)), url('/formularios.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Box sx={{ width: "100%", maxWidth: 450 }}>
-
-        {/* CABECERA */}
-        <Box textAlign="center" mb={3}>
-          <Avatar
-            src="/tu-icono.png"
-            sx={{ width: 80, height: 80, margin: "0 auto", mb: 1 }}
-          />
-          <Typography variant="h6" fontWeight="bold" color="white">
-            Ofrecer nuevo servicio
-          </Typography>
-        </Box>
-
-        <Paper
-          elevation={6}
-          sx={{
-            p: 4,
-            backgroundColor: "#1e1e1e",
-            borderRadius: 3,
-          }}
-        >
-          <form onSubmit={handleSubmit}>
-
-            {/* MENSAJE */}
             {mensaje.texto && (
-              <Alert
-                severity={mensaje.tipo === "success" ? "success" : "error"}
-                sx={{ mb: 3 }}
-              >
+              <Alert severity={mensaje.tipo as any} sx={{ mb: 3 }}>
                 {mensaje.texto}
               </Alert>
             )}
 
-            {/* CATEGORÍA */}
-            <TextField
-              select
-              name="categoria"
-              value={datos.categoria}
-              onChange={handleChange}
-              required
-              fullWidth
-              label="¿Qué servicio ofreces?"
-              sx={fieldStyles}
-            >
-              <MenuItem value="">Selecciona una opción...</MenuItem>
+            <Box component="form" onSubmit={handleSubmit}>
+              {/* SELECT DE CATEGORÍAS */}
+              <TextField
+                select
+                fullWidth
+                label="Selecciona una categoría"
+                name="categoria"
+                value={datos.categoria}
+                onChange={handleChange}
+                required
+                sx={{ mb: 3 }}
+              >
+                {Object.entries(CATEGORIAS_SERVICIOS).flatMap(
+                  ([grupo, opciones]) => [
+                    <MenuItem
+                      key={`header-${grupo}`}
+                      disabled
+                      sx={{
+                        fontWeight: "bold",
+                        opacity: 1,
+                        color: "black",
+                        bgcolor: "#f5f5f5",
+                        "&.Mui-disabled": { opacity: 1 }, // Asegura que se vea bien aunque esté disabled
+                      }}
+                    >
+                      {grupo}
+                    </MenuItem>,
+                    ...opciones.map((opcion) => (
+                      <MenuItem key={opcion} value={opcion} sx={{ pl: 4 }}>
+                        {opcion}
+                      </MenuItem>
+                    )),
+                  ],
+                )}
+              </TextField>
+              {/* DESCRIPCIÓN */}
+              <TextField
+                fullWidth
+                label="Descripción detallada"
+                name="descripcion"
+                multiline
+                rows={4}
+                value={datos.descripcion}
+                onChange={handleChange}
+                placeholder="Ej: Ofrezco clases particulares de matemáticas para nivel ESO y Bachillerato..."
+                required
+                sx={{ mb: 3 }}
+              />
 
-              {Object.entries(CATEGORIAS_SERVICIOS).map(
-                ([grupo, opciones]) => [
-                  <MenuItem key={grupo} disabled>
-                    <strong>{grupo}</strong>
-                  </MenuItem>,
-                  ...opciones.map((opt) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt}
-                    </MenuItem>
-                  )),
-                ],
-              )}
-            </TextField>
+              {/* PRECIO */}
+              <TextField
+                fullWidth
+                label="Precio por hora (€)"
+                name="precio_hora"
+                type="number"
+                value={datos.precio_hora}
+                onChange={handleChange}
+                required
+                sx={{ mb: 4 }}
+                inputProps={{ min: 0, step: "0.5" }}
+              />
 
-            {/* DESCRIPCIÓN */}
-            <TextField
-              name="descripcion"
-              value={datos.descripcion}
-              onChange={handleChange}
-              required
-              fullWidth
-              multiline
-              rows={4}
-              label="Descripción del servicio"
-              placeholder="Ej: Clases de inglés para B2..."
-              sx={fieldStyles}
-            />
-
-            {/* PRECIO */}
-            <TextField
-              type="number"
-              name="precio_hora"
-              value={datos.precio_hora}
-              onChange={handleChange}
-              required
-              fullWidth
-              label="Precio por hora (€)"
-              sx={fieldStyles}
-            />
-
-            {/* BOTÓN */}
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={loading}
-              sx={{
-                mt: 2,
-                py: 1.5,
-                fontWeight: "bold",
-                backgroundColor: "#ffc107",
-                color: "#275656",
-                "&:hover": {
-                  backgroundColor: "#e0a800",
-                },
-              }}
-            >
-              {loading ? "Publicando..." : "Publicar mi servicio"}
-            </Button>
-          </form>
-        </Paper>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="large"
+                disabled={loading}
+                sx={{ py: 1.5, fontWeight: "bold" }}
+              >
+                {loading ? (
+                  <CircularProgress size={26} color="inherit" />
+                ) : (
+                  "Publicar Servicio"
+                )}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
-    </Box>
+    </Container>
   );
-
-
 };
 
 export default RegistroServicio;

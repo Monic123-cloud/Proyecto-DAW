@@ -15,7 +15,7 @@
     "@mui/material": "^7.3.9",
     "@mui/x-date-pickers": "^9.0.0",
     "@react-google-maps/api": "^2.20.8",
-    "axios": "^1.14.0",
+    "axios": "^1.15.2",
     "dayjs": "^1.11.20",
     "framer-motion": "^12.38.0",
     "next": "^16.2.3",

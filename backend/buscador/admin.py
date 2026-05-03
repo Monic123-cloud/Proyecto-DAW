@@ -61,24 +61,35 @@ class VoluntarioAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitudAyuda)
 class SolicitudAyudaAdmin(admin.ModelAdmin):
-    #la lista
-    list_display = ("nombre_completo", "email", "cp", "fecha_creacion", "requiere_llamada")
+    # la lista
+    list_display = (
+        "nombre_completo",
+        "email",
+        "cp",
+        "fecha_creacion",
+        "requiere_llamada",
+    )
     list_filter = ("cp", "requiere_llamada", "encuesta_enviada")
     search_fields = ("nombre_completo", "email", "cp")
-    
+
     # Formulario de edición
     fieldsets = (
-        ("Datos del Solicitante", {
-            "fields": ("nombre_completo", "email", "telefono", "fecha_nacimiento")
-        }),
-        ("Detalles de la Solicitud", {
-            "fields": ("cp", "descripcion", "requiere_llamada")
-        }),
-        ("Estado y Seguimiento", {
-            "fields": ("encuesta_enviada", "puntuacion", "fecha_creacion"),
-        }),
+        (
+            "Datos del Solicitante",
+            {"fields": ("nombre_completo", "email", "telefono", "fecha_nacimiento")},
+        ),
+        (
+            "Detalles de la Solicitud",
+            {"fields": ("cp", "descripcion", "requiere_llamada")},
+        ),
+        (
+            "Estado y Seguimiento",
+            {
+                "fields": ("encuesta_enviada", "puntuacion", "fecha_creacion"),
+            },
+        ),
     )
-    
+
     # Marcamos como solo lectura los campos automáticos o calculados
     readonly_fields = ("fecha_creacion",)
 

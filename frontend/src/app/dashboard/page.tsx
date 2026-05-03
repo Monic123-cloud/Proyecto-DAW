@@ -1,6 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+// Cambiamos Grid por Grid2 para eliminar los errores de props obsoletas (xs, sm, md, item)
+import { Grid } from "@mui/material";
+import {
+  Container,
+  Paper,
+  Typography,
+  Box,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Button,
+  Divider,
+} from "@mui/material";
 import {
   BarChart,
   Bar,
@@ -15,108 +33,167 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+const COLORS = ["#1976d2", "#2e7d32", "#ed6c02", "#9c27b0", "#d32f2f"];
 
 export default function Dashboard() {
-  // Estado para Analytics (Google)
+  const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<{ visitas: any[]; conversion: any[] }>({
     visitas: [],
     conversion: [],
   });
-
-  // Estado para la tabla de Voluntarios (Postgres)
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // PETICIÓN 1: Analytics
-    fetch("http://localhost:8000/api/analytics/")
-      .then((res) => res.json())
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error al conectar con Analytics:", err);
-        setLoading(false);
-      });
-
-    // PETICIÓN 2: Solicitudes de Ayuda (Separada)
-
-    fetch('http://localhost:8000/api/buscador/solicitudes-ayuda/')
-      .then((res) => res.json())
-      .then((json) => setSolicitudes(json))
-      .catch((err) => console.error("Error al cargar solicitudes:", err));
+    setMounted(true);
   }, []);
 
-  if (loading)
-    return <div className="p-5 text-center">Cargando Panel de Control...</div>;
+  useEffect(() => {
+    if (!mounted) return;
 
-  // Cálculos de Analytics
+    const fetchData = async () => {
+      try {
+        const [resAnalytics, resSolicitudes] = await Promise.all([
+          fetch("http://localhost:8000/api/analytics/"),
+          fetch("http://localhost:8000/api/buscador/solicitudes-ayuda/"),
+        ]);
+
+        if (resAnalytics.ok && resSolicitudes.ok) {
+          const jsonAnalytics = await resAnalytics.json();
+          const jsonSolicitudes = await resSolicitudes.json();
+
+          setData(jsonAnalytics);
+          setSolicitudes(jsonSolicitudes);
+        }
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [mounted]);
+
+  // Solución al error de Hydration: No renderizar nada pesado hasta que el cliente esté listo
+  if (!mounted) return null;
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "80vh",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={60} />
+        <Typography variant="h6" color="text.secondary">
+          Cargando Panel de Control...
+        </Typography>
+      </Box>
+    );
+  }
+
   const totalVisitas =
     data.conversion?.find((e) => e.nombre === "Visitas")?.valor || 0;
   const totalVentas =
     data.conversion?.find((e) => e.nombre === "Ventas")?.valor || 0;
   const ratioConversion =
-    totalVisitas > 0 ? ((totalVentas / totalVisitas) * 100).toFixed(2) : 0;
+    totalVisitas > 0 ? ((totalVentas / totalVisitas) * 100).toFixed(2) : "0.00";
 
   return (
-    <div className="container mt-5 mb-5">
-      <h2 className="mb-4 text-primary fw-bold">Panel de Control General</h2>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{ fontWeight: "bold", color: "primary.main" }}
+        >
+          Panel de Control General
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Monitorización en tiempo real de impacto social y métricas web.
+        </Typography>
+      </Box>
 
-      {/* SECCIÓN 1: KPI Rápido */}
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div
-            className="card shadow border-0 p-3"
-            style={{ borderLeft: "5px solid #0d6efd" }}
+      {/* Usamos Grid v2 con la prop 'size' en lugar de xs/md */}
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 3, borderLeft: "6px solid #1976d2", borderRadius: 2 }}
           >
-            <h6 className="text-muted text-uppercase small fw-bold">
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: "bold", color: "text.secondary" }}
+            >
               Ratio de Conversión
-            </h6>
-            <h3 className="text-primary fw-bold mb-0">{ratioConversion}%</h3>
-          </div>
-        </div>
-      </div>
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+              {ratioConversion}%
+            </Typography>
+          </Paper>
+        </Grid>
 
-      {/* SECCIÓN 2: Gráficos de Analytics */}
-      <div className="row mb-5">
-        <div className="col-md-7 mb-4">
-          <div className="card shadow border-0 p-4 h-100">
-            <h5 className="fw-bold mb-4">Usuarios Activos (7 días)</h5>
-            <div style={{ width: "100%", height: 300 }}>
-              <ResponsiveContainer>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 3, borderLeft: "6px solid #2e7d32", borderRadius: 2 }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: "bold", color: "text.secondary" }}
+            >
+              Total Visitas (GA4)
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+              {totalVisitas}
+            </Typography>
+          </Paper>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, height: "450px" }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold" }}>
+              Usuarios Activos (Últimos 7 días)
+            </Typography>
+            {/* Box con minHeight para evitar el error "width(-1)" de Recharts */}
+            <Box sx={{ width: "100%", height: 350, minHeight: 350 }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.visitas}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#eee"
-                  />
-                  <XAxis dataKey="fecha" />
-                  <YAxis />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip cursor={{ fill: "#f5f5f5" }} />
                   <Bar
                     dataKey="usuarios"
-                    fill="#0d6efd"
+                    fill="#1976d2"
                     radius={[4, 4, 0, 0]}
+                    barSize={40}
                   />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Paper>
+        </Grid>
 
-        <div className="col-md-5 mb-4">
-          <div className="card shadow border-0 p-4 h-100">
-            <h5 className="fw-bold mb-4">Datos de Conversión</h5>
-            <div style={{ width: "100%", height: 300 }}>
-              <ResponsiveContainer>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, height: "450px" }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold" }}>
+              Distribución de Eventos
+            </Typography>
+            <Box sx={{ width: "100%", height: 350, minHeight: 350 }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={data.conversion}
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={70}
+                    outerRadius={100}
                     paddingAngle={5}
                     dataKey="valor"
                     nameKey="nombre"
@@ -130,84 +207,128 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                  <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Paper>
+        </Grid>
 
-      {/* SECCIÓN 3: Tabla de Gestión de Voluntariado e Impacto Social */}
-      <div className="card shadow border-0 p-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h5 className="fw-bold text-dark mb-0">
-            Seguimiento de Ayuda y Satisfacción
-          </h5>
-          <span className="badge bg-primary px-3">
-            {solicitudes.length} Registros
-          </span>
-        </div>
-
-        <div className="table-responsive">
-          <table className="table table-hover align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Nombre</th>
-                <th>C.P. / Contacto</th>
-                <th>Estado Seguimiento</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {solicitudes.length > 0 ? (
-                solicitudes.map((s, i) => (
-                  <tr key={i}>
-                    <td className="fw-bold">{s.nombre_completo}</td>
-                    <td>
-                      <span className="badge bg-light text-dark border me-2">
-                        {s.cp}
-                      </span>
-                      <span className="text-primary fw-bold">{s.telefono}</span>
-                    </td>
-                    <td>
-                      {/* Lógica de colores según el perfil del usuario */}
-                      {s.requiere_llamada ? (
-                        <span className="badge bg-danger p-2">
-                          📞 PENDIENTE LLAMADA (MAYOR)
-                        </span>
-                      ) : s.encuesta_enviada ? (
-                        <span className="badge bg-success p-2">
-                          ✅ ENCUESTA ENVIADA
-                        </span>
-                      ) : (
-                        <span className="badge bg-info text-dark p-2">
-                          ⏳ EN ESPERA (7 DÍAS)
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {s.requiere_llamada ? (
-                        <button className="btn btn-sm btn-outline-danger">
-                          Registrar Llamada
-                        </button>
-                      ) : (
-                        <span className="text-muted small">Automático</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="text-center py-5 text-muted">
-                    No hay solicitudes externas registradas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        <Grid size={{ xs: 12 }}>
+          <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden" }}>
+            <Box
+              sx={{
+                p: 3,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                bgcolor: "#f8f9fa",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                Seguimiento de Ayuda y Satisfacción
+              </Typography>
+              <Chip
+                label={`${solicitudes.length} Registros`}
+                color="primary"
+                sx={{ fontWeight: "bold" }}
+              />
+            </Box>
+            <Divider />
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead sx={{ bgcolor: "#f5f5f5" }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Nombre Completo
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      C.P. / Contacto
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Estado Seguimiento
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                      Acciones
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {solicitudes.length > 0 ? (
+                    solicitudes.map((s, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {s.nombre_completo}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={s.cp}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mr: 1 }}
+                          />
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{ color: "primary.main", fontWeight: "bold" }}
+                          >
+                            {s.telefono}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {s.requiere_llamada ? (
+                            <Chip
+                              label="📞 PENDIENTE"
+                              color="error"
+                              size="small"
+                            />
+                          ) : s.encuesta_enviada ? (
+                            <Chip
+                              label="✅ ENVIADA"
+                              color="success"
+                              size="small"
+                            />
+                          ) : (
+                            <Chip
+                              label="⏳ EN ESPERA"
+                              color="info"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          {s.requiere_llamada ? (
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                            >
+                              Llamar
+                            </Button>
+                          ) : (
+                            <Typography variant="caption" color="text.disabled">
+                              Automático
+                            </Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
+                        <Typography color="text.secondary">
+                          No hay solicitudes registradas.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }

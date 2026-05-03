@@ -4,6 +4,31 @@ import { useState, useEffect } from "react"; // Para manejar el estado de los co
 import { ENDPOINTS } from "../app/config";
 import Mapa from "./Mapa";
 import ExpertoMercado from "./ExpertoMercado";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Rating,
+  Chip,
+  Box,
+  Button,
+  Paper,
+  Grid,
+  TextField,
+  Typography,
+  Modal,
+  MenuItem,
+  IconButton,
+  CircularProgress,
+  Container,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import StarIcon from "@mui/icons-material/Star";
+import { ESTRUCTURA } from "./RegistroEstablecimiento";
 
 //define qué debe tener Comercio
 interface Comercio {
@@ -28,6 +53,7 @@ interface Servicio {
 
 interface BuscadorProps {
   esMiniatura?: boolean;
+  setEsMiniatura: (val: boolean) => void;
   resultadosIniciales?: any[];
   onResultadosChange?: (data: any[]) => void;
 }
@@ -35,6 +61,7 @@ interface BuscadorProps {
 //componente funcional exportado que permite encapsular la lógica de búsqueda, geolocalización y renderizado
 export default function Buscador({
   esMiniatura = false,
+  setEsMiniatura,
   resultadosIniciales = [],
   onResultadosChange,
 }: BuscadorProps) {
@@ -43,34 +70,85 @@ export default function Buscador({
   const [cp, setCp] = useState("");
   const [valorando, setValorando] = useState<any | null>(null);
   const [puntuacionNueva, setPuntuacionNueva] = useState(5);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [radioDistancia, setRadioDistancia] = useState(5);
 
+  //cargar resultados iniciales
   useEffect(() => {
     if (resultadosIniciales && resultadosIniciales.length > 0) {
       setResultados(resultadosIniciales);
 
       // Buscamos el CP en el primer resultado que lo tenga
-      const conCP = resultadosIniciales.find((r: any) => r.cp);
+      if (cp.length !== 5) {
+        const conCP = resultadosIniciales.find((r: any) => r.cp);
 
-      if (conCP && conCP.cp) {
-        const valorCP = conCP?.cp?.toString().trim() || "";
+        if (conCP && conCP.cp) {
+          const valorCP = conCP.cp.toString().trim();
 
-        // Si tiene 5 cifras, lo grabamos en el estado local
-        // Esto hará que 'cp.length === 5' sea verdadero y aparezca Gemini
-        if (valorCP.length === 5) {
-          setCp(valorCP);
+          if (valorCP.length === 5) {
+            setCp(valorCP);
+          }
         }
       }
     }
-  }, [resultadosIniciales]);
+  }, [resultadosIniciales, cp.length]);
+
+  // para leer CP de la url
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cpUrl = params.get("cp");
+
+    // Si hay un CP en la URL y el actual está vacío, lo ponemos
+    if (cpUrl && cpUrl.length === 5 && !cp) {
+      setCp(cpUrl);
+    }
+  }, []);
 
   // Función para buscar comercios por código postal o por ubicación actual.Asíncrona para que la web no se congele mientras espera la respuesta
   const buscarComercios = async () => {
     if (!cp.trim()) return;
-    setLoading(true); // Activa el estado de carga para mostrar feedback al usuario
-    // Realiza la petición al backend con el código postal como parámetro
+
+    // Traduce categorías para que Google nos entienda y nos devuelva lo que pedimos.
+    const TRADUCTOR_GOOGLE = {
+      "Salud y Belleza": "beauty_salon|hair_care|spa|gym",
+      Restauración: "restaurant|cafe|bar|bakery",
+      Alimentación: "supermarket|grocery_or_supermarket|bakery",
+      "Moda y Complementos": "clothing_store|jewelry_store|shoe_store",
+      "Hogar y Decoración": "home_goods_store|furniture_store",
+      "Ocio y Tiempo Libre": "movie_theater|night_club|park",
+      "Servicios Profesionales": "accounting|lawyer|bank",
+      Motor: "car_repair|car_dealer",
+      Tecnología: "electronics_store|computer_store",
+      Mascotas: "pet_store|veterinary_care",
+      Educación: "school|university",
+    };
+
+    window.history.pushState({}, "", `?cp=${cp}`);
+    setLoading(true);
+
     try {
-      // Django ya filtra internamente y te da la lista unificada
-      const url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`; // Construye la URL con el código postal
+      // Construimos la URL base
+      let url = `${ENDPOINTS.BUSCADOR}?cp=${cp}`;
+
+      // 2. Traducimos la categoría si existe
+      if (categoriaSeleccionada) {
+        // Enviamos tu categoría original (para tu BD)
+        url += `&categoria=${encodeURIComponent(categoriaSeleccionada)}`;
+
+        // Enviamos la traducción (para que Django se la pida a Google)
+        const traduccion =
+          TRADUCTOR_GOOGLE[
+            categoriaSeleccionada as keyof typeof TRADUCTOR_GOOGLE
+          ] || categoriaSeleccionada;
+        url += `&google_type=${encodeURIComponent(traduccion)}`;
+      }
+
+      if (radioDistancia) {
+        url += `&radio=${radioDistancia}`;
+      }
+
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -78,12 +156,13 @@ export default function Buscador({
           Accept: "application/json",
         },
         mode: "cors",
-      }); //envía la petición HTTP al backend y espera la respuesta
+      });
+
       if (!response.ok) throw new Error("Error en la respuesta");
 
       const data = await response.json();
-      setResultados(data); // 'data' es el data_final de Django
-      // Notificar al padre (Home) para que guarde los datos por si se hace zoom
+      setResultados(data);
+
       if (onResultadosChange) onResultadosChange(data);
     } catch (error) {
       console.error("Error:", error);
@@ -160,185 +239,360 @@ export default function Buscador({
   };
 
   return (
-    <div
-      className={`flex flex-col w-full h-full ${esMiniatura ? "gap-2" : "gap-6"}`}
+    <Box
+      sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}
     >
-      {/* 1. BARRA DE BÚSQUEDA */}
-      <div
-        className={`bg-white rounded-3xl border border-gray-300 ${esMiniatura ? "p-2 shadow-md" : "p-6 shadow-xl"}`}
+      {/* 1. SECCIÓN BUSCADOR */}
+      <Paper
+        elevation={0}
+        onClick={(e) => e.stopPropagation()}
+        sx={{
+          p: esMiniatura ? "8px 4px" : 3,
+          borderRadius: 3,
+          backgroundColor: "#2DBE8E",
+          color: "white",
+          width: "100%",
+          boxSizing: "border-box",
+        }}
       >
         {!esMiniatura && (
-          <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-            🔍 Explorador de Comercios
-          </h2>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.5 }}
+          >
+            <SearchIcon fontSize="large" color="inherit" /> Buscador de
+            Comercios
+          </Typography>
         )}
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              obtenerUbicacionActual();
+        {/* FILA DE BÚSQUEDA */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 1,
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          {/* GRUPO IZQUIERDA: Ubicación + TextField */}
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexGrow: { xs: 1, md: 2 },
+              maxWidth: { md: "400px" },
+              alignItems: "center",
+              width: { xs: "100%", sm: "60%" },
             }}
-            className={`bg-gray-100 hover:bg-gray-200 rounded-xl transition-all ${esMiniatura ? "p-2 text-lg" : "p-5 text-xl flex-1"}`}
           >
-            📍
-          </button>
-          <input
-            type="text"
-            placeholder={
-              esMiniatura ? "CP..." : "Introduce tu código postal..."
-            }
-            className={`border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none text-black font-bold shadow-sm ${esMiniatura ? "!p-3 text-base !w-32" : "!p-5 text-2xl flex-1"}`}
-            value={cp}
-            onClick={(e) => e.stopPropagation()} // Evita el zoom al escribir
-            onChange={(e) => setCp(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
+            <IconButton
+              onClick={(e) => {
                 e.stopPropagation();
-                buscarComercios();
-              }
-            }}
-          />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              buscarComercios();
-            }}
+                obtenerUbicacionActual();
+              }}
+              sx={{
+                bgcolor: "rgba(255,255,255,0.2)",
+                color: "white",
+                width: 45,
+                height: 45,
+                flexShrink: 0,
+                "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+              }}
+            >
+              <MyLocationIcon />
+            </IconButton>
+
+            <TextField
+              size="small"
+              fullWidth
+              value={cp}
+              onChange={(e) => setCp(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && buscarComercios()}
+              placeholder="Introduce el Código Postal"
+              sx={{
+                bgcolor: "white",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                "& .MuiInputBase-root": { height: 45, fontSize: "16px" },
+              }}
+            />
+          </Box>
+
+          {/* FILTROS */}
+          {!esMiniatura && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                flexGrow: 1,
+                width: { xs: "100%", sm: "auto" },
+              }}
+            >
+              <TextField
+                select
+                size="small"
+                fullWidth
+                label="Actividad"
+                value={categoriaSeleccionada}
+                onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                sx={{ bgcolor: "white", borderRadius: 2, minWidth: 150 }}
+              >
+                <MenuItem value="">Todas las categorías</MenuItem>
+                {Object.keys(ESTRUCTURA || {}).map((grupo) => (
+                  <MenuItem key={grupo} value={grupo}>
+                    {grupo}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                size="small"
+                label="Radio"
+                value={radioDistancia}
+                onChange={(e) => setRadioDistancia(Number(e.target.value))}
+                sx={{ bgcolor: "white", borderRadius: 2, minWidth: 100 }}
+              >
+                {[5, 10, 20, 50].map((r) => (
+                  <MenuItem key={r} value={r}>
+                    {r} km
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+          )}
+
+          <Button
+            variant="contained"
             disabled={loading}
-            className={`bg-blue-700 hover:bg-blue-700 text-white font-black rounded-xl transition-all ${esMiniatura ? "px-3 text-sm" : "px-10 py-4"}`}
+            onClick={buscarComercios}
+            sx={{
+              bgcolor: "#D1C4E9",
+              color: "white",
+              fontWeight: "bold",
+              height: 45,
+              px: 4,
+              borderRadius: 2,
+              minWidth: "fit-content",
+              width: { xs: "100%", sm: "auto" },
+              "&:hover": { bgcolor: "#B39DDB" },
+            }}
           >
-            {loading ? "..." : esMiniatura ? "Buscar" : "Buscar"}
-          </button>
-        </div>
+            {loading ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : (
+              "BUSCAR"
+            )}
+          </Button>
+        </Box>
 
-        {/* Experto en Mercado (Solo fuera de miniatura) */}
         {!esMiniatura && cp.length === 5 && (
-          <div className="mt-6 border-t pt-4">
+          <Box
+            sx={{
+              mt: 3,
+              pt: 2,
+              borderTop: "1px solid rgba(255,255,255,0.2)",
+              width: "100%",
+            }}
+          >
             <ExpertoMercado codigoPostal={cp} />
-          </div>
+          </Box>
         )}
-      </div>
-
+      </Paper>
       {/* 2. MAPA */}
-      <div
-        className={`rounded-2xl overflow-hidden shadow-inner border border-gray-50 ${esMiniatura ? "h-[180px]" : "h-[450px]"}`}
+      <Paper
+        elevation={2}
+        onClick={() => esMiniatura && setEsMiniatura?.(false)}
+        sx={{
+          height: esMiniatura ? 400 : 450,
+          borderRadius: 2,
+          overflow: "hidden",
+          border: "4px solid white",
+        }}
       >
         <Mapa puntos={Array.isArray(resultados) ? resultados : []} />
-      </div>
+      </Paper>
 
-      {/* 3. LISTADO DE TARJETAS (Con scroll si es miniatura) */}
-      <div
-        className={`grid gap-4 ${esMiniatura ? "grid-cols-1 overflow-y-auto pr-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
-        style={esMiniatura ? { maxHeight: "200px" } : {}}
+      {/* 3. RESULTADOS */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: esMiniatura ? "1fr" : "1fr 1fr",
+            lg: esMiniatura ? "1fr" : "1fr 1fr 1fr",
+          },
+          gap: 3,
+        }}
       >
-        {resultados.length > 0
-          ? resultados.map((c) => (
-              <div
-                key={c.id_establecimiento || c.id_servicio || c.id}
-                className={`bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between ${esMiniatura ? "p-3" : "p-5 hover:shadow-md transition-all"}`}
-              >
-                <div>
-                  <h3
-                    className={`font-bold text-blue-900 ${esMiniatura ? "text-sm" : "text-lg mb-1"}`}
-                  >
-                    {c.nombre_comercio || c.categoria}
-                  </h3>
-
-                  {/* ESTRELLAS DEL BACKEND */}
-                  <div className="flex items-center gap-1 mb-2">
-                    <div className="flex text-yellow-400">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                          key={star}
-                          className={
-                            star <= Math.round(c.promedio_valoraciones || 0)
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-[10px] text-gray-500 font-medium">
-                      {c.promedio_valoraciones || 0} (
-                      {c.numero_valoraciones || 0})
-                    </span>
-                  </div>
-
-                  <p
-                    className={`text-gray-500 ${esMiniatura ? "text-[10px] leading-tight" : "text-sm mb-3"}`}
-                  >
-                    {c.direccion || "Servicio profesional"}
-                  </p>
-                  <span className="inline-block mt-2 bg-gray-50 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    CP: {c.cp}
-                  </span>
-                </div>
-                {/* Botón Valorar (Solo en pantalla completa) */}
-                {!esMiniatura && c.tipo !== "google" && (
-                  <button
-                    onClick={() => setValorando(c)}
-                    className="w-full mt-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all text-sm"
-                  >
-                    ⭐ Valorar ahora
-                  </button>
-                )}
-              </div>
-            ))
-          : !loading && (
-              <div
-                className={`col-span-full text-center text-gray-400 bg-white rounded-3xl border-2 border-dashed border-gray-100 ${esMiniatura ? "py-6 text-xs" : "py-20"}`}
-              >
-                Introduce un código postal para ver los comercios
-              </div>
-            )}
-      </div>
-
-      {/* 4. MODAL FLOTANTE DE VALORACIÓN (Solo fuera de miniatura) */}
-      {!esMiniatura && valorando && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
-          <div className="bg-white p-8 rounded-3xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200 text-black">
-            <h3 className="text-xl font-bold mb-2 text-center">
-              Valora tu experiencia
-            </h3>
-            <p className="text-gray-500 text-center mb-6 text-sm">
-              En:{" "}
-              <span className="font-bold text-blue-600">
-                {valorando.nombre_comercio || valorando.categoria}
-              </span>
-            </p>
-
-            <select
-              className="w-full p-4 border-2 border-gray-100 rounded-2xl mb-6 outline-none focus:border-blue-500"
-              value={puntuacionNueva}
-              onChange={(e) => setPuntuacionNueva(Number(e.target.value))}
+        {resultados && resultados.length > 0 ? (
+          resultados.map((c) => (
+            <Card
+              key={c.id_establecimiento || c.id_servicio || Math.random()}
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 4,
+                borderLeft: "6px solid",
+                borderColor:
+                  c.tipo === "comercio_propio"
+                    ? "primary.main"
+                    : c.tipo === "servicio_propio"
+                      ? "success.main"
+                      : "#D1C4E9",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
+              }}
             >
-              <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
-              <option value="4">⭐⭐⭐⭐ Muy bueno</option>
-              <option value="3">⭐⭐⭐ Normal</option>
-              <option value="2">⭐⭐ Pobre</option>
-              <option value="1">⭐ Malo</option>
-            </select>
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    noWrap
+                    sx={{ maxWidth: "75%" }}
+                  >
+                    {c.nombre_comercio}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "text.secondary", fontWeight: 500 }}
+                  >
+                    {c.categoria || "Sin categoría"}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={`${c.distancia || 0} km`}
+                    variant="outlined"
+                  />
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Rating
+                    value={Math.round(c.promedio_valoraciones || 0)}
+                    readOnly
+                    size="small"
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ ml: 1, color: "text.secondary" }}
+                  >
+                    ({c.numero_valoraciones || 0})
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ minHeight: "3em" }}
+                >
+                  {c.direccion ||
+                    `Profesional: ${c.nombre_profesional || "No disponible"}`}
+                </Typography>
+                <Chip
+                  label={
+                    c.tipo === "comercio_propio"
+                      ? "Negocio Local"
+                      : c.tipo === "servicio_propio"
+                        ? "Servicio"
+                        : "Google Maps"
+                  }
+                  sx={{ mt: 2, fontWeight: "bold" }}
+                  size="small"
+                  color={
+                    c.tipo === "comercio_propio"
+                      ? "primary"
+                      : c.tipo === "servicio_propio"
+                        ? "success"
+                        : "default"
+                  }
+                />
+              </CardContent>
+              <CardActions sx={{ p: 2, pt: 0 }}>
+                <Button
+                  size="small"
+                  fullWidth
+                  variant="contained"
+                  startIcon={<StarIcon />}
+                  onClick={() => setValorando(c)} // <--- Esto es lo que "llena" el estado y abre el modal
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: "#D1C4E9",
+                    color: "white",
+                    "&:hover": { bgcolor: "#B39DDB" },
+                  }}
+                >
+                  VALORAR
+                </Button>
+              </CardActions>
+            </Card>
+          ))
+        ) : (
+          <Box
+            sx={{
+              gridColumn: "1 / -1",
+              py: 10,
+              textAlign: "center",
+              opacity: 0.5,
+            }}
+          >
+            <Typography variant="h6">
+              {loading
+                ? "Buscando establecimientos..."
+                : "Sin resultados en esta zona"}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+      <Modal open={Boolean(valorando)} onClose={() => setValorando(null)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 350,
+            bgcolor: "background.paper",
+            borderRadius: 4,
+            p: 4,
+            boxShadow: 24,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" mb={2}>
+            Valorar {valorando?.nombre_comercio}
+          </Typography>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setValorando(null)}
-                className="flex-1 py-4 text-gray-400 font-bold hover:bg-gray-50 rounded-2xl"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={enviarValoracion}
-                className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200"
-              >
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+          <Rating
+            size="large"
+            value={puntuacionNueva}
+            onChange={(_, newValue) => setPuntuacionNueva(newValue || 5)}
+          />
+
+          <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+            <Button fullWidth onClick={() => setValorando(null)}>
+              Cancelar
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={enviarValoracion}
+              sx={{ bgcolor: "#2DBE8E", "&:hover": { bgcolor: "#24a37a" } }}
+            >
+              Enviar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }

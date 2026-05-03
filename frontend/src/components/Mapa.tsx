@@ -2,6 +2,7 @@
 
 import { GoogleMap, useJsApiLoader, InfoWindowF } from "@react-google-maps/api";
 import { useMemo, useEffect, useState } from "react";
+import RegistroValoraciones from "./RegistroValoraciones";
 
 const LIBRARIES: any = ["places", "geometry", "marker"];
 const CONTAINER_STYLE = { width: "100%", height: "400px" };
@@ -49,7 +50,9 @@ function MarcadorInteligente({ map, p, onClick }: any) {
       content: pinElement.element,
     });
 
-    const listener = marker.addListener("click", onClick);
+    const listener = marker.addListener("gmp-click", () => {
+      onClick(p);
+    });
 
     return () => {
       if (listener) google.maps.event.removeListener(listener);
@@ -151,8 +154,21 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
               {selected.promedio_valoraciones !== undefined && (
                 <div className="flex items-center gap-1 mb-1">
                   <span className="text-yellow-500 text-xs">
-                    {"★".repeat(Math.floor(selected.promedio_valoraciones))}
-                    {"☆".repeat(5 - Math.floor(selected.promedio_valoraciones))}
+                    {"★".repeat(
+                      Math.min(
+                        5,
+                        Math.max(0, Math.floor(selected.promedio_valoraciones)),
+                      ),
+                    )}
+                    {"☆".repeat(
+                      Math.min(
+                        5,
+                        Math.max(
+                          0,
+                          5 - Math.floor(selected.promedio_valoraciones),
+                        ),
+                      ),
+                    )}
                   </span>
                   <span className="text-[10px] text-gray-500">
                     ({selected.promedio_valoraciones})
@@ -163,6 +179,18 @@ export default function Mapa({ puntos = [] }: { puntos: ResultadoBusqueda[] }) {
               <p className="text-xs text-gray-600 leading-tight">
                 {selected.direccion || `Pro: ${selected.nombre_profesional}`}
               </p>
+              {/* --- EL NUEVO COMPONENTE DE VALORACIÓN --- */}
+              <div className="border-t pt-2 mt-2">
+                <RegistroValoraciones
+                  establecimientoId={selected.id_establecimiento}
+                  nombreComercio={
+                    selected.nombre_comercio || selected.categoria
+                  }
+                  onSuccess={() => {
+                    console.log("Valoración enviada, actualizando mapa...");
+                  }}
+                />
+              </div>
             </div>
           </InfoWindowF>
         )}

@@ -3,7 +3,7 @@ from .models import Servicio, Establecimiento
 from .models import Valoracion
 from .models import SolicitudAyuda
 
-# 1. El que te estaba dando el error de importación (ServicioSerializer)
+
 class ServicioSerializer(serializers.ModelSerializer):
 
     latitud = serializers.ReadOnlyField(source='lat')
@@ -15,7 +15,7 @@ class ServicioSerializer(serializers.ModelSerializer):
         read_only_fields = ['id_servicio', 'fecha_creacion', 'latitud', 'longitud', 'cp']
 
 
-# 2. El que necesitamos para las estrellas (EstablecimientoSerializer)
+# El que necesitamos para las estrellas (EstablecimientoSerializer)
 class EstablecimientoSerializer(serializers.ModelSerializer):
     promedio_valoraciones = serializers.SerializerMethodField()
     numero_valoraciones = serializers.SerializerMethodField()
@@ -43,3 +43,11 @@ class ValoracionSerializer(serializers.ModelSerializer):
         model = Valoracion
         # Solo pedimos lo que el usuario envía desde el front
         fields = ['id_establecimiento', 'id_servicio', 'puntuacion', 'comentario']
+
+class SolicitudAyudaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolicitudAyuda
+        fields = [
+            'id', 'nombre_completo', 'telefono', 'email', 
+            'cp', 'descripcion', 'fecha_nacimiento'
+        ]

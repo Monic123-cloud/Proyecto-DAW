@@ -1,6 +1,8 @@
 from django.shortcuts import render
 import os
 import json
+import urllib.parse
+import math
 from rest_framework.views import APIView  # # Clase base para crear tu endpoint de API
 from rest_framework.response import (
     Response,
@@ -30,7 +32,6 @@ from geopy.geocoders import (
     Nominatim,
 )  # API externa de Google Places para geolocalizar direcciones a coordenadas (lat/lng)
 import requests  # Para hacer peticiones HTTP a la API de Google Maps
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
@@ -39,6 +40,7 @@ from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens 
 from .serializers import (
     ServicioSerializer,
     EstablecimientoSerializer,
+    SolicitudAyudaSerializer,
 )  # Para convertir los datos de la base de datos a formato JSON que React entiende
 from .models import (
     Servicio,
@@ -48,11 +50,10 @@ from .models import (
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 import google.generativeai as genai
-from .models import Establecimiento
+from rest_framework import viewsets
 from config.analytics_service import get_google_analytics_data, get_conversion_data
 from django.contrib.auth import authenticate
 from rest_framework.decorators import (
-    api_view,
     permission_classes,
     authentication_classes,
 )
@@ -63,6 +64,25 @@ User = (
 
 """ "Es el controlador que gestiona la lógica de negocio, procesando las peticiones de búsqueda para devolver resultados
 de la base de datos local y la API de Google Maps en formato JSON."""
+
+
+def calcular_distancia_manual(lat1, lon1, lat2, lon2):
+    # Radio de la Tierra en km
+    R = 6371.0
+
+    rad_lat1, rad_lon1 = math.radians(float(lat1)), math.radians(float(lon1))
+    rad_lat2, rad_lon2 = math.radians(float(lat2)), math.radians(float(lon2))
+
+    dlat = rad_lat2 - rad_lat1
+    dlon = rad_lon2 - rad_lon1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(rad_lat1) * math.cos(rad_lat2) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return R * c
 
 
 # 1. Vista del mapa.html. Lee los datos que vienen en la URL
@@ -124,12 +144,18 @@ class BuscadorAPIView(APIView):
         user_lng = request.query_params.get("lng")
         radio_km = float(request.query_params.get("radio", 5))
         cp_buscado = request.query_params.get("cp")
+        categoria = request.query_params.get("categoria")
+        google_type = request.query_params.get("google_type")
         api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         data_final = []
 
         # 1: Busca en BBDD Locales
-        comercios = Establecimiento.objects.all()
+        comercios = Establecimiento.objects.filter(
+            latitud__isnull=False, longitud__isnull=False
+        )
+        if categoria:
+            comercios = comercios.filter(categoria=categoria)
         if user_lat and user_lng:
             lat1 = Radians(float(user_lat))
             lng1 = Radians(float(user_lng))
@@ -153,6 +179,7 @@ class BuscadorAPIView(APIView):
             comercios = comercios.filter(cp=cp_buscado)
 
         for c in comercios:
+            dist = getattr(c, "distancia", 0)
             data_final.append(
                 {
                     "id_establecimiento": c.id_establecimiento,
@@ -161,10 +188,14 @@ class BuscadorAPIView(APIView):
                     "longitud": float(c.longitud),
                     "tipo": "comercio_propio",  # Para que React sepa que es AZUL
                     "cp": c.cp,
+                    "categoria": c.categoria,
+                    "distancia": round(c.distancia, 2) if dist else 0,
                 }
             )
 
         servicios = Servicio.objects.all()
+        if categoria:
+            servicios = servicios.filter(categoria=categoria)
         if user_lat and user_lng:
             lat1 = Radians(float(user_lat))
             lng1 = Radians(float(user_lng))
@@ -188,6 +219,7 @@ class BuscadorAPIView(APIView):
             servicios = servicios.filter(cp=cp_buscado)
 
         for serv in servicios:
+            dist = getattr(serv, "distancia", 0)
             data_final.append(
                 {
                     "id_establecimiento": f"serv-{serv.id_servicio}",  # ID único para evitar conflictos
@@ -196,6 +228,7 @@ class BuscadorAPIView(APIView):
                     "latitud": float(serv.lat),
                     "longitud": float(serv.lng),
                     "tipo": "servicio_propio",  # Identificador para el color verde en React
+                    "distancia": round(dist, 2) if dist else 0,
                     "cp": serv.cp,
                 }
             )
@@ -204,23 +237,35 @@ class BuscadorAPIView(APIView):
         serializer_est = EstablecimientoSerializer(comercios, many=True)
         serializer_serv = ServicioSerializer(servicios, many=True)
 
-        # 2: Busca en EN GOOGLE MAPS
+        # Busca en EN GOOGLE MAPS
         # Solo llamamos a Google si el usuario ha puesto un CP o coordenadas
         api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
         # Busca en GOOGLE MAPS (Rojos)
         if api_key:
             google_url = None
+            search_type = google_type if google_type else "store"
             if user_lat and user_lng:
                 google_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={user_lat},{user_lng}&radius={radio_km * 1000}&type=store&region=es&key={api_key}"
             elif cp_buscado:
-                google_url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query=comercios+en+CP+{cp_buscado}+Spain&region=es&type=store&key={api_key}"
+                query_busqueda = f"comercios en CP {cp_buscado} Spain"
+                query_encoded = urllib.parse.quote(query_busqueda)
+                google_url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query={query_encoded}&region=es&type=store&key={api_key}"
 
             if google_url:
                 try:
                     response = requests.get(google_url)
                     google_results = response.json().get("results", [])
                     for place in google_results:
+                        p_lat = place["geometry"]["location"]["lat"]
+                        p_lng = place["geometry"]["location"]["lng"]
+
+                        # Calculamos distancia manual para Google
+                        dist_g = 0
+                        if user_lat and user_lng:
+                            dist_g = calcular_distancia_manual(
+                                user_lat, user_lng, p_lat, p_lng
+                            )
                         data_final.append(
                             {
                                 "id_establecimiento": place.get("place_id"),
@@ -229,6 +274,8 @@ class BuscadorAPIView(APIView):
                                 "longitud": place["geometry"]["location"]["lng"],
                                 "direccion": place.get("vicinity")
                                 or place.get("formatted_address"),
+                                "distancia": round(dist_g, 2),
+                                "categoria": categoria or "comercio",
                                 "tipo": "google",  # Identificador para el color rojo en React
                                 "promedio_valoraciones": place.get("rating", 0),
                                 "numero_valoraciones": place.get(
@@ -238,6 +285,8 @@ class BuscadorAPIView(APIView):
                         )
                 except Exception as e:
                     print(f"Error en Google Maps API: {e}")
+
+        data_final = sorted(data_final, key=lambda x: x.get("distancia", 999))
 
         return Response(data_final)
 
@@ -541,6 +590,49 @@ def ver_mi_local(request):
         return Response({"error": str(e)}, status=500)
 
 
+class EstablecimientoViewSet(viewsets.ModelViewSet):
+    serializer_class = EstablecimientoSerializer
+
+    def get_queryset(self):
+        queryset = Establecimiento.objects.all()
+
+        # 1. Filtro por Categoría
+        categoria = self.request.query_params.get("categoria")
+        if categoria:
+            queryset = queryset.filter(categoria=categoria)
+
+        # 2. Lógica de Distancia
+        lat_user = self.request.query_params.get("lat")
+        lng_user = self.request.query_params.get("lng")
+        radio = self.request.query_params.get("radio")
+
+        if lat_user and lng_user:
+            lat1 = float(lat_user)
+            lng1 = float(lng_user)
+
+            # Fórmula Haversine para km
+            distancia_sql = ExpressionWrapper(
+                6371
+                * ACos(
+                    Cos(Radians(lat1))
+                    * Cos(Radians(F("latitud")))
+                    * Cos(Radians(F("longitud")) - Radians(lng1))
+                    + Sin(Radians(lat1)) * Sin(Radians(F("latitud")))
+                ),
+                output_field=FloatField(),
+            )
+
+            # Anotamos la distancia al queryset para que el Serializer la vea
+            queryset = queryset.annotate(distancia=distancia_sql)
+
+            if radio:
+                queryset = queryset.filter(distancia__lte=float(radio))
+
+            return queryset.order_by("distancia")
+
+        return queryset
+
+
 from rest_framework import viewsets, permissions
 from .models import Servicio
 from .serializers import ServicioSerializer
@@ -599,10 +691,12 @@ class ServicioViewSet(viewsets.ModelViewSet):
         la ubicación de su establecimiento para el mapa.
         """
         from users.models import CustomUser
+        from rest_framework.exceptions import ValidationError
 
         try:
             # Obtenemos el perfil del usuario logueado a través de su auth_id (que es el username del User)
             usuario_perfil = CustomUser.objects.get(auth_id=self.request.user.username)
+            Establecimiento.objects.get(usuario=self.request.user)
 
             # Guardamos el servicio con toda la información necesaria
             serializer.save(
@@ -616,7 +710,6 @@ class ServicioViewSet(viewsets.ModelViewSet):
 
             raise ValidationError("El perfil de usuario no existe.")
         except Establecimiento.DoesNotExist:
-            from rest_framework.exceptions import ValidationError
 
             raise ValidationError(
                 "Debes registrar un establecimiento antes de ofrecer servicios."
@@ -633,17 +726,25 @@ class ValoracionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         from users.models import CustomUser
         from rest_framework.exceptions import ValidationError
+        from django.db.models import Avg
 
         try:
-            # SEGURIDAD: Verificamos que el usuario del token existe en nuestra tabla CustomUser
-            # Buscamos por username (que es el CIF/DNI)
             usuario_validado = CustomUser.objects.get(email=self.request.user.email)
 
-            # ACCIÓN: Guardamos la valoración usando ese perfil ya verificado
-            serializer.save(id_usuario=usuario_validado)
+            # 1. Guardamos la valoración
+            valoracion = serializer.save(id_usuario=usuario_validado)
+
+            # 2. Recalcamos el promedio del establecimiento (si aplica)
+            if valoracion.id_establecimiento:
+                est = valoracion.id_establecimiento
+                # Calculamos la media de todas las valoraciones de este establecimiento
+                nuevo_promedio = est.valoraciones.aggregate(Avg("puntuacion"))[
+                    "puntuacion__avg"
+                ]
+                est.promedio_valoraciones = nuevo_promedio
+                est.save()
 
         except CustomUser.DoesNotExist:
-            # Si el token es válido pero por algún motivo el usuario no está en la BBDD
             raise ValidationError("Error de seguridad: El perfil de usuario no existe.")
 
 
@@ -673,6 +774,17 @@ def lista_solicitudes_ayuda(request):
         return Response({"error": str(e)}, status=500)
 
 
+@api_view(["POST"])
+@permission_classes([AllowAny])  # Cualquiera puede pedir ayuda
+def crear_solicitud_ayuda(request):
+    serializer = SolicitudAyudaSerializer(data=request.data)
+    if serializer.is_valid():
+        # Al guardar aquí, se dispara el matching_por_cp de tus signals
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def analytics_dashboard_view(request):
@@ -698,7 +810,6 @@ def analytics_dashboard_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def analizar_mercado(request):
-    import google.generativeai as genai
     from django.http import JsonResponse
     import json
 
@@ -746,13 +857,30 @@ def analizar_mercado(request):
         """
 
         response = model.generate_content(prompt)
-
-        # Limpieza y respuesta
         res_text = response.text
-        if "```" in res_text:
-            res_text = res_text.split("```")[1].replace("json", "").strip()
 
-        return JsonResponse({"status": "success", "data": json.loads(res_text)})
+        # 1. Limpieza del Markdown
+        if "```" in res_text:
+            partes = res_text.split("```")
+            res_text = partes[1] if len(partes) > 1 else partes[0]
+            if res_text.startswith("json"):
+                res_text = res_text[4:]
+
+        res_text = res_text.strip()
+
+        # 2. Convertimos a diccionario real y respondemos
+        try:
+            datos_json = json.loads(res_text)
+            return JsonResponse({"status": "success", "data": datos_json})
+        except Exception as parse_error:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Error al parsear JSON de IA",
+                    "analisis": res_text,
+                },
+                status=500,
+            )
 
     except Exception as e:
         return JsonResponse(

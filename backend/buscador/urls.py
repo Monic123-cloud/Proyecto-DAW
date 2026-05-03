@@ -12,15 +12,16 @@ from .views import (
     ServicioViewSet,
     lista_solicitudes_ayuda,
     buscar_y_login_por_cif,
-    ValoracionViewSet
+    ValoracionViewSet,
+    crear_solicitud_ayuda,
 )
 
 # Definimos el router
 router = DefaultRouter()
 # Registramos el ViewSet de servicios
-router.register(r'servicios', ServicioViewSet, basename='servicio')
+router.register(r"servicios", ServicioViewSet, basename="servicio")
 # Registramos el ViewSet de valoraciones
-router.register(r'valoraciones', ValoracionViewSet, basename='valoracion')
+router.register(r"valoraciones", ValoracionViewSet, basename="valoracion")
 
 urlpatterns = [
     # El mapa visual (HTML)
@@ -34,10 +35,11 @@ urlpatterns = [
     path(
         "formulario/<int:pk>/", gestionar_formulario, name="formulario_detalle"
     ),  # Para manejar GET, PUT, DELETE con el ID
-    #path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
+    # path("buscar-cif/<str:cif>/", buscar_cif, name="buscar_cif"),
     path("buscar-cif/<str:cif>/", buscar_y_login_por_cif, name="buscar_y_login"),
-    path('', include(router.urls)),
+    path("", include(router.urls)),
     path("solicitudes-ayuda/", lista_solicitudes_ayuda, name="solicitudes_ayuda_list"),
-    path('experto-mercado/', views.analizar_mercado, name='analizar_mercado'),
-
+    path("solicitar-ayuda/", crear_solicitud_ayuda, name="crear_solicitud_ayuda"),
+    path("experto-mercado/", views.analizar_mercado, name="analizar_mercado"),
+    path("", include(router.urls)),
 ]
