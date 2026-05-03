@@ -210,7 +210,7 @@ export default function RegistroEstablecimiento() {
         });
 
         setEditId(data.id);
-        #setVista("formulario");
+        //setVista("formulario");
       } else {
         alert(data.error || "CIF o contraseña incorrectos");
       }
