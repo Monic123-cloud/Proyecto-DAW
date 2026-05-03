@@ -163,9 +163,9 @@ export default function RegistroEstablecimiento() {
           const data = await res.json();
           setFormData(data);
           setEditId(data.id);
-          setVista("formulario");
+          //setVista("formulario");
         } else if (res.status === 401) {
-          // SI DA 401, LIMPIAMOS Y NOS QUEDAMOS EN LA VISTA DE SELECCIÓN
+          // si da 401, el token es inválido o ha expirado
           console.warn("Sesión expirada o inválida");
           // authService.logout(); // Si tienes este método, úsalo
           setVista("seleccion");
@@ -188,11 +188,35 @@ export default function RegistroEstablecimiento() {
       });
       const data = await res.json();
       if (res.ok) {
-        authService.setToken(data.access);
-        setFormData(data);
+        //Guardamos el token para futuras peticiones (como el PUT de guardar)
+        if (data.access) authService.setToken(data.access);
+        setFormData({
+          nombre_comercio: data.nombre_comercio || "",
+          cif_nif: data.cif_nif || "",
+          grupo: data.grupo || "",
+          categoria: data.categoria || "",
+          subcategoria: data.subcategoria || "",
+          categoria_libre: data.categoria_libre || "",
+          subcategoria_libre: data.subcategoria_libre || "",
+          direccion: data.direccion || "",
+          numero: data.numero || "",
+          municipio: data.municipio || "",
+          provincia: data.provincia || "",
+          cp: data.cp || "",
+          telefono: data.telefono || "",
+          correo: data.correo || "",
+          latitud: data.latitud || 0,
+          longitud: data.longitud || 0,
+        });
+
         setEditId(data.id);
-        setVista("formulario");
+        //setVista("formulario");
+      } else {
+        alert(data.error || "CIF o contraseña incorrectos");
       }
+    } catch (err) {
+      console.error("Error en la búsqueda:", err);
+      alert("Error de conexión con el servidor");
     } finally {
       setLoading(false);
     }
