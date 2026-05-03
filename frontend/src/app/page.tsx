@@ -66,6 +66,7 @@ export default function HomePage() {
             <Buscador
               esMiniatura={false}
               resultadosIniciales={resultadosGuardados}
+              setEsMiniatura={() => {}}
             />
           </div>
         </main>
@@ -131,6 +132,7 @@ export default function HomePage() {
                     >
                       <Buscador
                         esMiniatura={true}
+                        setEsMiniatura={setEsPantallaCompleta}
                         onResultadosChange={(data) => {
                           console.log("Datos capturados en miniatura:", data);
                           setResultadosGuardados(data);
