@@ -34,7 +34,7 @@ export default function CarritoPage() {
             </div>
           </Link>
 
-          <Link href="/" className="btn btn-secondary">
+          <Link href="/tiendas" className="btn btn-secondary">
             ← Seguir comprando
           </Link>
         </div>

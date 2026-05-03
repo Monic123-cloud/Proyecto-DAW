@@ -16,6 +16,7 @@ import {
   CircularProgress,
   MenuItem,
 } from "@mui/material";
+import { getAuthHeaders } from "../components/utils/authHeader";
 
 const CATEGORIAS_SERVICIOS = {
   Educación: [
@@ -64,11 +65,12 @@ const RegistroServicio = () => {
     e.preventDefault();
     setLoading(true);
     setMensaje({ texto: "Enviando...", tipo: "info" });
+    
 
     try {
       const response = await fetch(ENDPOINTS.SERVICIOS, {
         method: "POST",
-        headers: authService.getAuthHeaders(),
+        headers: getAuthHeaders(),
         body: JSON.stringify(datos),
       });
 

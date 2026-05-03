@@ -4,7 +4,8 @@ from rest_framework import status, viewsets, permissions,mixins
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model, authenticate
 from .serializers import RegisterSerializer, LoginSerializer
-from knox.models import AuthToken
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 User = get_user_model()
 
@@ -32,17 +33,24 @@ class LoginViewset(viewsets.ViewSet):
         if serializer.is_valid(): 
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            user = authenticate(request, email=email, password=password)
-            if user: 
-                _, token = AuthToken.objects.create(user)
-                return Response(
-                    {
-                        "user": self.serializer_class(user).data,
-                        "token": token,
-                        "tipo": "usuario"
-                    }
-                )
-            else: 
-                return Response({"error":"Invalid credentials"}, status=401)    
+            user = authenticate(request, username=email, password=password)
+            if not user:
+                return Response({"error": "Credenciales inválidas"}, status=401)
+
+            refresh = RefreshToken.for_user(user)
+
+             
+            if user.is_superuser:
+                tipo = "superuser"
+            else:
+                tipo = "usuario"
+
+            #tipo en JWT
+            refresh["tipo"] = tipo
+
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                })   
         else: 
             return Response(serializer.errors,status=400)

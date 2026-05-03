@@ -2,7 +2,7 @@
 import  Providers  from "../components/providers/providers";
 
 import "./globals.css";
-import Header from "@/components/header";
+
 
 export const metadata = {
   title: "Close4u",

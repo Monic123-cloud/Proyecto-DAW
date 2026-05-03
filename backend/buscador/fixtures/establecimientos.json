@@ -1,0 +1,87 @@
+[
+  {
+    "model": "buscador.establecimiento",
+    "pk": 1,
+    "fields": {
+      "usuario": null,
+      "nombre_comercio": "TechZone Villaviciosa",
+      "cif_nif": "A12345678",
+      "tipo_negocio": "comercio",
+      "categoria": "Electrónica",
+      "direccion": "Av. Príncipe de Asturias 45",
+      "municipio": "Villaviciosa de Odón",
+      "provincia": "Madrid",
+      "cp": "28670",
+      "latitud": "40.356500000",
+      "longitud": "-3.904300000"
+    }
+  },
+  {
+    "model": "buscador.establecimiento",
+    "pk": 2,
+    "fields": {
+      "usuario": null,
+      "nombre_comercio": "Market Fresh Villaviciosa",
+      "cif_nif": "B23456789",
+      "tipo_negocio": "productor",
+      "categoria": "Alimentación",
+      "direccion": "Calle Carretas 12",
+      "municipio": "Villaviciosa de Odón",
+      "provincia": "Madrid",
+      "cp": "28670",
+      "latitud": "40.357800000",
+      "longitud": "-3.901200000"
+    }
+  },
+  {
+    "model": "buscador.establecimiento",
+    "pk": 3,
+    "fields": {
+      "usuario": null,
+      "nombre_comercio": "Moda Urbana VDO",
+      "cif_nif": "C34567890",
+      "tipo_negocio": "comercio",
+      "categoria": "Ropa",
+      "direccion": "Calle Eras 8",
+      "municipio": "Villaviciosa de Odón",
+      "provincia": "Madrid",
+      "cp": "28670",
+      "latitud": "40.355900000",
+      "longitud": "-3.902800000"
+    }
+  },
+  {
+    "model": "buscador.establecimiento",
+    "pk": 4,
+    "fields": {
+      "usuario": null,
+      "nombre_comercio": "Hogar & Deco Villaviciosa",
+      "cif_nif": "D45678901",
+      "tipo_negocio": "comercio",
+      "categoria": "Hogar",
+      "direccion": "Calle Fernando III 20",
+      "municipio": "Villaviciosa de Odón",
+      "provincia": "Madrid",
+      "cp": "28670",
+      "latitud": "40.358200000",
+      "longitud": "-3.906000000"
+    }
+  },
+  {
+    "model": "buscador.establecimiento",
+    "pk": 5,
+    "fields": {
+      "usuario": null,
+      "nombre_comercio": "Fitness Store VDO",
+      "cif_nif": "E56789012",
+      "tipo_negocio": "productor",
+      "categoria": "Deporte",
+      "direccion": "Av. Quitapesares 33",
+      "municipio": "Villaviciosa de Odón",
+      "provincia": "Madrid",
+      "cp": "28670",
+      "latitud": "40.359000000",
+      "longitud": "-3.899500000"
+    }
+  }
+]
