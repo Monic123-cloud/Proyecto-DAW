@@ -163,9 +163,9 @@ export default function RegistroEstablecimiento() {
           const data = await res.json();
           setFormData(data);
           setEditId(data.id);
-          setVista("formulario");
+          //setVista("formulario");
         } else if (res.status === 401) {
-          // SI DA 401, LIMPIAMOS Y NOS QUEDAMOS EN LA VISTA DE SELECCIÓN
+          // si da 401, el token es inválido o ha expirado
           console.warn("Sesión expirada o inválida");
           // authService.logout(); // Si tienes este método, úsalo
           setVista("seleccion");
