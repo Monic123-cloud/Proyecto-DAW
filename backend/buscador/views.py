@@ -48,10 +48,10 @@ from .models import (
     Servicio,
     Valoracion,
     SolicitudAyuda,
-    Producto
-
+    Producto,
 )  # Importamos el modelo de Servicio y setting para gestionar
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
 import google.generativeai as genai
 from rest_framework import viewsets
@@ -347,7 +347,7 @@ class GoogleMapsProxyView(APIView):
 # Formulario de establecimiento
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([AllowAny])
-@authentication_classes([])
+@authentication_classes([JWTAuthentication])
 def gestionar_formulario(request, pk=None):
     # 1. Bloqueo de seguridad para edición/borrado
     if request.method in ["PUT", "DELETE"]:
@@ -526,7 +526,7 @@ def buscar_y_login_por_cif(request, cif):
                 {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
-                    #"tipo": "comercio",
+                    # "tipo": "comercio",
                     **serializer.data,  # Enviamos todos los datos del local
                 },
                 status=200,
@@ -645,12 +645,14 @@ from rest_framework.decorators import action
 from .models import Valoracion
 from .serializers import ValoracionSerializer
 
+
 class IsOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+        if request.method in ["GET", "HEAD", "OPTIONS"]:
             return True
 
         return obj.id_usuario == request.user
+
 
 class ServicioViewSet(viewsets.ModelViewSet):
     """
@@ -659,10 +661,11 @@ class ServicioViewSet(viewsets.ModelViewSet):
     2. VALIDAR que los datos sean correctos.
     3. GUARDAR el servicio asociándolo al usuario que tiene el token.
     """
+
     queryset = Servicio.objects.all()
     serializer_class = ServicioSerializer
     # Solo dejamos entrar a los usuarios que tenga el Token JWT (logueados)
-    permission_classes = [permissions.IsAuthenticated,IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_permissions(self):
         """
@@ -687,18 +690,17 @@ class ServicioViewSet(viewsets.ModelViewSet):
         # Si el usuario está logueado y entra en su panel de gestión
         if self.request.user.is_authenticated and not cp:
             try:
-                return Servicio.objects.filter(
-                    usuario=self.request.user
-                )
+                return Servicio.objects.filter(usuario=self.request.user)
             except Exception:
                 return Servicio.objects.none()
 
         # Por defecto para la API pública
         return Servicio.objects.all()
+
     def perform_create(self, serializer):
         user = self.request.user
 
-        serializer.save(  
+        serializer.save(
             lat=user.latitud,
             lng=user.longitud,
             cp=user.cp,
@@ -913,6 +915,8 @@ def analizar_mercado(request):
             },
             status=500,
         )
+
+
 class ProductoViewSet(viewsets.ModelViewSet):
     """
     API para listar y gestionar productos de los comercios.
@@ -932,10 +936,17 @@ class ProductoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         from django.db.models import Q
 
-        queryset = Producto.objects.select_related("id_establecimiento").all().order_by("producto")
+        queryset = (
+            Producto.objects.select_related("id_establecimiento")
+            .all()
+            .order_by("producto")
+        )
 
         # En acciones privadas, el comercio solo puede gestionar sus propios productos.
-        if self.action not in ["list", "retrieve"] and self.request.user.is_authenticated:
+        if (
+            self.action not in ["list", "retrieve"]
+            and self.request.user.is_authenticated
+        ):
             queryset = queryset.filter(id_establecimiento__usuario=self.request.user)
 
         q = self.request.query_params.get("q")
@@ -968,8 +979,9 @@ class ProductoViewSet(viewsets.ModelViewSet):
             establecimiento = Establecimiento.objects.get(usuario=self.request.user)
             serializer.save(id_establecimiento=establecimiento)
         except Establecimiento.DoesNotExist:
-            raise ValidationError("Debes tener un comercio asociado para crear productos.")
-
+            raise ValidationError(
+                "Debes tener un comercio asociado para crear productos."
+            )
 
 
 @api_view(["POST"])
