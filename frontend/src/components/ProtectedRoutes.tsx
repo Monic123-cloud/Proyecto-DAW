@@ -16,10 +16,11 @@ const ProtectedRoute = ({ children }: Props) => {
     const token = localStorage.getItem("token")
 
     if (!token) {
-      router.push("/acceso/login")
-    } else {
-      setLoading(false)
-    }
+      router.replace("/acceso/login")
+    } 
+    
+    setLoading(false)
+    
   }, [])
 
   if (loading) return null

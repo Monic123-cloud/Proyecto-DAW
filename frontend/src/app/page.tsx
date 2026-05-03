@@ -4,7 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
 import Header from "@/components/header";
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
+
 import { IconButton } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -152,7 +152,7 @@ export default function HomePage() {
                           pointerEvents: "none",
                         }}
                       >
-                        <FullscreenIcon sx={{ fontSize: 20, color: "white" }} />
+                        
                       </div>
                     </div>
                   </div>
