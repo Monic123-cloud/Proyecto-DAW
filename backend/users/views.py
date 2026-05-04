@@ -10,18 +10,29 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 
-class RegisterViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    def create(self, request):
-        serializer = RegisterSerializer(data=request.data)
+class RegisterView(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = RegisterSerializer
 
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
-                "message": "Usuario creado correctamente",
-                "user_id": user.id
-            }, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+       
+        user = serializer.save()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+       
+        user.set_password(user.password)
+        user.save()
+
+        self.user = user
+
+
+    def create(self, request, *args, **kwargs):
+       
+
+        response = super().create(request, *args, **kwargs)
+
+        return Response({
+            "mensaje": "Usuario creado correctamente",
+            "user_id": self.user.id
+        }, status=status.HTTP_201_CREATED)
 
 
 class LoginViewset(viewsets.ViewSet):

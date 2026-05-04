@@ -70,7 +70,7 @@ export default function Header() {
             <>
             <nav className="menu">
               <Link href="/buscador">Buscador</Link>
-              <Link href="#eventos">Eventos</Link>
+              <Link href="/solicitar-ayuda">Solicitar Ayuda</Link>
               <Link href="/tiendas">Tienda</Link>
               <Link href="/panel-cliente">Mi Panel</Link>
               <Link href="/lista_Servicios">Servicios</Link>
