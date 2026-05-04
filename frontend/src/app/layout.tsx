@@ -11,7 +11,6 @@ export const metadata = {
     icon: "/favicon.png",
   },
 };
-
 export default function RootLayout({
   children,
 }: {
@@ -25,11 +24,11 @@ export default function RootLayout({
         {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
 
         <Providers>
+          {/* Envolvemos TODO dentro de Suspense */}
           <Suspense fallback={<div className="h-20" />}>
             <Header />
+            <main>{children}</main>
           </Suspense>
-
-          <main>{children}</main>
         </Providers>
       </body>
     </html>
