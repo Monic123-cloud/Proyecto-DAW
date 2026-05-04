@@ -11,20 +11,24 @@ export const metadata = {
     icon: "/favicon.png",
   },
 };
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html lang="es">
       <head></head>
       <body className="bg-light">
-        {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
+        {/* 👇 AQUÍ EL FIX */}
+        <Suspense fallback={null}>
+          {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
+        </Suspense>
 
         <Providers>
-          {/* Envolvemos TODO dentro de Suspense */}
           <Suspense fallback={<div className="h-20" />}>
             <Header />
             <main>{children}</main>
