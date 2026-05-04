@@ -27,7 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "latitud", "longitud",
             "voluntariado",
 
-            # voluntario
+            
             "dias_disponibles",
             "horario_inicio",
             "horario_fin",
@@ -37,21 +37,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
         def create(self, validated_data):
+            
             voluntariado = validated_data.get("voluntariado", False)
 
             dias = validated_data.pop("dias_disponibles", None)
             inicio = validated_data.pop("horario_inicio", None)
             fin = validated_data.pop("horario_fin", None)
 
-            
             password = validated_data.pop("password")
-    
-            user = User.objects.create_user(password=password, **validated_data)
 
             
+            user = User.objects.create(**validated_data)
+            user.set_password(password) 
+            user.save()
 
-
-    
+           
             if voluntariado:
                 Voluntario.objects.create(
                     usuario=user,

@@ -6,7 +6,7 @@ from django.contrib import admin
 app_name = 'users'
 
 router = DefaultRouter()
-router.register('register', RegisterViewset, basename='register')
+router.register('register', RegisterView, basename='register')
 router.register('login', LoginViewset, basename='login')
 
 urlpatterns = router.urls
