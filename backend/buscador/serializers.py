@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Producto, Servicio, Establecimiento
 from .models import Valoracion
 from .models import SolicitudAyuda
+from datetime import date
+from django.utils import timezone
+from datetime import timedelta
 
 
 class ServicioSerializer(serializers.ModelSerializer):
@@ -49,8 +52,22 @@ class SolicitudAyudaSerializer(serializers.ModelSerializer):
         model = SolicitudAyuda
         fields = [
             'id', 'nombre_completo', 'telefono', 'email', 
-            'cp', 'descripcion', 'fecha_nacimiento'
+            'cp', 'descripcion', 'fecha_nacimiento','requiere_llamada','fecha_creacion','es_persona_mayor'
         ]
+
+        read_only_fields = ['id', 'fecha_creacion', 'requiere_llamada', 'es_persona_mayor']
+
+    def create(self, validated_data):
+        # Lógica automática: calculamos la edad para marcar si es persona mayor
+        fecha_nac = validated_data.get('fecha_nacimiento')
+        if fecha_nac:
+            # Calculamos la edad de forma simple
+            edad = (date.today() - fecha_nac).days // 365
+            validated_data['es_persona_mayor'] = edad >= 65
+        
+        return super().create(validated_data)
+
+
 class ProductoSerializer(serializers.ModelSerializer):
     comercio_nombre = serializers.CharField(source="id_establecimiento.nombre_comercio", read_only=True)
     comercio_cp = serializers.CharField(source="id_establecimiento.cp", read_only=True)

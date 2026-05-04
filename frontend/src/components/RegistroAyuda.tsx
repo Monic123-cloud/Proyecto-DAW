@@ -1,11 +1,20 @@
 "use client";
 import React, { useState } from "react";
-import { 
-  TextField, Button, Card, CardContent, Typography, Grid, 
-  Alert, CircularProgress, Snackbar, Box , Container
+import {
+  TextField,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Alert,
+  CircularProgress,
+  Snackbar,
+  Box,
+  Container,
 } from "@mui/material";
 import AxiosInstance from "./AxiosInstance"; // Importamos tu instancia de Axios
-import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 
 export default function RegistroAyuda() {
   const [loading, setLoading] = useState(false);
@@ -21,7 +30,9 @@ export default function RegistroAyuda() {
     descripcion: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -32,10 +43,10 @@ export default function RegistroAyuda() {
 
     try {
       // POST a la URL de Django que configuramos en urls.py
-      await AxiosInstance.post("/solicitudes-ayuda/", formData); 
+      await AxiosInstance.post("/buscador/solicitar-ayuda/", formData);
       setMensaje({
         texto: "¡Solicitud enviada con éxito!",
-        tipo: "success"
+        tipo: "success",
       });
       // Limpiar formulario tras el éxito
       setFormData({
@@ -48,8 +59,9 @@ export default function RegistroAyuda() {
       });
     } catch (err: any) {
       setMensaje({
-        texto: "No se pudo enviar la solicitud. Revisa la conexión con el servidor.",
-        tipo: "error"
+        texto:
+          "No se pudo enviar la solicitud. Revisa la conexión con el servidor.",
+        tipo: "error",
       });
     } finally {
       setLoading(false);
@@ -77,7 +89,8 @@ export default function RegistroAyuda() {
               align="center"
               sx={{ mb: 4 }}
             >
-              Cuéntanos qué necesitas y te conectaremos con voluntarios de tu zona
+              Cuéntanos qué necesitas y te conectaremos con voluntarios de tu
+              zona
             </Typography>
 
             {/* ALERTAS DE ESTADO */}
@@ -98,7 +111,12 @@ export default function RegistroAyuda() {
                 sx={{ mb: 2 }}
               />
 
-              <Box display="flex" gap={2} mb={2} flexDirection={{ xs: "column", sm: "row" }}>
+              <Box
+                display="flex"
+                gap={2}
+                mb={2}
+                flexDirection={{ xs: "column", sm: "row" }}
+              >
                 <TextField
                   fullWidth
                   label="Teléfono"
@@ -118,7 +136,12 @@ export default function RegistroAyuda() {
                 />
               </Box>
 
-              <Box display="flex" gap={2} mb={2} flexDirection={{ xs: "column", sm: "row" }}>
+              <Box
+                display="flex"
+                gap={2}
+                mb={2}
+                flexDirection={{ xs: "column", sm: "row" }}
+              >
                 <TextField
                   fullWidth
                   label="Código Postal"

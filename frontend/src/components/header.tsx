@@ -2,14 +2,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import MenuTienda from "@/components/cart/bar"
+import MenuTienda from "@/components/cart/bar";
 import { useEffect, useState } from "react";
 import { getTipoFromToken } from "../components/utils/auth";
 
-
 export default function Header() {
   const pathname = usePathname();
-  const rutasMenuTienda = ["/productos", "/panel-cliente", "/tiendas", "/carrito"];
+  const rutasMenuTienda = [
+    "/productos",
+    "/panel-cliente",
+    "/tiendas",
+    "/carrito",
+  ];
   const [tipo, setTipo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,7 +25,7 @@ export default function Header() {
     window.location.href = "/";
   };
   return (
-    <header className="header" >
+    <header className="header">
       <div className="container nav">
         <Link href="/" className="brand">
           <Image
@@ -42,32 +46,34 @@ export default function Header() {
               className="brand-name-img"
               priority
             />
-            <p className="brand-subtitle">Comercio local a un clic</p>
+            <p className="brand-subtitle">Comercio local a un click</p>
           </div>
         </Link>
 
-
-        
-
-          {/* sin user */}
-          {!tipo && (
-            <>
-
-              <nav className="menu">
+        {/* sin user */}
+        {!tipo && (
+          <>
+            <nav className="menu">
               <Link href="/about">Quienes Somos</Link>
-              <a href="#eventos">Eventos</a>
-              <Link href="/buscador">Buscador</Link>
-              </nav>
-               <div className="actions">
-              <Link href="/acceso/registro" className="btn btn-primary">Empezar</Link>
-              <Link href="/acceso/login" className="btn btn-primary">Iniciar Sesión</Link>
-              </div>
-            </>
-          )}
+              <Link href="/usuarios">Usuarios</Link>
+              <Link href="/comercios">Comercios</Link>
+              <Link href="/tienda">Tienda Online</Link>
+              <Link href="/registro-ayuda">Solicitar Ayuda</Link>
+              <Link href="/dashboard">Dashboard</Link>
+            </nav>
+            <div className="actions">
+              <Link href="/acceso/registro" className="btn btn-primary">
+                Empezar
+              </Link>
+              <Link href="/acceso/login" className="btn btn-primary">
+                Iniciar Sesión
+              </Link>
+            </div>
+          </>
+        )}
 
-          
-          {tipo === "usuario" && (
-            <>
+        {tipo === "usuario" && (
+          <>
             <nav className="menu">
               <Link href="/buscador">Buscador</Link>
               <Link href="#eventos">Eventos</Link>
@@ -75,54 +81,50 @@ export default function Header() {
               <Link href="/panel-cliente">Mi Panel</Link>
               <Link href="/lista_Servicios">Servicios</Link>
               <Link href="/carrito">Carrito</Link>
-              </nav>
-              <div className="actions">
+            </nav>
+            <div className="actions">
               <button onClick={logout}>Logout</button>
-              </div>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          
-          {tipo === "comercio" && (
-            <>
+        {tipo === "comercio" && (
+          <>
             <nav className="menu">
               <Link href="/buscador">Buscador</Link>
-              <Link href="/panel-comercio" >Mi panel</Link>
+              <Link href="/panel-comercio">Mi panel</Link>
               <Link href="/productos">Mis Productos</Link>
-              </nav>
-              <div className="actions">
-              <button onClick={logout} className="btn btn-primary">Logout</button>
-              </div>
-            </>
-          )}
+            </nav>
+            <div className="actions">
+              <button onClick={logout} className="btn btn-primary">
+                Logout
+              </button>
+            </div>
+          </>
+        )}
 
-          
-          {tipo === "superuser" && (
-            <>
+        {tipo === "superuser" && (
+          <>
             <nav className="menu">
-              <Link href="/dashboard">Dashboard</Link>
               <Link href="/registroServicio">Servicios</Link>
               <Link href="/about">Quienes Somos</Link>
-              <Link href="#eventos">Eventos</Link>
               <Link href="/buscador">Buscador</Link>
               <Link href="/tiendas">Tienda</Link>
               <Link href="/panel-cliente">Panel Cliente</Link>
-              <Link href="/carrito">Carrito</Link>  
-              <Link href="/panel-comercio" >Panel Comercio</Link>
+              <Link href="/carrito">Carrito</Link>
+              <Link href="/panel-comercio">Panel Comercio</Link>
               <Link href="/productos">Productos</Link>
-              </nav>
-              <div className="actions">
-              <button onClick={logout} className="btn btn-primary">Logout</button>
-              </div>
-            </>
-          )}
-
-        
-
+              <Link href="/dashboard">Dashboard</Link>
+            </nav>
+            <div className="actions">
+              <button onClick={logout} className="btn btn-primary">
+                Logout
+              </button>
+            </div>
+          </>
+        )}
       </div>
       {rutasMenuTienda.includes(pathname) && <MenuTienda />}
     </header>
-  )
-
-
+  );
 }

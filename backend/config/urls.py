@@ -14,8 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
 from buscador.views import analytics_dashboard_view
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -23,11 +24,11 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/auth/', include(('users.urls', 'users'), namespace='users')),
-    path('api/knox/',include('knox.urls')),
+    path("admin/", admin.site.urls),
+    path("api/auth/", include(("users.urls", "users"), namespace="users")),
+    path("api/knox/", include("knox.urls")),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/analytics/", analytics_dashboard_view, name="analytics_view"),
     path("api/buscador/", include("buscador.urls")),
-    path('api/analytics/', analytics_dashboard_view, name='analytics_view'),
 ]

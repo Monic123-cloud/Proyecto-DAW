@@ -3,6 +3,8 @@ import os
 import json
 import urllib.parse
 import math
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework.views import APIView  # # Clase base para crear tu endpoint de API
 from rest_framework.response import (
     Response,
@@ -25,6 +27,7 @@ from django.db.models.functions import (
 )  # Fórmula Haversina para calcular distancias geográficas
 from .models import (
     Establecimiento,
+    Pedido,
 )  # Importa la tabla de establecimiento para hacer consultas a la BBDD
 from django.conf import (
     settings,
@@ -774,59 +777,76 @@ class ValoracionViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def lista_solicitudes_ayuda(request):
     """
-    Recupera las solicitudes reales de la tabla 'solicitud_ayuda' para React.
+    Recupera todas las solicitudes ordenadas por fecha.
     """
     try:
-        # Traemos las solicitudes reales ordenadas por fecha (las más nuevas primero)
         solicitudes = SolicitudAyuda.objects.all().order_by("-fecha_creacion")
-
-        data = []
-        for s in solicitudes:
-            data.append(
-                {
-                    "nombre_completo": s.nombre_completo,
-                    "cp": s.cp,
-                    "telefono": s.telefono,
-                    "requiere_llamada": s.requiere_llamada,
-                    "encuesta_enviada": s.encuesta_enviada,
-                }
-            )
-        return Response(data)
+        # Usamos el serializer para que devuelva todos los campos necesarios (incluido requiere_llamada)
+        serializer = SolicitudAyudaSerializer(solicitudes, many=True)
+        return Response(serializer.data)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])  # Cualquiera puede pedir ayuda
+@permission_classes([AllowAny])
 def crear_solicitud_ayuda(request):
+    """
+    Crea una nueva solicitud. Al guardar, el modelo calcula si es persona mayor
+    y la Signal dispara el matching por CP.
+    """
     serializer = SolicitudAyudaSerializer(data=request.data)
     if serializer.is_valid():
-        # Al guardar aquí, se dispara el matching_por_cp de tus signals
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
 
+def procesar_seguimiento_ayuda():
+    """
+    Lógica de seguimiento: se ejecuta para solicitudes de más de 7 días.
+    """
+    hace_una_semana = timezone.now() - timedelta(days=7)
+    pendientes = SolicitudAyuda.objects.filter(
+        fecha_creacion__lte=hace_una_semana, encuesta_enviada=False
+    )
+
+    for solicitud in pendientes:
+        if solicitud.es_persona_mayor:
+            # Si es mayor, forzamos la alerta de llamada en el dashboard
+            solicitud.requiere_llamada = True
+            print(f"✅ Alerta generada: Llamar a {solicitud.nombre_completo}")
+        else:
+            # Aquí podrías llamar a una función de envío de email
+            solicitud.encuesta_enviada = True
+            print(f"📧 Encuesta marcada como enviada para: {solicitud.nombre_completo}")
+
+        solicitud.save()
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def analytics_dashboard_view(request):
-    """
-    Conecta Google Analytics con el Dashboard de React.
-    Utiliza el servicio externo definido en config/analytics_service.py
-    """
     try:
-        visitas = get_google_analytics_data()
-        conversion = get_conversion_data()
+        # Esto llama a la función que acabamos de retocar
+        ga_data = get_google_analytics_data()
 
         return Response(
             {
-                "visitas": visitas,
-                "conversion": conversion,
+                "db": {
+                    "usuariosTotales": User.objects.count(),
+                    "comerciosActivos": Establecimiento.objects.count(),
+                    "pedidosRealizados": Pedido.objects.count(),
+                },
+                "ga4": {
+                    "totalVisitas": ga_data["total_historico"],
+                    "cpMasBuscados": ga_data["cp_mas_buscados"],
+                    "grafica_semanal": ga_data["grafica_semanal"],
+                },
             }
         )
     except Exception as e:
-        # Si el servicio de Analytics falla, devolvemos el error para que React lo gestione
-        return Response({"error": f"Error en Analytics: {str(e)}"}, status=500)
+        return Response({"error": str(e)}, status=500)
 
 
 @api_view(["GET"])

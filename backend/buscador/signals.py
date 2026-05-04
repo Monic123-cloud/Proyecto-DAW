@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
+from django.utils import timezone
+from datetime import timedelta
 from .models import SolicitudAyuda, Voluntario
 
 
