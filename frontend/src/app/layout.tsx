@@ -1,8 +1,8 @@
-
-import  Providers  from "../components/providers/providers";
+import Providers from "../components/providers/providers";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import Header from "@/components/header";
 import "./globals.css";
-
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Close4u",
@@ -12,18 +12,25 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   return (
     <html lang="es">
-      <head>
-      </head>
+      <head></head>
       <body className="bg-light">
-        {/* 3. Renderizado condicional: solo si gaId tiene valor */}
         {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
-        
-        <Providers>{children}</Providers>
+
+        <Providers>
+          <Suspense fallback={<div className="h-20" />}>
+            <Header />
+          </Suspense>
+
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );
