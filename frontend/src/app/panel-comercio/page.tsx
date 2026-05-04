@@ -43,7 +43,12 @@ const EMPTY_FORM: ProductoForm = {
 
 function getStoredToken() {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token") || localStorage.getItem("token");
+
+  return (
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("access") ||
+    localStorage.getItem("token")
+  );
 }
 
 function getAuthorizationHeader() {
@@ -58,11 +63,29 @@ function getAuthorizationHeader() {
   return {};
 }
 
-function authHeaders() {
-  return {
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getAuthorizationHeader(),
   };
+
+  if (typeof window === "undefined") return headers;
+
+  const jwtToken =
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("access");
+
+  if (jwtToken) {
+    headers.Authorization = `Bearer ${jwtToken}`;
+    return headers;
+  }
+
+  const knoxToken = localStorage.getItem("token");
+
+  if (knoxToken) {
+    headers.Authorization = `Token ${knoxToken}`;
+  }
+
+  return headers;
 }
 
 function getErrorMessage(error: unknown) {
