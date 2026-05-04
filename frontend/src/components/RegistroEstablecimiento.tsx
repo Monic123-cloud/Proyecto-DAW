@@ -162,7 +162,7 @@ export default function RegistroEstablecimiento() {
         if (res.ok) {
           const data = await res.json();
           setFormData(data);
-          setEditId(data.id);
+          setEditId(data.id || data.id_establecimiento);
           //setVista("formulario");
         } else if (res.status === 401) {
           // si da 401, el token es inválido o ha expirado
@@ -192,7 +192,7 @@ export default function RegistroEstablecimiento() {
         if (data.access) authService.setToken(data.access);
         setFormData({
           nombre_comercio: data.nombre_comercio || "",
-          cif_nif: data.cif_nif || "",
+          cif_nif: (data.cif_nif || cifBusqueda).toUpperCase(),
           grupo: data.grupo || "",
           categoria: data.categoria || "",
           subcategoria: data.subcategoria || "",
@@ -205,12 +205,12 @@ export default function RegistroEstablecimiento() {
           cp: data.cp || "",
           telefono: data.telefono || "",
           correo: data.correo || "",
-          latitud: data.latitud || 0,
-          longitud: data.longitud || 0,
+          latitud: parseFloat(data.latitud) || 0,
+          longitud: parseFloat(data.longitud) || 0,
         });
 
-        setEditId(data.id);
-        //setVista("formulario");
+        setEditId(data.id_establecimiento);
+        setVista("formulario");
       } else {
         alert(data.error || "CIF o contraseña incorrectos");
       }
