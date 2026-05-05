@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Header from "@/components/header";
 import { ENDPOINTS } from "@/app/config";
 import { formatEUR, useCart } from "@/components/cart/CartContext";
 
@@ -47,8 +46,6 @@ export default function ProductoDetallePage() {
 
   return (
     <div className="page">
-      <Header />
-
       <main className="tienda-page">
         <div className="tienda-container">
           <Link href="/productos" className="tienda-link">

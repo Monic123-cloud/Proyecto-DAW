@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Header from "@/components/header";
 import { ENDPOINTS } from "@/app/config";
 import { formatEUR } from "@/components/cart/CartContext";
 
@@ -257,8 +256,6 @@ export default function PanelComercioPage() {
 
   return (
     <div className="page">
-      <Header />
-
       <main className="tienda-page">
         <div className="tienda-container">
           <div className="tienda-head">
