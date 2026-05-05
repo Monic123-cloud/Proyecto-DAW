@@ -52,7 +52,6 @@ export default function HomePage() {
   if (esPantallaCompleta) {
     return (
       <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col">
-        <Header />
         <main className="flex-1 pt-24 pb-12 px-4 md:px-10 overflow-y-auto">
           <div className="max-w-7xl mx-auto relative">
             <button
@@ -76,8 +75,6 @@ export default function HomePage() {
 
   return (
     <div className="page page-home">
-      <Header />
-
       <main>
         <section className="hero">
           <div className="container hero-grid">
@@ -151,9 +148,7 @@ export default function HomePage() {
                           border: "2px solid white",
                           pointerEvents: "none",
                         }}
-                      >
-                        
-                      </div>
+                      ></div>
                     </div>
                   </div>
                 </div>

@@ -55,9 +55,9 @@ export default function Header() {
           <>
             <nav className="menu">
               <Link href="/about">Quienes Somos</Link>
-              <Link href="/usuarios">Usuarios</Link>
-              <Link href="/comercios">Comercios</Link>
-              <Link href="/tienda">Tienda Online</Link>
+              <Link href="/acceso/registro">Usuarios</Link>
+              <Link href="/registroEstablecimiento">Comercios</Link>
+              <Link href="/tiendas">Tienda Online</Link>
               <Link href="/registro-ayuda">Solicitar Ayuda</Link>
               <Link href="/dashboard">Dashboard</Link>
             </nav>
