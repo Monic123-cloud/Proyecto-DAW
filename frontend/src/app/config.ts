@@ -27,6 +27,6 @@ export const ENDPOINTS = {
     SERVICIOS: `${API_BASE_URL}/api/buscador/servicios/`,
     VALORACIONES: `${API_BASE_URL}/api/buscador/valoraciones/`,
     PRODUCTOS: `${API_BASE_URL}/api/buscador/productos/`,
-    ANALYTICS: `${API_BASE_URL}/api/analytics/`,
+    ANALYTICS: `${API_BASE_URL}/api/buscador/analytics/`,
     SOLICITUDES: `${API_BASE_URL}/api/buscador/solicitudes-ayuda/`
 };
