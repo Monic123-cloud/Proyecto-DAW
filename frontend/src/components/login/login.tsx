@@ -1,50 +1,97 @@
 "use client";
-import {
-  Control,
-  FieldValues,
-  Path,
-  RegisterOptions,
-} from "react-hook-form";
-import { Box, Button, Link, Paper, Stack, Typography } from "@mui/material";
+
+import { Box, Button, Link, Paper, Stack, Typography, Alert } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import AxiosInstance from '../AxiosInstance'
+import AxiosInstance from "../AxiosInstance";
 import StoreIcon from "@mui/icons-material/Store";
 import MyTextField from "./forms/MyTextField";
 import MyPassField from "./forms/MyPassField";
 import MyButton from "./forms/MyButton";
+import { useState } from "react";
+
+type RegisterForm = {
+  email: string;
+  password: string;
+};
+
+function getErrorMessage(error: any): string {
+  return (
+    error?.response?.data?.detail ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "No se ha podido iniciar sesión."
+  );
+}
 
 const LoginForm = () => {
+  const router = useRouter();
 
-  type RegisterForm = {
-    email: string;
-    password: string;
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  const { handleSubmit, control } = useForm<RegisterForm>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const submission = async (data: RegisterForm) => {
+    setError("");
+    setLoading(true);
+
+    try {
+
+      const response = await AxiosInstance.post("/auth/login/", {
+        email: data.email,
+        password: data.password,
+      });
+
+      const accessToken = response.data.access;
+      const refreshToken = response.data.refresh;
+
+      if (!accessToken) {
+        throw new Error("El backend no ha devuelto token de acceso.");
+      }
+
+      /*
+        Guardamos el token con varios nombres porque otras partes del proyecto
+        consultan token/access/access_token.
+      */
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("access", accessToken);
+      localStorage.setItem("access_token", accessToken);
+
+      if (refreshToken) {
+        localStorage.setItem("refresh", refreshToken);
+      }
+
+      /*
+        Cambio de rol real:
+        Después de validar usuario/contraseña, preguntamos al backend
+        si ese usuario tiene un comercio asociado.
+      */
+      try {
+        await AxiosInstance.get("/buscador/establecimiento/mi_local/", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        localStorage.setItem("tipo", "comercio");
+        router.push("/panel-comercio");
+      } catch {
+        localStorage.setItem("tipo", "cliente");
+        router.push("/panel-cliente");
+      }
+    } catch (error: any) {
+      console.error("Error during login", error);
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
-  const { handleSubmit, control } = useForm<RegisterForm>()
-  const router = useRouter()
-
-  const submission = (data: { email: any; password: any; }) => {
-    AxiosInstance.post(`/api/auth/login/`, {
-      email: data.email,
-      password: data.password,
-    })
-
-      .then((response) => {
-        console.log(response)
-        localStorage.setItem('token', response.data.access)
-        const decoded = JSON.parse(atob(response.data.access.split(".")[1]));
-        console.log("DECODED:", decoded);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 50);
-      })
-      .catch((error) => {
-
-        console.error('Error during login', error)
-      })
-  }
-
 
   return (
     <Box
@@ -66,7 +113,7 @@ const LoginForm = () => {
           maxWidth: 400,
           borderRadius: "20px",
           background: "rgba(255,255,255,0.95)",
-          border: '4px solid #10b981'
+          border: "4px solid #10b981",
         }}
       >
         <Typography
@@ -78,9 +125,11 @@ const LoginForm = () => {
 
         <form onSubmit={handleSubmit(submission)}>
           <Stack spacing={2}>
-            <MyTextField<RegisterForm>
-              label={"Email"}
-              name={"email"}
+            {error && <Alert severity="error">{error}</Alert>}
+
+            <MyTextField
+              label="Email"
+              name="email"
               control={control}
               rules={{
                 required: "El correo es obligatorio",
@@ -92,8 +141,8 @@ const LoginForm = () => {
             />
 
             <MyPassField
-              label={"Password"}
-              name={"password"}
+              label="Password"
+              name="password"
               control={control}
               rules={{
                 required: "La contraseña es obligatoria",
@@ -101,11 +150,13 @@ const LoginForm = () => {
             />
 
             <MyButton
-              type={"submit"}
-              label={"Entrar"}
+              type="submit"
+              label={loading ? "Entrando..." : "Entrar"}
               fullWidth
+              disabled={loading}
               sx={{ mt: 4 }}
             />
+
             <Button
               component={Link}
               href="/acceso/registro"
@@ -125,6 +176,7 @@ const LoginForm = () => {
           </Stack>
         </form>
       </Paper>
+
       <Box>
         <Button
           startIcon={<StoreIcon />}
@@ -151,9 +203,8 @@ const LoginForm = () => {
           Soy un comercio
         </Button>
       </Box>
-
     </Box>
-
   );
 };
-export default LoginForm
+
+export default LoginForm;
