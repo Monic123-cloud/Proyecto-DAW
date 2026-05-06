@@ -25,10 +25,7 @@ from django.db.models.functions import (
     Radians,
     Sin,
 )  # Fórmula Haversina para calcular distancias geográficas
-from .models import (
-    Establecimiento,
-    Pedido,
-)  # Importa la tabla de establecimiento para hacer consultas a la BBDD
+from buscador.models import Establecimiento, Pedido
 from django.conf import (
     settings,
 )  # Para acceder a la clave de la API de Google Maps desde settings
@@ -41,18 +38,19 @@ from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User  # Para gestionar usuarios y autenticación
 from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens JWT
-from .serializers import (
+from buscador.serializers import (
+    EstablecimientoSerializer,
     ProductoSerializer,
     ServicioSerializer,
-    EstablecimientoSerializer,
     SolicitudAyudaSerializer,
 )  # Para convertir los datos de la base de datos a formato JSON que React entiende
-from .models import (
+from buscador.models import (
     Servicio,
-    Valoracion,
     SolicitudAyuda,
-    Producto,
-)  # Importamos el modelo de Servicio y setting para gestionar
+    Valoracion,
+)
+from buscador.models import Producto
+# Importamos el modelo de Servicio y setting para gestionar
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
@@ -643,11 +641,11 @@ class EstablecimientoViewSet(viewsets.ModelViewSet):
 
 
 from rest_framework import viewsets, permissions
-from .models import Servicio
-from .serializers import ServicioSerializer
+from buscador.models import Servicio
+from buscador.serializers import ServicioSerializer
 from rest_framework.decorators import action
-from .models import Valoracion
-from .serializers import ValoracionSerializer
+from buscador.models import Valoracion
+from buscador.serializers import ValoracionSerializer
 
 
 class IsOwnerOrReadOnly(BasePermission):
@@ -1184,3 +1182,70 @@ def descontar_stock_productos(request):
             {"error": f"Error al crear el pedido: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def mis_pedidos_cliente(request):
+    """
+    Devuelve los pedidos realizados por el cliente logueado,
+    incluyendo el estado del pedido y sus productos.
+    """
+
+    from .models import Pedido, DetallePedido
+
+    pedidos = (
+        Pedido.objects.filter(id_usuario=request.user)
+        .select_related("id_establecimiento")
+        .order_by("-fecha", "-id_pedido")
+    )
+
+    data = []
+
+    for pedido in pedidos:
+        detalles = (
+            DetallePedido.objects.filter(id_pedido=pedido)
+            .select_related("id_producto")
+            .order_by("id_detalle")
+        )
+
+        productos = []
+
+        for detalle in detalles:
+            producto = detalle.id_producto
+            precio_unitario = detalle.precio_unitario or 0
+            cantidad = detalle.cantidad or 0
+
+            productos.append(
+                {
+                    "id_producto": producto.id_producto if producto else None,
+                    "producto": producto.producto if producto else "Producto no disponible",
+                    "cantidad": cantidad,
+                    "precio_unitario": str(precio_unitario),
+                    "subtotal": str(precio_unitario * cantidad),
+                }
+            )
+
+        data.append(
+            {
+                "id_pedido": pedido.id_pedido,
+                "fecha": pedido.fecha.isoformat() if pedido.fecha else None,
+                "comercio": (
+                    pedido.id_establecimiento.nombre_comercio
+                    if pedido.id_establecimiento
+                    else "Comercio no disponible"
+                ),
+                "id_establecimiento": (
+                    pedido.id_establecimiento.id_establecimiento
+                    if pedido.id_establecimiento
+                    else None
+                ),
+                "importe_total": str(pedido.importe_total or 0),
+                "metodo_pago": pedido.metodo_pago or "",
+                "metodo_entrega": pedido.metodo_entrega or "",
+                "estado": pedido.estado or "pendiente",
+                "productos": productos,
+            }
+        )
+
+    return Response(data, status=status.HTTP_200_OK)
+

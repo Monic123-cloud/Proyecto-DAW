@@ -49,4 +49,9 @@ urlpatterns = [
         views.descontar_stock_productos,
         name="descontar_stock_productos",
     ),
+    path(
+        "cliente/mis-pedidos/",
+        views.mis_pedidos_cliente,
+        name="mis_pedidos_cliente",
+    ),
 ]
