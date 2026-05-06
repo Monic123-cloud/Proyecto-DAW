@@ -185,7 +185,6 @@ export default function Header() {
               <Link href="/carrito">Carrito</Link>
               <Link href="/panel-comercio">Panel Comercio</Link>
               <Link href="/productos">Productos</Link>
-              <Link href="/dashboard">Dashboard</Link>
             </nav>
             <div className="actions">
               <button onClick={logout} className="btn btn-primary">
