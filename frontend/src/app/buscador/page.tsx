@@ -1,16 +1,33 @@
-import { Suspense } from "react";
-import BuscadorClient from "./BuscadorClient";
+"use client";
+
+import { useState } from "react";
+import Header from "@/components/header";
+import Buscador from "../../components/Buscador";
+import ProtectedRoute from "../../components/ProtectedRoutes";
+import ThemeRegistry from "@/theme/ThemeRegistry";
+// Importamos Box para sustituir al div
+import { Box } from "@mui/material";
 
 export default function PaginaBuscador() {
+  const [esMiniatura, setEsMiniatura] = useState(false);
+
   return (
-    <Suspense
-      fallback={
-        <div className="page page-home" style={{ minHeight: "100vh" }}>
-          Cargando buscador...
-        </div>
-      }
-    >
-      <BuscadorClient />
-    </Suspense>
+    <ThemeRegistry>
+      
+        {/* Sustituimos el div por Box. Usamos 'component="div"' si necesitas mantener la etiqueta en el DOM */}
+        <Box
+          component="div"
+          className="page page-home"
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          
+          <Buscador esMiniatura={esMiniatura} setEsMiniatura={setEsMiniatura} />
+        </Box>
+      
+    </ThemeRegistry>
   );
 }
