@@ -1,41 +1,125 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import MenuTienda from "@/components/cart/bar";
 import { useEffect, useState } from "react";
 import { getTipoFromToken } from "../components/utils/auth";
 import { Button, Stack } from "@mui/material";
 
+type TipoUsuario = "usuario" | "comercio" | "superuser" | null;
+
+function normalizarTipo(tipo: string | null): TipoUsuario {
+  if (!tipo) return null;
+
+  const valor = tipo.toLowerCase();
+
+  if (valor === "usuario" || valor === "cliente") return "usuario";
+  if (valor === "comercio") return "comercio";
+  if (
+    valor === "superuser" ||
+    valor === "admin" ||
+    valor === "administrador"
+  ) {
+    return "superuser";
+  }
+
+  return null;
+}
+
+function hayTokenSesion(): boolean {
+  if (typeof window === "undefined") return false;
+
+  return Boolean(
+    localStorage.getItem("token") ||
+      localStorage.getItem("access") ||
+      localStorage.getItem("access_token")
+  );
+}
+
+function obtenerTipoUsuario(): TipoUsuario {
+  if (typeof window === "undefined") return null;
+
+  /*
+    Primero miramos localStorage porque el login puede guardar el tipo ahí.
+    Si no existe, intentamos sacarlo del token.
+  */
+  const tipoLocalStorage = normalizarTipo(localStorage.getItem("tipo"));
+
+  if (tipoLocalStorage) {
+    return tipoLocalStorage;
+  }
+
+  try {
+    return normalizarTipo(getTipoFromToken());
+  } catch {
+    return null;
+  }
+}
+
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+
   const rutasMenuTienda = [
     "/productos",
     "/panel-cliente",
+    "/panel-comercio",
     "/tiendas",
     "/carrito",
   ];
-  const [tipo, setTipo] = useState<string | null>(null);
+
+  const [tipo, setTipo] = useState<TipoUsuario>(null);
+
+  const actualizarSesion = () => {
+    const existeToken = hayTokenSesion();
+
+    if (!existeToken) {
+      setTipo(null);
+      return;
+    }
+
+    setTipo(obtenerTipoUsuario());
+  };
 
   useEffect(() => {
-    const updateTipo = () => {
-      const tipo = getTipoFromToken();
-      setTipo(tipo);
-    };
+    actualizarSesion();
 
-    updateTipo();
-    console.log("TIPO:", getTipoFromToken());
-    window.addEventListener("storage", updateTipo);
+    window.addEventListener("storage", actualizarSesion);
+    window.addEventListener("auth-change", actualizarSesion);
 
     return () => {
-      window.removeEventListener("storage", updateTipo);
+      window.removeEventListener("storage", actualizarSesion);
+      window.removeEventListener("auth-change", actualizarSesion);
     };
-  }, []);
+  }, [pathname]);
 
   const logout = () => {
+    /*
+      Borramos todos los nombres posibles del token.
+      En el proyecto se han usado varios: token, access y access_token.
+    */
     localStorage.removeItem("token");
-    window.location.href = "/";
+    localStorage.removeItem("access");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("tipo");
+
+    sessionStorage.clear();
+
+    setTipo(null);
+
+    /*
+      Avisamos al Header en la misma pestaña.
+      El evento "storage" solo salta entre pestañas, no en la misma.
+    */
+    window.dispatchEvent(new Event("auth-change"));
+
+    router.push("/");
+    router.refresh();
   };
+
   return (
     <header className="header">
       <div className="container nav">
@@ -62,7 +146,7 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* sin user */}
+        {/* Sin usuario */}
         {!tipo && (
           <>
             <nav className="menu">
@@ -71,6 +155,7 @@ export default function Header() {
               <Link href="/registro-ayuda">Solicitar Ayuda</Link>
               <Link href="/dashboard">Dashboard</Link>
             </nav>
+
             <div className="actions">
               <Stack direction="row" spacing={2}>
                 <Button
@@ -91,6 +176,7 @@ export default function Header() {
                 >
                   Iniciar Sesión
                 </Button>
+
                 <Button
                   component={Link}
                   href="/acceso/menu_registro"
@@ -123,6 +209,7 @@ export default function Header() {
               <Link href="/lista_Servicios">Servicios</Link>
               <Link href="/carrito">Carrito</Link>
             </nav>
+
             <div className="actions">
               <Button
                 onClick={logout}
@@ -139,7 +226,7 @@ export default function Header() {
                   },
                 }}
               >
-                Logout
+                Cerrar sesión
               </Button>
             </div>
           </>
@@ -152,6 +239,7 @@ export default function Header() {
               <Link href="/panel-comercio">Mi panel</Link>
               <Link href="/productos">Mis Productos</Link>
             </nav>
+
             <div className="actions">
               <Button
                 onClick={logout}
@@ -168,7 +256,7 @@ export default function Header() {
                   },
                 }}
               >
-                Logout
+                Cerrar sesión
               </Button>
             </div>
           </>
@@ -186,14 +274,30 @@ export default function Header() {
               <Link href="/panel-comercio">Panel Comercio</Link>
               <Link href="/productos">Productos</Link>
             </nav>
+
             <div className="actions">
-              <button onClick={logout} className="btn btn-primary">
-                Logout
-              </button>
+              <Button
+                onClick={logout}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#B8A1F7",
+                  color: "#fff",
+                  borderRadius: "20px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: "#9A84E8",
+                  },
+                }}
+              >
+                Cerrar sesión
+              </Button>
             </div>
           </>
         )}
       </div>
+
       {rutasMenuTienda.includes(pathname) && <MenuTienda />}
     </header>
   );
