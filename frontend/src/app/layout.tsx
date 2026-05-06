@@ -1,7 +1,6 @@
 import Providers from "../components/providers/providers";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Header from "@/components/header";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
 import { Suspense } from "react";
 
@@ -24,16 +23,17 @@ export default function RootLayout({
     <html lang="es">
       <head></head>
       <body className="bg-light">
-        <AppRouterCacheProvider options={{ key: "mui" }}>
-          <Suspense fallback={null}>
-            {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
-          </Suspense>
+        {/* 👇 AQUÍ EL FIX */}
+        <Suspense fallback={null}>
+          {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
+        </Suspense>
 
-          <Providers>
+        <Providers>
+          <Suspense fallback={<div className="h-20" />}>
             <Header />
             <main>{children}</main>
-          </Providers>
-        </AppRouterCacheProvider>
+          </Suspense>
+        </Providers>
       </body>
     </html>
   );
