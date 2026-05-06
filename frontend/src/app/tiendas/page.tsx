@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Header from "@/components/header";
 import { ENDPOINTS } from "@/app/config";
 
 type Tienda = {
@@ -51,7 +50,7 @@ export default function TiendasPage() {
 
   return (
     <div className="page">
-      <Header />
+
 
       <main className="tienda-page">
         <div className="tienda-container">

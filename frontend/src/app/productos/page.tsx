@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import Header from "@/components/header";
+
 import { ENDPOINTS } from "@/app/config";
 import { formatEUR, useCart } from "@/components/cart/CartContext";
 
@@ -203,7 +203,7 @@ function ProductosContent() {
 export default function ProductosPage() {
   return (
     <div className="page">
-      <Header />
+
       <Suspense fallback={<main className="tienda-page"><div className="tienda-container">Cargando...</div></main>}>
         <ProductosContent />
       </Suspense>

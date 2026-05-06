@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Header from "@/components/header";
 import { formatEUR, useCart } from "@/components/cart/CartContext";
 
  function getStoredToken() {
@@ -20,8 +19,6 @@ export default function PanelClientePage() {
 
   return (
     <div className="page">
-      <Header />
-
       <main className="tienda-page">
         <div className="tienda-container">
           <div className="tienda-head">
