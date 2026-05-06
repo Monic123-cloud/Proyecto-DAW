@@ -2,17 +2,9 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart, formatEUR } from "../../components/cart/CartContext";
-
-function getStoredToken() {
-  if (typeof window === "undefined") return null;
-
-  return (
-    localStorage.getItem("access_token") ||
-    localStorage.getItem("access") ||
-    localStorage.getItem("token")
-  );
-}
+import AxiosInstance from "../../components/AxiosInstance";
 
 export default function CheckoutPage() {
   const { items, totals, clear } = useCart();
@@ -22,34 +14,104 @@ export default function CheckoutPage() {
 
   const [pagando, setPagando] = useState(false);
   const [pagado, setPagado] = useState(false);
+  const [errorPago, setErrorPago] = useState("");
   const [referencia, setReferencia] = useState("");
   const [importePagado, setImportePagado] = useState(0);
 
   useEffect(() => {
-    const storedToken = getStoredToken();
+    const storedToken =
+      localStorage.getItem("access") ||
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("token");
     setToken(storedToken);
     setCheckingAuth(false);
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!token) return;
     if (items.length === 0) return;
 
+    const formData = new FormData(event.currentTarget);
+    const metodoEntrega = String(formData.get("metodo_entrega") || "");
+    const metodoPago = String(formData.get("metodo_pago") || "");
+
+    setErrorPago("");
     setPagando(true);
 
-    setTimeout(() => {
-      setImportePagado(totals.subtotal);
-      setReferencia(`C4U-${Date.now().toString().slice(-6)}`);
+    try {
+      const response = await AxiosInstance.post(
+        "/buscador/checkout/descontar-stock/",
+        {
+          metodo_entrega: metodoEntrega,
+          metodo_pago: metodoPago,
+          items: items.map((item) => ({
+            id_producto: item.id,
+            cantidad: item.qty,
+          })),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const pedidos = response.data?.pedidos || [];
+      const idsPedido = pedidos.map((pedido: any) => pedido.id_pedido).join("-");
+
+      setImportePagado(Number(response.data?.total || totals.subtotal));
+      setReferencia(
+        idsPedido ? `PED-${idsPedido}` : `C4U-${Date.now().toString().slice(-6)}`
+      );
       setPagado(true);
-      setPagando(false);
       clear();
-    }, 1400);
+    } catch (error: any) {
+      console.error("Error al crear pedido", error);
+      setErrorPago(
+        error?.response?.data?.error ||
+          error?.response?.data?.detail ||
+          "No se ha podido crear el pedido ni descontar el stock."
+      );
+    } finally {
+      setPagando(false);
+    }
   }
 
   return (
     <div className="page">
+      <header className="header">
+        <div className="container nav">
+          <Link href="/" className="brand">
+            <Image
+              src="/images/Close-logo_1.png"
+              alt="Logo Close4u"
+              width={56}
+              height={56}
+              className="brand-logo-img"
+              priority
+            />
+
+            <div className="brand-text-block">
+              <Image
+                src="/images/Close4up-logo_2.png"
+                alt="Close4u"
+                width={100}
+                height={36}
+                className="brand-name-img"
+                priority
+              />
+              <p className="brand-subtitle">Finalizar compra</p>
+            </div>
+          </Link>
+
+          <Link href="/carrito" className="btn btn-secondary">
+            ← Volver al carrito
+          </Link>
+        </div>
+      </header>
+
       <main className="section">
         <div className="container" style={{ maxWidth: 1050 }}>
           {checkingAuth && (
@@ -95,8 +157,8 @@ export default function CheckoutPage() {
               <h1 style={{ marginTop: 0 }}>Pago realizado correctamente</h1>
 
               <p style={{ color: "#64748b" }}>
-                Tu compra se ha simulado correctamente. No se ha realizado ningún
-                cargo real.
+                Tu pedido se ha creado correctamente y el stock se ha actualizado.
+                No se ha realizado ningún cargo real.
               </p>
 
               <div style={{ marginTop: 18, display: "grid", gap: 8 }}>
@@ -129,31 +191,15 @@ export default function CheckoutPage() {
                 Añade algún producto antes de finalizar la compra.
               </p>
 
-              <div style={{ marginTop: 20 }}>
-                <Link href="/productos" className="btn btn-primary">
-                  Ver productos
-                </Link>
-              </div>
+              <Link href="/productos" className="btn btn-primary">
+                Ver productos
+              </Link>
             </div>
           )}
 
           {!checkingAuth && token && !pagado && items.length > 0 && (
             <>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 16,
-                  marginBottom: 28,
-                }}
-              >
-                <h1 style={{ margin: 0 }}>Finalizar compra</h1>
-
-                <Link href="/carrito" className="btn btn-secondary">
-                  ← Volver al carrito
-                </Link>
-              </div>
+              <h1 style={{ marginTop: 0 }}>Finalizar compra</h1>
 
               <div
                 style={{
@@ -206,6 +252,7 @@ export default function CheckoutPage() {
                       <strong>Método de entrega</strong>
                       <select
                         required
+                        name="metodo_entrega"
                         className="c4u-input"
                         style={{ marginTop: 6 }}
                         defaultValue=""
@@ -222,6 +269,7 @@ export default function CheckoutPage() {
                       <strong>Método de pago</strong>
                       <select
                         required
+                        name="metodo_pago"
                         className="c4u-input"
                         style={{ marginTop: 6 }}
                         defaultValue=""
@@ -235,6 +283,21 @@ export default function CheckoutPage() {
                       </select>
                     </label>
                   </div>
+
+                  {errorPago && (
+                    <div
+                      style={{
+                        marginTop: 16,
+                        padding: "12px 14px",
+                        borderRadius: 14,
+                        background: "#fee2e2",
+                        color: "#991b1b",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {errorPago}
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -252,7 +315,7 @@ export default function CheckoutPage() {
                       fontSize: 13,
                     }}
                   >
-                    * Simulación de pasarela de pago. No se realiza
+                    * Simulación de pasarela de pago para el TFG. No se realiza
                     ningún cobro real.
                   </p>
                 </form>
