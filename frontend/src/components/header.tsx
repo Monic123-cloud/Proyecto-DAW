@@ -236,7 +236,6 @@ export default function Header() {
             <nav className="menu">
               <Link href="/buscador">Buscador</Link>
               <Link href="/panel-comercio">Mi panel</Link>
-              <Link href="/productos">Mis Productos</Link>
             </nav>
 
             <div className="actions">
