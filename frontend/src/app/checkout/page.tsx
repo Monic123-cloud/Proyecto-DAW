@@ -2,8 +2,17 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useCart, formatEUR } from "../../components/cart/CartContext";
+
+function getStoredToken() {
+  if (typeof window === "undefined") return null;
+
+  return (
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("access") ||
+    localStorage.getItem("token")
+  );
+}
 
 export default function CheckoutPage() {
   const { items, totals, clear } = useCart();
@@ -17,7 +26,7 @@ export default function CheckoutPage() {
   const [importePagado, setImportePagado] = useState(0);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = getStoredToken();
     setToken(storedToken);
     setCheckingAuth(false);
   }, []);
@@ -41,37 +50,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="page">
-      <header className="header">
-        <div className="container nav">
-          <Link href="/" className="brand">
-            <Image
-              src="/images/Close-logo_1.png"
-              alt="Logo Close4u"
-              width={56}
-              height={56}
-              className="brand-logo-img"
-              priority
-            />
-
-            <div className="brand-text-block">
-              <Image
-                src="/images/Close4up-logo_2.png"
-                alt="Close4u"
-                width={100}
-                height={36}
-                className="brand-name-img"
-                priority
-              />
-              <p className="brand-subtitle">Finalizar compra</p>
-            </div>
-          </Link>
-
-          <Link href="/carrito" className="btn btn-secondary">
-            ← Volver al carrito
-          </Link>
-        </div>
-      </header>
-
       <main className="section">
         <div className="container" style={{ maxWidth: 1050 }}>
           {checkingAuth && (
@@ -151,15 +129,31 @@ export default function CheckoutPage() {
                 Añade algún producto antes de finalizar la compra.
               </p>
 
-              <Link href="/productos" className="btn btn-primary">
-                Ver productos
-              </Link>
+              <div style={{ marginTop: 20 }}>
+                <Link href="/productos" className="btn btn-primary">
+                  Ver productos
+                </Link>
+              </div>
             </div>
           )}
 
           {!checkingAuth && token && !pagado && items.length > 0 && (
             <>
-              <h1 style={{ marginTop: 0 }}>Finalizar compra</h1>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  marginBottom: 28,
+                }}
+              >
+                <h1 style={{ margin: 0 }}>Finalizar compra</h1>
+
+                <Link href="/carrito" className="btn btn-secondary">
+                  ← Volver al carrito
+                </Link>
+              </div>
 
               <div
                 style={{
@@ -258,7 +252,7 @@ export default function CheckoutPage() {
                       fontSize: 13,
                     }}
                   >
-                    * Simulación de pasarela de pago para el TFG. No se realiza
+                    * Simulación de pasarela de pago. No se realiza
                     ningún cobro real.
                   </p>
                 </form>

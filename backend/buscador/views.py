@@ -803,28 +803,6 @@ def crear_solicitud_ayuda(request):
     return Response(serializer.errors, status=400)
 
 
-def procesar_seguimiento_ayuda():
-    """
-    Lógica de seguimiento: se ejecuta para solicitudes de más de 7 días.
-    """
-    hace_una_semana = timezone.now() - timedelta(days=7)
-    pendientes = SolicitudAyuda.objects.filter(
-        fecha_creacion__lte=hace_una_semana, encuesta_enviada=False
-    )
-
-    for solicitud in pendientes:
-        if solicitud.es_persona_mayor:
-            # Si es mayor, forzamos la alerta de llamada en el dashboard
-            solicitud.requiere_llamada = True
-            print(f"✅ Alerta generada: Llamar a {solicitud.nombre_completo}")
-        else:
-            # Aquí podrías llamar a una función de envío de email
-            solicitud.encuesta_enviada = True
-            print(f"📧 Encuesta marcada como enviada para: {solicitud.nombre_completo}")
-
-        solicitud.save()
-
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def analytics_dashboard_view(request):

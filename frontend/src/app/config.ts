@@ -18,6 +18,7 @@ export const API_BASE_URL = getApiBase();
 export const ENDPOINTS = {
     // Añadimos el prefijo 'api/buscador' que Django está usando
     BUSCADOR: `${API_BASE_URL}/api/buscador/buscar/`,
+    EXPERTO: `${API_BASE_URL}/api/buscador/experto-mercado/`,
     GEOLOCALIZAR: `${API_BASE_URL}/api/buscador/geolocalizar/`,
     GOOGLE_PROXY: `${API_BASE_URL}/api/buscador/google-maps/`, 
     ESTABLECIMIENTOS: `${API_BASE_URL}/api/buscador/formulario/`,
