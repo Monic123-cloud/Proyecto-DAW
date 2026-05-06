@@ -65,7 +65,6 @@ export default function Header() {
   const rutasMenuTienda = [
     "/productos",
     "/panel-cliente",
-    "/panel-comercio",
     "/tiendas",
     "/carrito",
   ];
@@ -298,7 +297,7 @@ export default function Header() {
         )}
       </div>
 
-      {rutasMenuTienda.includes(pathname) && <MenuTienda />}
+      {tipo === "usuario" && rutasMenuTienda.includes(pathname) && <MenuTienda />}
     </header>
   );
 }
