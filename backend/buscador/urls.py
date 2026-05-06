@@ -54,4 +54,9 @@ urlpatterns = [
         views.mis_pedidos_cliente,
         name="mis_pedidos_cliente",
     ),
+    path(
+        "comercio/mis-pedidos/",
+        views.mis_pedidos_comercio,
+        name="mis_pedidos_comercio",
+    ),
 ]
