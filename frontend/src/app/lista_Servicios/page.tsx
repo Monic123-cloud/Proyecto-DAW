@@ -52,7 +52,7 @@ const ListaServicios = () => {
   }, []);
 
   return (
-    <><Header></Header><Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
 
 
           <Box display="flex" justifyContent="space-between" mb={3}>
@@ -110,7 +110,7 @@ const ListaServicios = () => {
                   </Paper>
               ))
           )}
-      </Box></>
+      </Box>
   );
 };
 

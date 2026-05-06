@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import MenuTienda from "@/components/cart/bar";
 import { useEffect, useState } from "react";
 import { getTipoFromToken } from "../components/utils/auth";
+import { Button, Stack } from "@mui/material";
 
 export default function Header() {
   const pathname = usePathname();
@@ -17,7 +18,18 @@ export default function Header() {
   const [tipo, setTipo] = useState<string | null>(null);
 
   useEffect(() => {
-    setTipo(getTipoFromToken());
+    const updateTipo = () => {
+      const tipo = getTipoFromToken();
+      setTipo(tipo);
+    };
+
+    updateTipo();
+    console.log("TIPO:", getTipoFromToken());
+    window.addEventListener("storage", updateTipo);
+
+    return () => {
+      window.removeEventListener("storage", updateTipo);
+    };
   }, []);
 
   const logout = () => {
@@ -55,19 +67,46 @@ export default function Header() {
           <>
             <nav className="menu">
               <Link href="/about">Quienes Somos</Link>
-              <Link href="/acceso/registro">Usuarios</Link>
-              <Link href="/registroEstablecimiento">Comercios</Link>
-              <Link href="/tiendas">Tienda Online</Link>
-              <Link href="/registro-ayuda">Solicitar Ayuda</Link>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/buscador">Buscador</Link>
             </nav>
             <div className="actions">
-              <Link href="/acceso/registro" className="btn btn-primary">
-                Empezar
-              </Link>
-              <Link href="/acceso/login" className="btn btn-primary">
-                Iniciar Sesión
-              </Link>
+              <Stack direction="row" spacing={2}>
+                <Button
+                  component={Link}
+                  href="/acceso/login"
+                  variant="contained"
+                  sx={{
+                    fontSize: "0.95rem",
+                    letterSpacing: "0.3px",
+                    px: 3,
+                    backgroundColor: "transparent",
+                    color: "#9A84E8",
+                    border: "2px solid #B8A1F7",
+                    "&:hover": {
+                      backgroundColor: "#F1EDFF"
+                    }
+                  }}
+                >
+                  Iniciar Sesión
+                </Button>
+                <Button
+                  component={Link}
+                  href="/acceso/menu_registro"
+                  variant="contained"
+                  sx={{
+                    fontSize: "0.95rem",
+                    letterSpacing: "0.3px",
+                    px: 6,
+                    backgroundColor: "#B8A1F7",
+                    color: "#FFFFFF",
+                    "&:hover": {
+                      backgroundColor: "#9A84E8"
+                    }
+                  }}
+                >
+                  Registro
+                </Button>
+              </Stack>
             </div>
           </>
         )}
@@ -76,14 +115,30 @@ export default function Header() {
           <>
             <nav className="menu">
               <Link href="/buscador">Buscador</Link>
-              <Link href="/solicitar-ayuda">Solicitar Ayuda</Link>
+              <Link href="/registro-ayuda">Solicitar Ayuda</Link>
               <Link href="/tiendas">Tienda</Link>
               <Link href="/panel-cliente">Mi Panel</Link>
               <Link href="/lista_Servicios">Servicios</Link>
               <Link href="/carrito">Carrito</Link>
             </nav>
             <div className="actions">
-              <button onClick={logout}>Logout</button>
+              <Button
+                onClick={logout}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#B8A1F7",
+                  color: "#fff",
+                  borderRadius: "20px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: "#9A84E8"
+                  }
+                }}
+              >
+                Logout
+              </Button>
             </div>
           </>
         )}
@@ -96,9 +151,23 @@ export default function Header() {
               <Link href="/productos">Mis Productos</Link>
             </nav>
             <div className="actions">
-              <button onClick={logout} className="btn btn-primary">
+              <Button
+                onClick={logout}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#B8A1F7",
+                  color: "#fff",
+                  borderRadius: "20px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: "#9A84E8"
+                  }
+                }}
+              >
                 Logout
-              </button>
+              </Button>
             </div>
           </>
         )}

@@ -13,7 +13,7 @@ export default function PaginaBuscador() {
 
   return (
     <ThemeRegistry>
-      <ProtectedRoute>
+      
         {/* Sustituimos el div por Box. Usamos 'component="div"' si necesitas mantener la etiqueta en el DOM */}
         <Box
           component="div"
@@ -24,10 +24,10 @@ export default function PaginaBuscador() {
             flexDirection: "column",
           }}
         >
-          <Header />
+          
           <Buscador esMiniatura={esMiniatura} setEsMiniatura={setEsMiniatura} />
         </Box>
-      </ProtectedRoute>
+      
     </ThemeRegistry>
   );
 }
