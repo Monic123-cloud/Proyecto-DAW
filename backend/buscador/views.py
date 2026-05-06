@@ -987,24 +987,32 @@ class ProductoViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def descontar_stock_productos(request):
     """
-    Descuenta stock de la tabla producto cuando el cliente finaliza una compra.
+    Crea pedido + detalle_pedido y descuenta stock al finalizar compra.
 
-    Recibe desde React un JSON con esta estructura:
+    Recibe desde React:
     {
+        "metodo_pago": "tarjeta",
+        "metodo_entrega": "recogida",
         "items": [
             {"id_producto": 1, "cantidad": 2}
         ]
     }
 
     Importante:
-    - Comprueba que hay stock suficiente.
-    - Descuenta las unidades de forma segura usando transaction.atomic().
-    - Todavía no crea registros en las tablas pedido / detalle_pedido.
+    - Comprueba stock suficiente antes de guardar nada.
+    - Si el carrito tiene productos de varios comercios, crea un pedido por comercio.
+    - Usa transaction.atomic() para que si algo falla, no se guarde nada a medias.
+    - Usa select_for_update() solo sobre Producto para evitar el error:
+      FOR UPDATE cannot be applied to the nullable side of an outer join.
     """
 
+    from decimal import Decimal
     from django.db import transaction
+    from .models import Producto, Pedido, DetallePedido
 
     items = request.data.get("items", [])
+    metodo_pago = request.data.get("metodo_pago") or "simulado"
+    metodo_entrega = request.data.get("metodo_entrega") or "recogida"
 
     if not items:
         return Response(
@@ -1012,13 +1020,14 @@ def descontar_stock_productos(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    productos_actualizados = []
-
     try:
         with transaction.atomic():
+            lineas = []
+
+            # 1) Validar productos, cantidades y stock
             for item in items:
-                # Aceptamos ambos nombres por seguridad:
-                # id_producto/cantidad desde el checkout nuevo
+                # Aceptamos ambos formatos:
+                # id_producto/cantidad desde checkout
                 # id/qty por si viene directamente del carrito
                 id_producto = item.get("id_producto") or item.get("id")
                 cantidad = item.get("cantidad") or item.get("qty") or 0
@@ -1038,6 +1047,9 @@ def descontar_stock_productos(request):
                     )
 
                 try:
+                    # NO usar select_related("id_establecimiento") aquí.
+                    # id_establecimiento puede ser NULL y PostgreSQL lanza:
+                    # FOR UPDATE cannot be applied to the nullable side of an outer join.
                     producto = Producto.objects.select_for_update().get(
                         id_producto=id_producto
                     )
@@ -1045,6 +1057,16 @@ def descontar_stock_productos(request):
                     return Response(
                         {"error": f"El producto con ID {id_producto} no existe."},
                         status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                if not producto.id_establecimiento_id:
+                    return Response(
+                        {
+                            "error": (
+                                f"El producto {producto.producto} no tiene comercio asociado."
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
                 stock_actual = producto.stock or 0
@@ -1060,27 +1082,105 @@ def descontar_stock_productos(request):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
-                producto.stock = stock_actual - cantidad
-                producto.save(update_fields=["stock"])
-
-                productos_actualizados.append(
+                lineas.append(
                     {
-                        "id_producto": producto.id_producto,
-                        "producto": producto.producto,
-                        "stock_restante": producto.stock,
+                        "producto": producto,
+                        "cantidad": cantidad,
+                        "precio_unitario": Decimal(str(producto.precio)),
+                    }
+                )
+
+            # 2) Agrupar por comercio porque Pedido tiene id_establecimiento
+            grupos_por_establecimiento = {}
+
+            for linea in lineas:
+                producto = linea["producto"]
+                id_establecimiento = producto.id_establecimiento_id
+
+                if id_establecimiento not in grupos_por_establecimiento:
+                    grupos_por_establecimiento[id_establecimiento] = []
+
+                grupos_por_establecimiento[id_establecimiento].append(linea)
+
+            pedidos_respuesta = []
+            productos_actualizados = []
+            total_general = Decimal("0")
+
+            # 3) Crear pedido, crear detalle_pedido y descontar stock
+            for id_establecimiento, lineas_grupo in grupos_por_establecimiento.items():
+                importe_total = sum(
+                    linea["precio_unitario"] * linea["cantidad"]
+                    for linea in lineas_grupo
+                )
+
+                pedido = Pedido.objects.create(
+                    id_establecimiento=lineas_grupo[0]["producto"].id_establecimiento,
+                    id_usuario=request.user,
+                    importe_total=importe_total,
+                    metodo_pago=metodo_pago,
+                    descuento=Decimal("0"),
+                    metodo_entrega=metodo_entrega,
+                    estado="confirmado",
+                )
+
+                detalles_respuesta = []
+
+                for linea in lineas_grupo:
+                    producto = linea["producto"]
+                    cantidad = linea["cantidad"]
+                    precio_unitario = linea["precio_unitario"]
+
+                    DetallePedido.objects.create(
+                        id_pedido=pedido,
+                        id_producto=producto,
+                        cantidad=cantidad,
+                        precio_unitario=precio_unitario,
+                    )
+
+                    producto.stock = (producto.stock or 0) - cantidad
+                    producto.save(update_fields=["stock"])
+
+                    detalles_respuesta.append(
+                        {
+                            "id_producto": producto.id_producto,
+                            "producto": producto.producto,
+                            "cantidad": cantidad,
+                            "precio_unitario": str(precio_unitario),
+                        }
+                    )
+
+                    productos_actualizados.append(
+                        {
+                            "id_producto": producto.id_producto,
+                            "producto": producto.producto,
+                            "stock_restante": producto.stock,
+                        }
+                    )
+
+                total_general += importe_total
+
+                pedidos_respuesta.append(
+                    {
+                        "id_pedido": pedido.id_pedido,
+                        "id_establecimiento": id_establecimiento,
+                        "importe_total": str(importe_total),
+                        "estado": pedido.estado,
+                        "detalles": detalles_respuesta,
                     }
                 )
 
         return Response(
             {
-                "mensaje": "Stock actualizado correctamente.",
+                "mensaje": "Pedido creado y stock actualizado correctamente.",
+                "pedidos": pedidos_respuesta,
                 "productos": productos_actualizados,
+                "total": str(total_general),
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )
 
     except Exception as e:
         return Response(
-            {"error": f"Error al descontar stock: {str(e)}"},
+            {"error": f"Error al crear el pedido: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
