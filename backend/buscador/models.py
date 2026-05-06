@@ -59,8 +59,9 @@ class Establecimiento(models.Model):
     @property
     def promedio_valoraciones(self):
         from django.db.models import Avg
+
         # Calculamos la media de las valoraciones relacionadas
-        promedio = self.valoraciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+        promedio = self.valoraciones.aggregate(Avg("puntuacion"))["puntuacion__avg"]
         return round(promedio, 1) if promedio else 0
 
     @property
@@ -103,7 +104,9 @@ class Establecimiento(models.Model):
 
 class Evento(models.Model):
     id_evento = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
+    )
     nombre_evento = models.CharField(max_length=255)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
@@ -125,7 +128,9 @@ class Pedido(models.Model):
         blank=True,
         null=True,
     )
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
+    )
     importe_total = models.DecimalField(
         max_digits=10, decimal_places=5, blank=True, null=True
     )
@@ -163,7 +168,9 @@ class Producto(models.Model):
 
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario")
+    id_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.CASCADE, db_column="id_usuario"
+    )
     descripcion = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=100, blank=True, null=True)
     precio_hora = models.DecimalField(
@@ -178,14 +185,14 @@ class Servicio(models.Model):
     @property
     def promedio_valoraciones(self):
         from django.db.models import Avg
+
         # Calculamos la media de las valoraciones relacionadas
-        promedio = self.valoraciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+        promedio = self.valoraciones.aggregate(Avg("puntuacion"))["puntuacion__avg"]
         return round(promedio, 1) if promedio else 0
 
     @property
     def numero_valoraciones(self):
         return self.valoraciones.count()
-
 
     class Meta:
         managed = True
@@ -223,8 +230,11 @@ class Servicio(models.Model):
 class Valoracion(models.Model):
     id_valoracion = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_column="id_usuario",
+        blank=True,
+        null=True,
     )
     id_establecimiento = models.ForeignKey(
         Establecimiento,
@@ -253,19 +263,27 @@ class Valoracion(models.Model):
     class Meta:
         managed = True
         db_table = "valoracion"
-        unique_together = [("id_establecimiento", "id_usuario"),("id_servicio", "id_usuario"),]
+        unique_together = [
+            ("id_establecimiento", "id_usuario"),
+            ("id_servicio", "id_usuario"),
+        ]
 
 
 class Voluntario(models.Model):
-    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='perfil_voluntario')
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="perfil_voluntario",
+    )
     cp = models.CharField(max_length=5)
-    dias_disponibles = models.CharField(max_length=100) 
+    dias_disponibles = models.CharField(max_length=100)
     horario_inicio = models.TimeField()
     horario_fin = models.TimeField()
     activo = models.BooleanField(default=True)
 
     class Meta:
-        db_table = 'voluntario' # Nombre para la nueva tabla
+        db_table = "voluntario"  # Nombre para la nueva tabla
+
 
 class SolicitudAyuda(models.Model):
     nombre_completo = models.CharField(max_length=150)
@@ -274,41 +292,28 @@ class SolicitudAyuda(models.Model):
     cp = models.CharField(max_length=5)
     descripcion = models.TextField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_nacimiento = models.DateField() 
+    fecha_nacimiento = models.DateField()
+
     encuesta_enviada = models.BooleanField(default=False)
     requiere_llamada = models.BooleanField(default=False)
     puntuacion = models.IntegerField(null=True, blank=True)
 
-    @property
-    def es_persona_mayor(self):
-        # Consideramos mayor a +65 años
-        return (timezone.now().date() - self.fecha_nacimiento).days > (65 * 365)
-    
-    def save(self, *args, **kwargs):
-        # Calculamos la edad exacta
-        hoy = date.today()
-        edad = hoy.year - self.fecha_nacimiento.year - (
-            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
-        )
-        
-        # Si es mayor de 65, marcamos el check de llamada automáticamente
-        if edad >= 65:
-            self.requiere_llamada = True
-        
-        # Guardamos en la base de datos
-        super().save(*args, **kwargs)
-
     class Meta:
-        db_table = 'solicitud_ayuda'
+        db_table = "solicitud_ayuda"
+
 
 class EncuestaSatisfaccion(models.Model):
     # Relación con la solicitud original
-    solicitud = models.OneToOneField(SolicitudAyuda, on_delete=models.CASCADE, related_name='encuesta')
-    
+    solicitud = models.OneToOneField(
+        SolicitudAyuda, on_delete=models.CASCADE, related_name="encuesta"
+    )
+
     # Preguntas de la encuesta
-    puntuacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)]) # 1 a 5 estrellas
+    puntuacion = models.IntegerField(
+        choices=[(i, i) for i in range(1, 6)]
+    )  # 1 a 5 estrellas
     comentario = models.TextField(blank=True, null=True)
     fecha_completada = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'encuesta_satisfaccion'
+        db_table = "encuesta_satisfaccion"
