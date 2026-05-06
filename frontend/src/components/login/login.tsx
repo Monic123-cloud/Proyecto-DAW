@@ -25,7 +25,7 @@ const LoginForm = () => {
   const router = useRouter()
 
   const submission = (data: { email: any; password: any; }) => {
-    AxiosInstance.post(`/auth/login/`, {
+    AxiosInstance.post(`/api/auth/login/`, {
       email: data.email,
       password: data.password,
     })

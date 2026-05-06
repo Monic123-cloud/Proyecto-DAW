@@ -78,7 +78,7 @@ const Register = () => {
     }
 
     try {
-      await AxiosInstance.post('auth/register/', {
+      await AxiosInstance.post('/api/auth/register/', {
         email: data.email,
         password: data.password,
         nombre: data.nombre,
