@@ -17,6 +17,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import MyDatePicker from "./forms/DatePicker";
+import { useState } from "react";
 
 const Register = () => {
   const router = useRouter();
@@ -58,56 +59,63 @@ const Register = () => {
     name: "voluntariado",
   });
 
-
-  const submission = (data: RegisterForm) => {
+  const [errors, setErrors] = useState<any>({});
+  const submission = async (data: RegisterForm) => {
     const formatDate = (date: any) => {
       if (!date) return null;
-
       const d = new Date(date);
-      return d.toISOString().split("T")[0]; 
+      return d.toISOString().split("T")[0];
     };
+
     if (data.voluntariado && (!data.horario_inicio || !data.horario_fin)) {
       alert("Debes indicar disponibilidad");
       return;
     }
+
     if (!data.acepta_legal) {
       alert("Debes aceptar la política de privacidad");
       return;
     }
 
-    AxiosInstance.post('auth/register/', {
-      email: data.email,
-      password: data.password,
-      nombre: data.nombre,
-      apellidos: data.apellidos,
+    try {
+      await AxiosInstance.post('/api/auth/register/', {
+        email: data.email,
+        password: data.password,
+        nombre: data.nombre,
+        apellidos: data.apellidos,
 
+        sexo: data.sexo,
+        fecha_nacimiento: formatDate(data.fecha_nacimiento),
+        telefono: data.telefono,
 
-      sexo: data.sexo,
-      fecha_nacimiento: formatDate(data.fecha_nacimiento),
-      telefono: data.telefono,
+        direccion: data.direccion,
+        numero: data.numero,
+        piso: data.piso,
+        letra: data.letra,
 
-      direccion: data.direccion,
-      numero: data.numero,
-      piso: data.piso,
-      letra: data.letra,
+        municipio: data.municipio,
+        provincia: data.provincia,
+        cp: data.cp,
 
-      municipio: data.municipio,
-      provincia: data.provincia,
-      cp: data.cp,
+        latitud: data.latitud,
+        longitud: data.longitud,
+        voluntariado: data.voluntariado,
 
-      latitud: data.latitud,
-      longitud: data.longitud,
-      voluntariado: data.voluntariado,
-      dias_disponibles: data.dias_disponibles,
-      horario_inicio: data.horario_inicio,
-      horario_fin: data.horario_fin,
-    })
+        dias_disponibles: data.dias_disponibles,
+        horario_inicio: data.horario_inicio,
+        horario_fin: data.horario_fin,
+      });
 
-      .then(() => {
-        router.push(`/`);
-      })
+      router.push('/');
 
-  }
+    } catch (error: any) {
+      console.log("ERROR BACKEND:", error.response?.data);
+
+      if (error.response?.data) {
+        setErrors(error.response.data);
+      }
+    }
+  };
 
   return (
 

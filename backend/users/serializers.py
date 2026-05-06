@@ -1,67 +1,55 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from buscador.models import Voluntario
+from .models import CustomUser
+
+from rest_framework.validators import UniqueValidator
 
 User = get_user_model()
 
 
+
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(
+                queryset=CustomUser.objects.all(),
+                message="Este email ya está registrado."
+            )
+        ]
+    )
 
-    password = serializers.CharField(write_only=True)
-
-    
-    dias_disponibles = serializers.CharField(required=False, allow_blank=True)
-    horario_inicio = serializers.TimeField(required=False,allow_null=True)
-    horario_fin = serializers.TimeField(required=False,allow_null=True)
+  
+    dias_disponibles = serializers.CharField(write_only=True)
+    horario_inicio = serializers.TimeField(write_only=True)
+    horario_fin = serializers.TimeField(write_only=True)
+    cp = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
-        fields = [
-            
-            "email", "password",
-            "nombre", "apellidos", "sexo",
-            "fecha_nacimiento",
-            "telefono",
-            "direccion", "numero", "piso", "letra",
-            "municipio", "provincia", "cp",
-            "latitud", "longitud",
-            "voluntariado",
+        model = CustomUser 
+        fields = ('email', 'password', 'dias_disponibles', 'horario_inicio', 'horario_fin', 'cp')
 
-            
-            "dias_disponibles",
-            "horario_inicio",
-            "horario_fin",
-        ]
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+    def create(self, validated_data):
+       
+        dias = validated_data.pop('dias_disponibles')
+        h_inicio = validated_data.pop('horario_inicio')
+        h_fin = validated_data.pop('horario_fin')
+        codigo_p = validated_data.pop('cp')
 
-        def create(self, validated_data):
-            
-            voluntariado = validated_data.get("voluntariado", False)
+        
+        user = CustomUser.objects.create_user(**validated_data)
 
-            dias = validated_data.pop("dias_disponibles", None)
-            inicio = validated_data.pop("horario_inicio", None)
-            fin = validated_data.pop("horario_fin", None)
+        # registro de Voluntario 
+        from buscador.models import Voluntario 
+        Voluntario.objects.create(
+            usuario=user,
+            cp=codigo_p,
+            dias_disponibles=dias,
+            horario_inicio=h_inicio,
+            horario_fin=h_fin,
+            activo=True
+        )
 
-            password = validated_data.pop("password")
-
-            
-            user = User.objects.create(**validated_data)
-            user.set_password(password) 
-            user.save()
-
-           
-            if voluntariado:
-                Voluntario.objects.create(
-                    usuario=user,
-                    dias_disponibles=dias,
-                    horario_inicio=inicio,
-                    horario_fin=fin,
-                    activo=True
-                )
-
-            return user
+        return user
 
 
 class LoginSerializer(serializers.Serializer):

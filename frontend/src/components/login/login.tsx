@@ -5,11 +5,11 @@ import {
   Path,
   RegisterOptions,
 } from "react-hook-form";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Button, Link, Paper, Stack, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import AxiosInstance from '../AxiosInstance'
-
+import StoreIcon from "@mui/icons-material/Store";
 import MyTextField from "./forms/MyTextField";
 import MyPassField from "./forms/MyPassField";
 import MyButton from "./forms/MyButton";
@@ -25,7 +25,7 @@ const LoginForm = () => {
   const router = useRouter()
 
   const submission = (data: { email: any; password: any; }) => {
-    AxiosInstance.post(`/auth/login/`, {
+    AxiosInstance.post(`/api/auth/login/`, {
       email: data.email,
       password: data.password,
     })
@@ -33,10 +33,14 @@ const LoginForm = () => {
       .then((response) => {
         console.log(response)
         localStorage.setItem('token', response.data.access)
-        router.push(`/`)
+        const decoded = JSON.parse(atob(response.data.access.split(".")[1]));
+        console.log("DECODED:", decoded);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 50);
       })
       .catch((error) => {
-        
+
         console.error('Error during login', error)
       })
   }
@@ -47,6 +51,7 @@ const LoginForm = () => {
       sx={{
         minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         background:
@@ -56,7 +61,7 @@ const LoginForm = () => {
     >
       <Paper
         sx={{
-          p: 4,
+          p: 6,
           width: "100%",
           maxWidth: 400,
           borderRadius: "20px",
@@ -72,37 +77,83 @@ const LoginForm = () => {
         </Typography>
 
         <form onSubmit={handleSubmit(submission)}>
-          <MyTextField<RegisterForm>
-            label={"Email"}
-            name={"email"}
-            control={control}
-            rules={{
-              required: "El correo es obligatorio",
-              pattern: {
-                value: /^\S+@\S+$/i,
-                message: "Correo inválido",
-              },
-            }}
-          />
+          <Stack spacing={2}>
+            <MyTextField<RegisterForm>
+              label={"Email"}
+              name={"email"}
+              control={control}
+              rules={{
+                required: "El correo es obligatorio",
+                pattern: {
+                  value: /^\S+@\S+$/i,
+                  message: "Correo inválido",
+                },
+              }}
+            />
 
-          <MyPassField
-            label={"Password"}
-            name={"password"}
-            control={control}
-            rules={{
-              required: "La contraseña es obligatoria",
-            }}
-          />
+            <MyPassField
+              label={"Password"}
+              name={"password"}
+              control={control}
+              rules={{
+                required: "La contraseña es obligatoria",
+              }}
+            />
 
-          <MyButton
-            type={"submit"}
-            label={"Entrar"}
-            fullWidth
-            sx={{ mt: 2 }}
-          />
+            <MyButton
+              type={"submit"}
+              label={"Entrar"}
+              fullWidth
+              sx={{ mt: 4 }}
+            />
+            <Button
+              component={Link}
+              href="/acceso/registro"
+              variant="outlined"
+              sx={{
+                color: "white",
+                borderColor: "#10b981",
+                backgroundColor: "#d1b3ff",
+                "&:hover": {
+                  backgroundColor: "#c49eff",
+                },
+              }}
+              fullWidth
+            >
+              No tengo cuenta
+            </Button>
+          </Stack>
         </form>
       </Paper>
+      <Box>
+        <Button
+          startIcon={<StoreIcon />}
+          component={Link}
+          href="/registroEstablecimiento"
+          variant="outlined"
+          sx={{
+            mt: 4,
+            px: 5,
+            py: 1.5,
+            borderRadius: "999px",
+            background: "linear-gradient(135deg, #34d399, #10b981)",
+            color: "#fff",
+            fontWeight: 600,
+            textTransform: "none",
+            boxShadow: "0 6px 15px rgba(0,0,0,0.15)",
+            "&:hover": {
+              transform: "scale(1.05)",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
+            },
+          }}
+          fullWidth
+        >
+          Soy un comercio
+        </Button>
+      </Box>
+
     </Box>
+
   );
 };
 export default LoginForm

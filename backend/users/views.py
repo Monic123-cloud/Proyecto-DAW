@@ -18,8 +18,8 @@ class RegisterView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user = serializer.save()
 
        
-        user.set_password(user.password)
-        user.save()
+        #user.set_password(user.password)
+        #user.save()
 
         self.user = user
 
@@ -58,6 +58,7 @@ class LoginViewset(viewsets.ViewSet):
 
             #tipo en JWT
             refresh["tipo"] = tipo
+            refresh.access_token["tipo"] = tipo 
 
             return Response({
                 "access": str(refresh.access_token),
