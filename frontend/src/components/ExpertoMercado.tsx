@@ -39,7 +39,7 @@ const ExpertoMercado: React.FC<Props> = ({ codigoPostal }) => {
 
     try {
       const response = await api.get(
-        `/buscador/experto-mercado/?cp=${codigoPostal}`,
+        `buscador/experto-mercado/?cp=${codigoPostal}`,
       );
       // Accedemos a response.data (Axios) -> .data (JSON del back) -> .recomendaciones
       const datosExtraidos =
