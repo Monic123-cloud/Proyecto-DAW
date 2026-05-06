@@ -175,6 +175,59 @@ export default function Dashboard() {
             </Typography>
           </Paper>
         </Grid>
+        {/* KPI: Usuarios Totales */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 3, borderLeft: "6px solid #0288d1", borderRadius: 2 }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: "bold", color: "text.secondary" }}
+            >
+              Usuarios Totales
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+              {data.db.usuariosTotales}
+            </Typography>
+          </Paper>
+        </Grid>
+
+        {/* KPI: Comercios Activos */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 3, borderLeft: "6px solid #7b1fa2", borderRadius: 2 }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: "bold", color: "text.secondary" }}
+            >
+              Comercios Activos
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+              {data.db.comerciosActivos}
+            </Typography>
+          </Paper>
+        </Grid>
+
+        {/* KPI: Pedidos Realizados */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{ p: 3, borderLeft: "6px solid #d32f2f", borderRadius: 2 }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: "bold", color: "text.secondary" }}
+            >
+              Pedidos Realizados
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+              {data.db.pedidosRealizados}
+            </Typography>
+          </Paper>
+        </Grid>
 
         {/* Gráfica: Usuarios Activos (7 días) */}
         <Grid size={{ xs: 12, md: 7 }}>
