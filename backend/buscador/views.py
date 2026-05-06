@@ -25,10 +25,7 @@ from django.db.models.functions import (
     Radians,
     Sin,
 )  # Fórmula Haversina para calcular distancias geográficas
-from .models import (
-    Establecimiento,
-    Pedido,
-)  # Importa la tabla de establecimiento para hacer consultas a la BBDD
+from buscador.models import Establecimiento, Pedido
 from django.conf import (
     settings,
 )  # Para acceder a la clave de la API de Google Maps desde settings
@@ -41,18 +38,19 @@ from rest_framework.decorators import api_view, permission_classes
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User  # Para gestionar usuarios y autenticación
 from rest_framework_simplejwt.tokens import RefreshToken  # Para generar tokens JWT
-from .serializers import (
+from buscador.serializers import (
+    EstablecimientoSerializer,
     ProductoSerializer,
     ServicioSerializer,
-    EstablecimientoSerializer,
     SolicitudAyudaSerializer,
 )  # Para convertir los datos de la base de datos a formato JSON que React entiende
-from .models import (
+from buscador.models import (
     Servicio,
-    Valoracion,
     SolicitudAyuda,
-    Producto,
-)  # Importamos el modelo de Servicio y setting para gestionar
+    Valoracion,
+)
+from buscador.models import Producto
+# Importamos el modelo de Servicio y setting para gestionar
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
@@ -643,11 +641,11 @@ class EstablecimientoViewSet(viewsets.ModelViewSet):
 
 
 from rest_framework import viewsets, permissions
-from .models import Servicio
-from .serializers import ServicioSerializer
+from buscador.models import Servicio
+from buscador.serializers import ServicioSerializer
 from rest_framework.decorators import action
-from .models import Valoracion
-from .serializers import ValoracionSerializer
+from buscador.models import Valoracion
+from buscador.serializers import ValoracionSerializer
 
 
 class IsOwnerOrReadOnly(BasePermission):
@@ -983,163 +981,6 @@ class ProductoViewSet(viewsets.ModelViewSet):
             )
 
 
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def mis_pedidos_cliente(request):
-    """
-    Devuelve los pedidos realizados por el cliente logueado,
-    incluyendo el estado actual y los productos de cada pedido.
-    """
-
-    from .models import Pedido, DetallePedido
-
-    pedidos = (
-        Pedido.objects.filter(id_usuario=request.user)
-        .select_related("id_establecimiento")
-        .order_by("-fecha", "-id_pedido")
-    )
-
-    data = []
-
-    for pedido in pedidos:
-        detalles = (
-            DetallePedido.objects.filter(id_pedido=pedido)
-            .select_related("id_producto")
-            .order_by("id_detalle")
-        )
-
-        productos = []
-
-        for detalle in detalles:
-            producto = detalle.id_producto
-            cantidad = detalle.cantidad or 0
-            precio_unitario = detalle.precio_unitario or 0
-
-            productos.append(
-                {
-                    "id_producto": producto.id_producto if producto else None,
-                    "producto": producto.producto if producto else "Producto no disponible",
-                    "cantidad": cantidad,
-                    "precio_unitario": str(precio_unitario),
-                    "subtotal": str(precio_unitario * cantidad),
-                }
-            )
-
-        data.append(
-            {
-                "id_pedido": pedido.id_pedido,
-                "fecha": pedido.fecha.isoformat() if pedido.fecha else None,
-                "comercio": (
-                    pedido.id_establecimiento.nombre_comercio
-                    if pedido.id_establecimiento
-                    else "Comercio no disponible"
-                ),
-                "id_establecimiento": (
-                    pedido.id_establecimiento.id_establecimiento
-                    if pedido.id_establecimiento
-                    else None
-                ),
-                "importe_total": str(pedido.importe_total or 0),
-                "metodo_pago": pedido.metodo_pago or "",
-                "metodo_entrega": pedido.metodo_entrega or "",
-                "estado": pedido.estado or "pendiente",
-                "productos": productos,
-            }
-        )
-
-    return Response(data, status=status.HTTP_200_OK)
-
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def mis_pedidos_comercio(request):
-    """
-    Devuelve los pedidos recibidos por el comercio logueado,
-    incluyendo cliente, estado, método de pago/entrega y productos.
-    """
-
-    from .models import Pedido, DetallePedido
-
-    try:
-        establecimiento = Establecimiento.objects.get(usuario=request.user)
-    except Establecimiento.DoesNotExist:
-        return Response(
-            {"error": "No tienes un comercio asociado a este usuario."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    pedidos = (
-        Pedido.objects.filter(id_establecimiento=establecimiento)
-        .select_related("id_usuario", "id_establecimiento")
-        .order_by("-fecha", "-id_pedido")
-    )
-
-    data = []
-
-    for pedido in pedidos:
-        cliente = pedido.id_usuario
-
-        nombre = ""
-        if cliente:
-            nombre_partes = [
-                getattr(cliente, "nombre", None) or getattr(cliente, "first_name", ""),
-                getattr(cliente, "apellidos", None) or getattr(cliente, "last_name", ""),
-            ]
-            nombre = " ".join([parte for parte in nombre_partes if parte]).strip()
-            if not nombre:
-                nombre = getattr(cliente, "email", "") or getattr(cliente, "username", "") or "Cliente"
-
-        detalles = (
-            DetallePedido.objects.filter(id_pedido=pedido)
-            .select_related("id_producto")
-            .order_by("id_detalle")
-        )
-
-        productos = []
-
-        for detalle in detalles:
-            producto = detalle.id_producto
-            cantidad = detalle.cantidad or 0
-            precio_unitario = detalle.precio_unitario or 0
-
-            productos.append(
-                {
-                    "id_producto": producto.id_producto if producto else None,
-                    "producto": producto.producto if producto else "Producto no disponible",
-                    "cantidad": cantidad,
-                    "precio_unitario": str(precio_unitario),
-                    "subtotal": str(precio_unitario * cantidad),
-                }
-            )
-
-        data.append(
-            {
-                "id_pedido": pedido.id_pedido,
-                "fecha": pedido.fecha.isoformat() if pedido.fecha else None,
-                "cliente": {
-                    "id_usuario": cliente.id if cliente else None,
-                    "nombre": nombre or "Cliente no disponible",
-                    "email": (getattr(cliente, "email", "") or "") if cliente else "",
-                    "telefono": (getattr(cliente, "telefono", "") or "") if cliente else "",
-                    "direccion": (getattr(cliente, "direccion", "") or "") if cliente else "",
-                    "municipio": (getattr(cliente, "municipio", "") or "") if cliente else "",
-                    "cp": (getattr(cliente, "cp", "") or "") if cliente else "",
-                },
-                "id_establecimiento": establecimiento.id_establecimiento,
-                "comercio": establecimiento.nombre_comercio,
-                "importe_total": str(pedido.importe_total or 0),
-                "metodo_pago": pedido.metodo_pago or "",
-                "metodo_entrega": pedido.metodo_entrega or "",
-                "estado": pedido.estado or "pendiente",
-                "productos": productos,
-            }
-        )
-
-    return Response(data, status=status.HTTP_200_OK)
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def descontar_stock_productos(request):
@@ -1341,3 +1182,70 @@ def descontar_stock_productos(request):
             {"error": f"Error al crear el pedido: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def mis_pedidos_cliente(request):
+    """
+    Devuelve los pedidos realizados por el cliente logueado,
+    incluyendo el estado del pedido y sus productos.
+    """
+
+    from .models import Pedido, DetallePedido
+
+    pedidos = (
+        Pedido.objects.filter(id_usuario=request.user)
+        .select_related("id_establecimiento")
+        .order_by("-fecha", "-id_pedido")
+    )
+
+    data = []
+
+    for pedido in pedidos:
+        detalles = (
+            DetallePedido.objects.filter(id_pedido=pedido)
+            .select_related("id_producto")
+            .order_by("id_detalle")
+        )
+
+        productos = []
+
+        for detalle in detalles:
+            producto = detalle.id_producto
+            precio_unitario = detalle.precio_unitario or 0
+            cantidad = detalle.cantidad or 0
+
+            productos.append(
+                {
+                    "id_producto": producto.id_producto if producto else None,
+                    "producto": producto.producto if producto else "Producto no disponible",
+                    "cantidad": cantidad,
+                    "precio_unitario": str(precio_unitario),
+                    "subtotal": str(precio_unitario * cantidad),
+                }
+            )
+
+        data.append(
+            {
+                "id_pedido": pedido.id_pedido,
+                "fecha": pedido.fecha.isoformat() if pedido.fecha else None,
+                "comercio": (
+                    pedido.id_establecimiento.nombre_comercio
+                    if pedido.id_establecimiento
+                    else "Comercio no disponible"
+                ),
+                "id_establecimiento": (
+                    pedido.id_establecimiento.id_establecimiento
+                    if pedido.id_establecimiento
+                    else None
+                ),
+                "importe_total": str(pedido.importe_total or 0),
+                "metodo_pago": pedido.metodo_pago or "",
+                "metodo_entrega": pedido.metodo_entrega or "",
+                "estado": pedido.estado or "pendiente",
+                "productos": productos,
+            }
+        )
+
+    return Response(data, status=status.HTTP_200_OK)
+
