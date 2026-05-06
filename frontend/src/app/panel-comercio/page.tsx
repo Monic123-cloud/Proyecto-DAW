@@ -352,13 +352,10 @@ export default function PanelComercioPage() {
               <p className="section-tag">Área privada</p>
               <h1 className="tienda-title">Panel de comercio</h1>
               <p className="tienda-muted">
-                Gestión separada por secciones: pedidos recibidos y productos.
+                Gestión de la tienda virtual stock y pedidos
               </p>
             </div>
 
-            <Link href="/productos" className="tienda-link">
-              Ver tienda pública →
-            </Link>
           </div>
 
           {!token && (
@@ -467,7 +464,7 @@ export default function PanelComercioPage() {
                   <div>
                     <h2 className="section-title">Gestión del comercio</h2>
                     <p className="tienda-muted" style={{ marginTop: 6 }}>
-                      Cambia de sección para no mezclar pedidos con productos.
+                      Cambia de sección para visualizar pedidos y productos
                     </p>
                   </div>
 
@@ -501,7 +498,7 @@ export default function PanelComercioPage() {
                     <div>
                       <h2 className="section-title">Pedidos recibidos</h2>
                       <p className="tienda-muted">
-                        Cada pedido aparece cerrado. Pulsa en “Ver detalle” para desplegar productos, cliente y entrega.
+                        Pulsa en “Ver detalle” para desplegar productos, cliente y entrega.
                       </p>
                     </div>
                   </div>
