@@ -12,9 +12,12 @@ import re
 
 def get_client():
     creds = settings.GOOGLE_ANALYTICS_CREDENTIALS
-    if isinstance(creds, str):
-        return BetaAnalyticsDataClient.from_service_account_json(creds)
-    return BetaAnalyticsDataClient.from_service_account_info(creds)
+    # Si es un dict → Railway
+    if isinstance(creds, dict):
+        return BetaAnalyticsDataClient.from_service_account_info(creds)
+
+    # Si es un string → ruta local
+    return BetaAnalyticsDataClient.from_service_account_json(creds)
 
 
 def get_google_analytics_data():
