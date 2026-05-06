@@ -1,13 +1,18 @@
-export function getTipoFromToken(): string | null {
+
+import { jwtDecode } from "jwt-decode";
+
+export const getTipoFromToken = () => {
   if (typeof window === "undefined") return null;
 
   const token = localStorage.getItem("token");
   if (!token) return null;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.tipo || null;
-  } catch {
+    const decoded: any = jwtDecode(token);
+    return decoded.tipo || null;
+  } catch (error) {
+    console.error("Error decoding token", error);
     return null;
   }
-}
+};
+

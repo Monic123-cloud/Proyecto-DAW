@@ -523,6 +523,7 @@ def buscar_y_login_por_cif(request, cif):
             # Generamos token real
             refresh = RefreshToken.for_user(user)
             refresh["tipo"] = "comercio"
+            refresh.access_token["tipo"] = "comercio"
             serializer = EstablecimientoSerializer(local)
 
             return Response(

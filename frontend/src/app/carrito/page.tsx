@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useCart, formatEUR } from "../../components/cart/CartContext";
 
 export default function CarritoPage() {
@@ -9,49 +8,44 @@ export default function CarritoPage() {
 
   return (
     <div className="page">
-      {/* Header simple para volver */}
-      <header className="header">
-        <div className="container nav">
-          <Link href="/" className="brand">
-            <Image
-              src="/images/Close-logo_1.png"
-              alt="Logo Close4u"
-              width={56}
-              height={56}
-              className="brand-logo-img"
-              priority
-            />
-            <div className="brand-text-block">
-              <Image
-                src="/images/Close4up-logo_2.png"
-                alt="Close4u"
-                width={100}
-                height={36}
-                className="brand-name-img"
-                priority
-              />
-              <p className="brand-subtitle">Tu carrito</p>
-            </div>
-          </Link>
-
-          <Link href="/tiendas" className="btn btn-secondary">
-            ← Seguir comprando
-          </Link>
-        </div>
-      </header>
-
       <main className="section">
         <div className="container" style={{ maxWidth: 1100 }}>
-          <h1 style={{ marginTop: 0 }}>Carrito</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              marginBottom: 28,
+            }}
+          >
+            <h1 style={{ margin: 0 }}>Carrito</h1>
+
+            <Link href="/productos" className="btn btn-secondary">
+              ← Seguir comprando
+            </Link>
+          </div>
 
           {items.length === 0 ? (
             <div className="card" style={{ borderRadius: 24 }}>
               <p style={{ margin: 0, color: "#64748b" }}>
                 Tu carrito está vacío. Añade productos y volverás a verlos aquí.
               </p>
+
+              <div style={{ marginTop: 20 }}>
+                <Link href="/productos" className="btn btn-primary">
+                  Ver productos
+                </Link>
+              </div>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.6fr", gap: 18 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1.4fr) minmax(280px, 0.6fr)",
+                gap: 18,
+              }}
+            >
               {/* Lista */}
               <div className="card" style={{ borderRadius: 24 }}>
                 <div style={{ display: "grid", gap: 14 }}>
@@ -60,7 +54,7 @@ export default function CarritoPage() {
                       key={it.id}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 120px 120px",
+                        gridTemplateColumns: "minmax(0, 1fr) 120px 120px",
                         alignItems: "center",
                         gap: 12,
                         padding: "12px 0",
@@ -78,7 +72,9 @@ export default function CarritoPage() {
                         type="number"
                         min={1}
                         value={it.qty}
-                        onChange={(e) => setQty(it.id, Number(e.target.value))}
+                        onChange={(e) =>
+                          setQty(it.id, Math.max(1, Number(e.target.value) || 1))
+                        }
                         style={{
                           width: "100%",
                           padding: "10px 12px",
@@ -89,6 +85,7 @@ export default function CarritoPage() {
                       />
 
                       <button
+                        type="button"
                         onClick={() => removeItem(it.id)}
                         className="btn"
                         style={{
@@ -104,8 +101,17 @@ export default function CarritoPage() {
                   ))}
                 </div>
 
-                <div style={{ marginTop: 16, display: "flex", justifyContent: "space-between" }}>
-                  <button onClick={clear} className="btn btn-secondary">
+                <div
+                  style={{
+                    marginTop: 16,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button type="button" onClick={clear} className="btn btn-secondary">
                     Vaciar carrito
                   </button>
 
@@ -118,21 +124,44 @@ export default function CarritoPage() {
               {/* Resumen */}
               <div className="card" style={{ borderRadius: 24, height: "fit-content" }}>
                 <h3 style={{ marginTop: 0 }}>Resumen</h3>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 8,
+                  }}
+                >
                   <span>Artículos</span>
                   <strong>{totals.count}</strong>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 16,
+                  }}
+                >
                   <span>Subtotal</span>
                   <strong>{formatEUR(totals.subtotal)}</strong>
                 </div>
 
-                <button className="btn btn-primary" style={{ width: "100%" }}>
+                <Link
+                  href="/checkout"
+                  className="btn btn-primary"
+                  style={{
+                    width: "100%",
+                    display: "inline-flex",
+                    justifyContent: "center",
+                    textDecoration: "none",
+                  }}
+                >
                   Continuar
-                </button>
+                </Link>
 
                 <p style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>
-                  * En el siguiente paso añadimos recogida/entrega y pago.
+                  * Pulsa continuar para confirmar recogida/entrega, pago y finalizar compra.
                 </p>
               </div>
             </div>
