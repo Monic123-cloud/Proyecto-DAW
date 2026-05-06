@@ -124,38 +124,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="page">
-      <header className="header">
-        <div className="container nav">
-          <Link href="/" className="brand">
-            <Image
-              src="/images/Close-logo_1.png"
-              alt="Logo Close4u"
-              width={56}
-              height={56}
-              className="brand-logo-img"
-              priority
-            />
-
-            <div className="brand-text-block">
-              <Image
-                src="/images/Close4up-logo_2.png"
-                alt="Close4u"
-                width={100}
-                height={36}
-                className="brand-name-img"
-                priority
-              />
-              <p className="brand-subtitle">Finalizar compra</p>
-            </div>
-          </Link>
-
-          <Link href="/carrito" className="btn btn-secondary">
-            ← Volver al carrito
-          </Link>
-        </div>
-      </header>
-
-      <main className="section">
+<main className="section">
         <div className="container" style={{ maxWidth: 1050 }}>
           {checkingAuth && (
             <div className="card" style={{ borderRadius: 24 }}>
