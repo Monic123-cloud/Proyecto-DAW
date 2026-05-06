@@ -68,6 +68,8 @@ export default function Header() {
             <nav className="menu">
               <Link href="/about">Quienes Somos</Link>
               <Link href="/buscador">Buscador</Link>
+              <Link href="/registro-ayuda">Solicitar Ayuda</Link>
+              <Link href="/dashboard">Dashboard</Link>
             </nav>
             <div className="actions">
               <Stack direction="row" spacing={2}>
@@ -83,8 +85,8 @@ export default function Header() {
                     color: "#9A84E8",
                     border: "2px solid #B8A1F7",
                     "&:hover": {
-                      backgroundColor: "#F1EDFF"
-                    }
+                      backgroundColor: "#F1EDFF",
+                    },
                   }}
                 >
                   Iniciar Sesión
@@ -100,8 +102,8 @@ export default function Header() {
                     backgroundColor: "#B8A1F7",
                     color: "#FFFFFF",
                     "&:hover": {
-                      backgroundColor: "#9A84E8"
-                    }
+                      backgroundColor: "#9A84E8",
+                    },
                   }}
                 >
                   Registro
@@ -133,8 +135,8 @@ export default function Header() {
                   textTransform: "none",
                   px: 3,
                   "&:hover": {
-                    backgroundColor: "#9A84E8"
-                  }
+                    backgroundColor: "#9A84E8",
+                  },
                 }}
               >
                 Logout
@@ -162,8 +164,8 @@ export default function Header() {
                   textTransform: "none",
                   px: 3,
                   "&:hover": {
-                    backgroundColor: "#9A84E8"
-                  }
+                    backgroundColor: "#9A84E8",
+                  },
                 }}
               >
                 Logout
