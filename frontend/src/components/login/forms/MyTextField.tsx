@@ -1,39 +1,38 @@
-"use client";
-
+import * as React from "react";
 import TextField from "@mui/material/TextField";
-import { Controller } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  FieldValues,
+  Path,
+  RegisterOptions,
+} from "react-hook-form";
 
-type MyTextFieldProps = {
-  name: string;
-  control: any;
+type MyTextFieldProps<T extends FieldValues> = {
   label: string;
-  type?: string;
-  rules?: any;
+  name: Path<T>;
+  control: Control<T>;
+  rules?: RegisterOptions<T, Path<T>>;
 };
 
-export default function MyTextField({
+export default function MyTextField<T extends FieldValues>({
+  label,
   name,
   control,
-  label,
-  type = "text",
   rules,
-}: MyTextFieldProps) {
+}: MyTextFieldProps<T>) {
   return (
     <Controller
       name={name}
       control={control}
       rules={rules}
-      defaultValue=""
       render={({ field, fieldState: { error } }) => (
         <TextField
           {...field}
-          value={field.value ?? ""}
           label={label}
-          type={type}
           variant="outlined"
-          fullWidth
           error={!!error}
-          helperText={error?.message || ""}
+          helperText={error?.message}
         />
       )}
     />
