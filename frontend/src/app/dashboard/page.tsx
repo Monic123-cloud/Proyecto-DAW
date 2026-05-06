@@ -229,66 +229,6 @@ export default function Dashboard() {
           </Paper>
         </Grid>
 
-        {/* Gráfica: Usuarios Activos (7 días) */}
-        <Grid size={{ xs: 12, md: 7 }}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, height: "450px" }}>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold" }}>
-              Usuarios Activos (Últimos 7 días)
-            </Typography>
-            <Box sx={{ width: "100%", height: 350 }}>
-              {" "}
-              {/* Altura fija para evitar el error de consola */}
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.ga4.grafica_semanal}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip cursor={{ fill: "#f5f5f5" }} />
-                  <Bar
-                    dataKey="usuarios"
-                    fill="#1976d2"
-                    radius={[4, 4, 0, 0]}
-                    barSize={40}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Gráfica: Distribución de Eventos (Pie Chart Original) */}
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, height: "450px" }}>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: "bold" }}>
-              Distribución de Eventos
-            </Typography>
-            <Box sx={{ width: "100%", height: 350 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.conversion}
-                    innerRadius={70}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="valor"
-                    nameKey="nombre"
-                    label
-                  >
-                    {data.conversion?.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </Grid>
-
         {/* Tabla de Solicitudes */}
         <Grid size={{ xs: 12 }}>
           <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden" }}>
