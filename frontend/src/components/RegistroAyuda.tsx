@@ -41,9 +41,13 @@ export default function RegistroAyuda() {
     setLoading(true);
     setMensaje({ texto: "", tipo: "" });
 
+    const dataToSend = { ...formData };
+
+    delete (dataToSend as any).es_persona_mayor;
+
     try {
       // POST a la URL de Django que configuramos en urls.py
-      await AxiosInstance.post("/api/buscador/solicitar-ayuda/", formData);
+      await AxiosInstance.post("/api/buscador/solicitar-ayuda/", dataToSend);
       setMensaje({
         texto: "¡Solicitud enviada con éxito!",
         tipo: "success",
