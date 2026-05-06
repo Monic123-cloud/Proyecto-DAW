@@ -819,8 +819,8 @@ def analytics_dashboard_view(request):
                 },
                 "ga4": {
                     "grafica_semanal": [],
-                    "total_historico": ga_data["total_historico"],
-                    "cp_mas_buscados": ga_data["cp_mas_buscados"],
+                    "total_historico": 0,
+                    "cp_mas_buscados": [],
                 },
             }
         )
