@@ -6,11 +6,25 @@ import Image from "next/image";
 import { useCart, formatEUR } from "../../components/cart/CartContext";
 import AxiosInstance from "../../components/AxiosInstance";
 
+type ClienteDatos = {
+  id_usuario?: number | null;
+  nombre?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  municipio?: string;
+  cp?: string;
+};
+
 export default function CheckoutPage() {
   const { items, totals, clear } = useCart();
 
   const [token, setToken] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const [clienteDatos, setClienteDatos] = useState<ClienteDatos | null>(null);
+  const [loadingCliente, setLoadingCliente] = useState(false);
+  const [errorCliente, setErrorCliente] = useState("");
 
   const [pagando, setPagando] = useState(false);
   const [pagado, setPagado] = useState(false);
@@ -23,8 +37,37 @@ export default function CheckoutPage() {
       localStorage.getItem("access") ||
       localStorage.getItem("access_token") ||
       localStorage.getItem("token");
+
     setToken(storedToken);
     setCheckingAuth(false);
+
+    if (!storedToken) return;
+
+    async function cargarDatosCliente() {
+      setLoadingCliente(true);
+      setErrorCliente("");
+
+      try {
+        const response = await AxiosInstance.get("/buscador/cliente/mis-datos/", {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        setClienteDatos(response.data);
+      } catch (error: any) {
+        console.error("Error cargando datos del cliente", error);
+        setErrorCliente(
+          error?.response?.data?.error ||
+            error?.response?.data?.detail ||
+            "No se han podido cargar los datos del cliente."
+        );
+      } finally {
+        setLoadingCliente(false);
+      }
+    }
+
+    cargarDatosCliente();
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -157,8 +200,8 @@ export default function CheckoutPage() {
               <h1 style={{ marginTop: 0 }}>Pago realizado correctamente</h1>
 
               <p style={{ color: "#64748b" }}>
-                Tu pedido se ha creado correctamente y el stock se ha actualizado.
-                No se ha realizado ningún cargo real.
+                Tu compra se ha simulado correctamente. No se ha realizado ningún
+                cargo real.
               </p>
 
               <div style={{ marginTop: 18, display: "grid", gap: 8 }}>
@@ -214,40 +257,67 @@ export default function CheckoutPage() {
                   className="card"
                   style={{ borderRadius: 24 }}
                 >
-                  <h2 style={{ marginTop: 0 }}>Datos de entrega</h2>
+                  <h2 style={{ marginTop: 0 }}>Datos del cliente</h2>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 12,
+                      padding: 16,
+                      borderRadius: 18,
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      marginBottom: 18,
+                    }}
+                  >
+                    {loadingCliente && (
+                      <p style={{ margin: 0, color: "#64748b" }}>
+                        Cargando datos del cliente...
+                      </p>
+                    )}
+
+                    {!loadingCliente && errorCliente && (
+                      <p style={{ margin: 0, color: "#991b1b", fontWeight: 700 }}>
+                        {errorCliente}
+                      </p>
+                    )}
+
+                    {!loadingCliente && !errorCliente && (
+                      <>
+                        <p style={{ margin: 0 }}>
+                          <strong>Nombre:</strong>{" "}
+                          {clienteDatos?.nombre || "No indicado"}
+                        </p>
+
+                        <p style={{ margin: 0 }}>
+                          <strong>Email:</strong>{" "}
+                          {clienteDatos?.email || "No indicado"}
+                        </p>
+
+                        <p style={{ margin: 0 }}>
+                          <strong>Teléfono:</strong>{" "}
+                          {clienteDatos?.telefono || "No indicado"}
+                        </p>
+
+                        {(clienteDatos?.direccion ||
+                          clienteDatos?.municipio ||
+                          clienteDatos?.cp) && (
+                          <p style={{ margin: 0 }}>
+                            <strong>Dirección:</strong>{" "}
+                            {[
+                              clienteDatos?.direccion,
+                              clienteDatos?.municipio,
+                              clienteDatos?.cp,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
 
                   <div style={{ display: "grid", gap: 14 }}>
-                    <label>
-                      <strong>Nombre completo</strong>
-                      <input
-                        required
-                        className="c4u-input"
-                        placeholder="Ej: Javier García"
-                        style={{ marginTop: 6 }}
-                      />
-                    </label>
-
-                    <label>
-                      <strong>Email</strong>
-                      <input
-                        required
-                        type="email"
-                        className="c4u-input"
-                        placeholder="correo@ejemplo.com"
-                        style={{ marginTop: 6 }}
-                      />
-                    </label>
-
-                    <label>
-                      <strong>Teléfono</strong>
-                      <input
-                        required
-                        className="c4u-input"
-                        placeholder="Ej: 600 000 000"
-                        style={{ marginTop: 6 }}
-                      />
-                    </label>
-
                     <label>
                       <strong>Método de entrega</strong>
                       <select
@@ -303,7 +373,7 @@ export default function CheckoutPage() {
                     type="submit"
                     className="btn btn-primary"
                     style={{ width: "100%", marginTop: 22 }}
-                    disabled={pagando}
+                    disabled={pagando || loadingCliente}
                   >
                     {pagando ? "Procesando pago..." : "Pagar ahora"}
                   </button>
@@ -315,7 +385,7 @@ export default function CheckoutPage() {
                       fontSize: 13,
                     }}
                   >
-                    * Simulación de pasarela de pago para el TFG. No se realiza
+                    * Simulación de pasarela de pago. No se realiza
                     ningún cobro real.
                   </p>
                 </form>
