@@ -50,8 +50,18 @@ urlpatterns = [
         name="descontar_stock_productos",
     ),
     path(
+        "cliente/mis-datos/",
+        views.mis_datos_cliente,
+        name="mis_datos_cliente",
+    ),
+    path(
         "cliente/mis-pedidos/",
         views.mis_pedidos_cliente,
         name="mis_pedidos_cliente",
+    ),
+    path(
+        "comercio/mis-pedidos/",
+        views.mis_pedidos_comercio,
+        name="mis_pedidos_comercio",
     ),
 ]
