@@ -818,9 +818,9 @@ def analytics_dashboard_view(request):
                     "pedidosRealizados": Pedido.objects.count(),
                 },
                 "ga4": {
-                    "totalVisitas": ga_data["total_historico"],
-                    "cpMasBuscados": ga_data["cp_mas_buscados"],
-                    "grafica_semanal": ga_data["grafica_semanal"],
+                    "grafica_semanal": ga_data["grafica_semanal"],  # ← nombre correcto
+                    "total_historico": ga_data["total_historico"],  # ← nombre correcto
+                    "cp_mas_buscados": ga_data["cp_mas_buscados"],
                 },
             }
         )
