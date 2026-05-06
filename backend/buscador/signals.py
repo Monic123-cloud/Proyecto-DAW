@@ -33,7 +33,7 @@ def matching_por_cp(sender, instance, created, **kwargs):
             ),
             from_email="no-reply@tudominio.com",
             recipient_list=[v.usuario.email],
-            fail_silently=False,
+            fail_silently=True,
         )
 
 def procesar_seguimiento_ayuda():
