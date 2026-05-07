@@ -831,86 +831,151 @@ def analytics_dashboard_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def analizar_mercado(request):
+    """
+    Endpoint del experto de mercado IA.
+
+    Mantiene la misma ruta que funcionaba antes:
+    /api/buscador/experto-mercado/?cp=XXXXX
+
+    Se deja más robusto para:
+    - validar CP
+    - detectar GEMINI_API_KEY
+    - limpiar respuestas con ```json
+    - extraer JSON aunque Gemini añada texto
+    - devolver mensajes de error claros al frontend
+    """
+
     from django.http import JsonResponse
     import json
+    import os
+    import re
 
     try:
-        cp = request.GET.get("cp")
-        if not cp:
-            return JsonResponse({"error": "Falta el parámetro CP"}, status=400)
-        # Configuración básica
+        cp = str(request.GET.get("cp", "")).strip()
+
+        if not re.fullmatch(r"\d{5}", cp):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Falta el parámetro CP o no tiene 5 dígitos.",
+                },
+                status=400,
+            )
+
         api_key = os.environ.get("GEMINI_API_KEY", "")
+
         if not api_key:
-            return JsonResponse({"error": "No hay API KEY en el .env"}, status=500)
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "No hay GEMINI_API_KEY configurada en el backend.",
+                },
+                status=500,
+            )
 
         genai.configure(api_key=api_key)
 
-        # automáticamente detectamos un modelo válido
         modelo_valido = None
-        for m in genai.list_models():
-            if "generateContent" in m.supported_generation_methods:
-                modelo_valido = m.name
-                break  # Usamos el primero que soporte generar contenido
+
+        for modelo in genai.list_models():
+            if "generateContent" in getattr(modelo, "supported_generation_methods", []):
+                modelo_valido = modelo.name
+                break
 
         if not modelo_valido:
             return JsonResponse(
-                {"error": "Tu API Key no tiene modelos disponibles"}, status=500
+                {
+                    "status": "error",
+                    "message": "Tu API Key no tiene modelos disponibles para generateContent.",
+                },
+                status=500,
             )
 
-        # Preparar contexto de base de datos
-        cp_limpio = str(cp).strip()
-        locales = Establecimiento.objects.filter(cp=cp_limpio).values_list(
-            "categoria", flat=True
+        locales = (
+            Establecimiento.objects.filter(cp=cp)
+            .exclude(categoria__isnull=True)
+            .exclude(categoria="")
+            .values_list("categoria", flat=True)
         )
-        lista_contexto = ", ".join(set(locales)) if locales else "ninguno"
 
-        # Generación con el modelo detectado
+        lista_contexto = ", ".join(sorted(set(locales))) if locales else "ninguno"
+
         model = genai.GenerativeModel(modelo_valido)
+
         prompt = f"""
-        Analiza el CP {cp_limpio} en España. Actualmente hay: {lista_contexto}.
-        Dime 3 negocios que faltan. Responde SOLO un JSON:
+        Analiza el CP {cp} en España.
+        Actualmente hay estas categorías de comercios registradas: {lista_contexto}.
+
+        Dime exactamente 3 negocios que podrían faltar o estar poco cubiertos.
+
+        Responde SOLO JSON válido, sin markdown y sin texto adicional, con esta estructura:
         {{
-            "cp": "{cp_limpio}",
+            "cp": "{cp}",
             "recomendaciones": [
-                {{"negocio": "tipo", "razon": "explicación"}}
+                {{"negocio": "tipo", "razon": "explicación breve"}},
+                {{"negocio": "tipo", "razon": "explicación breve"}},
+                {{"negocio": "tipo", "razon": "explicación breve"}}
             ]
         }}
         """
 
         response = model.generate_content(prompt)
-        res_text = response.text
-
-        # 1. Limpieza del Markdown
-        if "```" in res_text:
-            partes = res_text.split("```")
-            res_text = partes[1] if len(partes) > 1 else partes[0]
-            if res_text.startswith("json"):
-                res_text = res_text[4:]
-
+        res_text = getattr(response, "text", "") or ""
         res_text = res_text.strip()
 
-        # 2. Convertimos a diccionario real y respondemos
+        # Limpieza defensiva si Gemini responde con bloques markdown.
+        res_text = re.sub(r"^```json\s*", "", res_text, flags=re.IGNORECASE)
+        res_text = re.sub(r"^```\s*", "", res_text)
+        res_text = re.sub(r"\s*```$", "", res_text)
+
+        # Si aun así añade texto, extraemos el primer bloque JSON.
+        match = re.search(r"\{[\s\S]*\}", res_text)
+        if match:
+            res_text = match.group(0)
+
         try:
             datos_json = json.loads(res_text)
-            return JsonResponse({"status": "success", "data": datos_json})
-        except Exception as parse_error:
+        except Exception:
             return JsonResponse(
                 {
                     "status": "error",
                     "message": "Error al parsear JSON de IA",
-                    "analisis": res_text,
+                    "analisis": res_text[:1000],
+                    "modelo": modelo_valido,
                 },
                 status=500,
             )
+
+        recomendaciones = datos_json.get("recomendaciones")
+
+        if not isinstance(recomendaciones, list):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "La IA no devolvió una lista de recomendaciones.",
+                    "analisis": datos_json,
+                    "modelo": modelo_valido,
+                },
+                status=500,
+            )
+
+        datos_json["cp"] = datos_json.get("cp") or cp
+        datos_json["recomendaciones"] = recomendaciones[:3]
+
+        return JsonResponse(
+            {
+                "status": "success",
+                "data": datos_json,
+                "modelo": modelo_valido,
+            },
+            status=200,
+        )
 
     except Exception as e:
         return JsonResponse(
             {
                 "status": "error",
                 "message": str(e),
-                "modelo_intentado": (
-                    modelo_valido if "modelo_valido" in locals() else "ninguno"
-                ),
             },
             status=500,
         )
