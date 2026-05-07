@@ -61,13 +61,23 @@ const Register = () => {
 
   const [errors, setErrors] = useState<any>({});
   const submission = async (data: RegisterForm) => {
+
     const formatDate = (date: any) => {
       if (!date) return null;
+
       const d = new Date(date);
       return d.toISOString().split("T")[0];
     };
 
-    if (data.voluntariado && (!data.horario_inicio || !data.horario_fin)) {
+    // Validación frontend
+    if (
+      data.voluntariado &&
+      (
+        !data.dias_disponibles ||
+        !data.horario_inicio ||
+        !data.horario_fin
+      )
+    ) {
       alert("Debes indicar disponibilidad");
       return;
     }
@@ -78,14 +88,19 @@ const Register = () => {
     }
 
     try {
-      await AxiosInstance.post('/api/auth/register/', {
+
+      // Payload base
+      const payload: any = {
         email: data.email,
         password: data.password,
+
         nombre: data.nombre,
         apellidos: data.apellidos,
 
         sexo: data.sexo,
+
         fecha_nacimiento: formatDate(data.fecha_nacimiento),
+
         telefono: data.telefono,
 
         direccion: data.direccion,
@@ -99,17 +114,81 @@ const Register = () => {
 
         latitud: data.latitud,
         longitud: data.longitud,
+
         voluntariado: data.voluntariado,
+      };
 
-        dias_disponibles: data.dias_disponibles,
-        horario_inicio: data.horario_inicio,
-        horario_fin: data.horario_fin,
-      });
+      // SOLO si es voluntario
+      if (data.voluntariado) {
 
-      router.push('/');
+        payload.dias_disponibles = data.dias_disponibles;
+        payload.horario_inicio = data.horario_inicio;
+        payload.horario_fin = data.horario_fin;
+
+      }
+
+      console.log("PAYLOAD:", payload);
+
+      await AxiosInstance.post(
+        "/api/auth/register/",
+        payload
+      );
+
+      const response = await AxiosInstance.post(
+        "/auth/login/",
+        {
+          email: data.email,
+          password: data.password,
+        }
+      );
+
+      const accessToken = response.data.access;
+      const refreshToken = response.data.refresh;
+
+      if (!accessToken) {
+        throw new Error(
+          "El backend no ha devuelto token de acceso."
+        );
+      }
+
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("access", accessToken);
+      localStorage.setItem("access_token", accessToken);
+
+      if (refreshToken) {
+        localStorage.setItem("refresh", refreshToken);
+      }
+
+      
+
+      try {
+
+        await AxiosInstance.get(
+          "/buscador/establecimiento/mi_local/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        localStorage.setItem("tipo", "comercio");
+
+        router.push("/panel-comercio");
+
+      } catch {
+
+        localStorage.setItem("tipo", "cliente");
+
+        router.push("/panel-cliente");
+      }
 
     } catch (error: any) {
-      console.log("ERROR BACKEND:", error.response?.data);
+
+      console.log(
+        "ERROR BACKEND:",
+        error.response?.data
+      );
 
       if (error.response?.data) {
         setErrors(error.response.data);
