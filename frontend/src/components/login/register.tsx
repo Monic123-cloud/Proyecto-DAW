@@ -15,6 +15,7 @@ import {
   Stack,
   Checkbox,
   FormControlLabel,
+  Alert,
 } from "@mui/material";
 import MyDatePicker from "./forms/DatePicker";
 import { useState } from "react";
@@ -46,7 +47,7 @@ const Register = () => {
     acepta_legal: boolean;
   };
 
-  const { control, handleSubmit } = useForm<RegisterForm>({
+  const { control, handleSubmit, setError } = useForm<RegisterForm>({
     defaultValues: {
       email: "",
       password: "",
@@ -59,7 +60,7 @@ const Register = () => {
     name: "voluntariado",
   });
 
-  const [errors, setErrors] = useState<any>({});
+
   const submission = async (data: RegisterForm) => {
 
     const formatDate = (date: any) => {
@@ -159,7 +160,7 @@ const Register = () => {
         localStorage.setItem("refresh", refreshToken);
       }
 
-      
+
 
       try {
 
@@ -190,9 +191,21 @@ const Register = () => {
         error.response?.data
       );
 
-      if (error.response?.data) {
-        setErrors(error.response.data);
+      const backendErrors = error.response?.data;
+
+      if (backendErrors) {
+
+        Object.keys(backendErrors).forEach((field) => {
+
+          setError(field as keyof RegisterForm, {
+            type: "server",
+            message: backendErrors[field][0],
+          });
+
+        });
+
       }
+
     }
   };
 
@@ -224,6 +237,8 @@ const Register = () => {
         }}
       >
         <form onSubmit={handleSubmit(submission)}>
+
+          
           <Box className={"whiteBox"}>
             <Box className={"itemBox"}>
               <Box
@@ -239,15 +254,18 @@ const Register = () => {
             </Box>
 
             <Box className={"itemBox"}>
-              <MyTextField label={"Nombre"} name={"nombre"} control={control} />
+              <MyTextField
+                label={"Nombre"}
+                name={"nombre"}
+                control={control}
+              />
             </Box>
 
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Apellidos"}
                 name={"apellidos"}
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
@@ -265,32 +283,28 @@ const Register = () => {
                   { value: "Hombre", label: "Hombre" },
                   { value: "Otro", label: "Otro" },
                   { value: "No decirlo", label: "Prefiero no decirlo" },
-                ]}
-              />
+                ]} />
             </Box>
 
             <Box className={"itemBox"}>
               <MyDatePicker
                 name={"fecha_nacimiento"}
                 label="Fecha"
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Teléfono"}
                 name={"telefono"}
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Dirección"}
                 name={"direccion"}
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
@@ -309,16 +323,14 @@ const Register = () => {
               <MyTextField
                 label={"Municipio"}
                 name={"municipio"}
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
               <MyTextField
                 label={"Provincia"}
                 name={"provincia"}
-                control={control}
-              />
+                control={control} />
             </Box>
 
             <Box className={"itemBox"}>
@@ -336,8 +348,7 @@ const Register = () => {
                     value: 6,
                     message: "Mínimo 6 caracteres",
                   },
-                }}
-              />
+                }} />
             </Box>
 
             <Box>
@@ -347,11 +358,9 @@ const Register = () => {
                 control={control}
                 rules={{
                   required: "Debes confirmar la contraseña",
-                  validate: (value, formValues) =>
-                    value === formValues.password ||
+                  validate: (value, formValues) => value === formValues.password ||
                     "Las contraseñas no coinciden",
-                }}
-              />
+                }} />
             </Box>
 
             <Box display="flex" justifyContent="center">
@@ -361,41 +370,33 @@ const Register = () => {
                 defaultValue={false}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                      />
-                    }
-                    label="¿Quieres participar en voluntariado?"
-                  />
+                    control={<Checkbox
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)} />}
+                    label="¿Quieres participar en voluntariado?" />
 
-                )}
-              />
+                )} />
               {voluntarioActivo && (
                 <>
                   <Box className={"itemBox"}>
                     <MyTextField
                       label={"Días disponibles (ej: Lunes, Martes)"}
                       name={"dias_disponibles"}
-                      control={control}
-                    />
+                      control={control} />
                   </Box>
 
                   <Box className={"itemBox"}>
                     <MyTextField
                       label={"Horario inicio (HH:mm)"}
                       name={"horario_inicio"}
-                      control={control}
-                    />
+                      control={control} />
                   </Box>
 
                   <Box className={"itemBox"}>
                     <MyTextField
                       label={"Horario fin (HH:mm)"}
                       name={"horario_fin"}
-                      control={control}
-                    />
+                      control={control} />
                   </Box>
 
                 </>
@@ -413,29 +414,22 @@ const Register = () => {
                 render={({ field, fieldState }) => (
                   <>
                     <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={field.value}
-                          onChange={(e) => field.onChange(e.target.checked)}
-                        />
-                      }
-                      label={
-                        <>
-                          Acepto la{" "}
-                          <Link href="/legal" style={{ color: "#10b981" }}>
-                            política de privacidad
-                          </Link>
-                        </>
-                      }
-                    />
+                      control={<Checkbox
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)} />}
+                      label={<>
+                        Acepto la{" "}
+                        <Link href="/legal" style={{ color: "#10b981" }}>
+                          política de privacidad
+                        </Link>
+                      </>} />
                     {fieldState.error && (
                       <span style={{ color: "red" }}>
                         {fieldState.error.message}
                       </span>
                     )}
                   </>
-                )}
-              />
+                )} />
             </Box>
 
             <Box>
@@ -443,8 +437,7 @@ const Register = () => {
                 type={"submit"}
                 label={"Registrar"}
                 fullWidth
-                sx={{ mt: 2 }}
-              />
+                sx={{ mt: 2 }} />
             </Box>
           </Box>
         </form>
