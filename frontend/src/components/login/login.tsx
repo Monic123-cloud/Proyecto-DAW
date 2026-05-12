@@ -177,32 +177,7 @@ const LoginForm = () => {
         </form>
       </Paper>
 
-      <Box>
-        <Button
-          startIcon={<StoreIcon />}
-          component={Link}
-          href="/registroEstablecimiento"
-          variant="outlined"
-          sx={{
-            mt: 4,
-            px: 5,
-            py: 1.5,
-            borderRadius: "999px",
-            background: "linear-gradient(135deg, #34d399, #10b981)",
-            color: "#fff",
-            fontWeight: 600,
-            textTransform: "none",
-            boxShadow: "0 6px 15px rgba(0,0,0,0.15)",
-            "&:hover": {
-              transform: "scale(1.05)",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
-            },
-          }}
-          fullWidth
-        >
-          Soy un comercio
-        </Button>
-      </Box>
+      
     </Box>
   );
 };

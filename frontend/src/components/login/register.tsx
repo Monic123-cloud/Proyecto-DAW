@@ -420,7 +420,7 @@ const Register = () => {
                       label={<>
                         Acepto la{" "}
                         <Link href="/legal" style={{ color: "#10b981" }}>
-                          política de privacidad
+                          Política de Privacidad y Términos de uso
                         </Link>
                       </>} />
                     {fieldState.error && (

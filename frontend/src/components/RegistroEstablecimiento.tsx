@@ -11,10 +11,14 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { ENDPOINTS } from "../app/config";
 import { validarDocumentoCompleto, validarCP } from "../app/utils";
 import { authService } from "../services/authService";
+import { Controller } from "react-hook-form";
+import Link from "next/link";
 
 interface FormState {
   nombre_comercio: string;
@@ -33,6 +37,7 @@ interface FormState {
   correo: string;
   latitud: number;
   longitud: number;
+  acepta_legal?: boolean,
 }
 
 const GOOGLE_MAPS_LIBRARIES: ("marker" | "places" | "geometry")[] = [
@@ -147,6 +152,7 @@ export default function RegistroEstablecimiento() {
     correo: "",
     latitud: 0,
     longitud: 0,
+    acepta_legal: false,
   });
 
   useEffect(() => {
@@ -207,6 +213,7 @@ export default function RegistroEstablecimiento() {
           correo: data.correo || "",
           latitud: parseFloat(data.latitud) || 0,
           longitud: parseFloat(data.longitud) || 0,
+
         });
 
         setEditId(data.id_establecimiento);
@@ -224,6 +231,10 @@ export default function RegistroEstablecimiento() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    if (!formData.acepta_legal) {
+    alert("Debes aceptar los términos y condiciones");
+    return;
+  }
     const url = editId
       ? `${ENDPOINTS.ESTABLECIMIENTOS}${editId}/`
       : ENDPOINTS.ESTABLECIMIENTOS;
@@ -458,7 +469,7 @@ export default function RegistroEstablecimiento() {
                       <option value="">Selecciona detalle...</option>
                       {(
                         ESTRUCTURA[formData.grupo][
-                          formData.categoria
+                        formData.categoria
                         ] as string[]
                       ).map((s) => (
                         <option key={s} value={s}>
@@ -471,26 +482,26 @@ export default function RegistroEstablecimiento() {
                 {/* Campos Libres para "Otros..." */}
                 {(formData.categoria === "Otros..." ||
                   formData.subcategoria === "Otros...") && (
-                  <TextField
-                    fullWidth
-                    label="Especifica tu actividad"
-                    color="warning"
-                    value={
-                      formData.categoria === "Otros..."
-                        ? formData.categoria_libre
-                        : formData.subcategoria_libre
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [formData.categoria === "Otros..."
-                          ? "categoria_libre"
-                          : "subcategoria_libre"]: e.target.value,
-                      })
-                    }
-                    sx={{ mt: 2 }}
-                  />
-                )}
+                    <TextField
+                      fullWidth
+                      label="Especifica tu actividad"
+                      color="warning"
+                      value={
+                        formData.categoria === "Otros..."
+                          ? formData.categoria_libre
+                          : formData.subcategoria_libre
+                      }
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          [formData.categoria === "Otros..."
+                            ? "categoria_libre"
+                            : "subcategoria_libre"]: e.target.value,
+                        })
+                      }
+                      sx={{ mt: 2 }}
+                    />
+                  )}
 
                 {/* Dirección y Número */}
                 <Box display="flex" gap={2} mt={2} alignItems="flex-start">
@@ -580,6 +591,37 @@ export default function RegistroEstablecimiento() {
                   sx={{ mt: 2 }}
                 />
 
+                <Box display="flex" justifyContent="center">
+                  <FormControlLabel
+                    sx={{
+                      mt: 2,
+                      color: "white",
+                      alignItems: "center",
+
+                    }}
+                    control={
+                      <Checkbox
+                        checked={formData.acepta_legal}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            acepta_legal: e.target.checked,
+                          })
+                        }
+                        
+                      />
+                    }
+                    label={
+                      <span>
+                        Acepto la{" "}
+                        <Link href="/legal" target="_blank" style={{ color: "#10b981" }}>
+                          Política de Privacidad y los Términos de uso
+                       </Link>
+                      </span>
+                    }
+                  />
+                </Box>
+
                 <Button
                   type="submit"
                   fullWidth
@@ -589,6 +631,7 @@ export default function RegistroEstablecimiento() {
                 >
                   Guardar Datos
                 </Button>
+
               </Box>
             </CardContent>
           </Card>

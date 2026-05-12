@@ -3,6 +3,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Header from "@/components/header";
 import "./globals.css";
 import { Suspense } from "react";
+import CookieBanner from "@/components/CookieBanner";
 
 export const metadata = {
   title: "Close4u",
@@ -27,10 +28,11 @@ export default function RootLayout({
         <Suspense fallback={null}>
           {gaId && <GoogleAnalytics GA_MEASUREMENT_ID={gaId} />}
         </Suspense>
-
+        <CookieBanner />
         <Providers>
           <Suspense fallback={<div className="h-20" />}>
             <Header />
+
             <main>{children}</main>
           </Suspense>
         </Providers>
