@@ -19,6 +19,7 @@ import { validarDocumentoCompleto, validarCP } from "../app/utils";
 import { authService } from "../services/authService";
 import { Controller } from "react-hook-form";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 interface FormState {
   nombre_comercio: string;
@@ -219,11 +220,23 @@ export default function RegistroEstablecimiento() {
         setEditId(data.id_establecimiento);
         setVista("formulario");
       } else {
-        alert(data.error || "CIF o contraseña incorrectos");
+        await Swal.fire({
+          icon: "error",
+          title: "No se ha podido acceder",
+          text: data.error || "CIF o contraseña incorrectos",
+          confirmButtonText: "Aceptar",
+          confirmButtonColor: "#10b981",
+        });
       }
     } catch (err) {
       console.error("Error en la búsqueda:", err);
-      alert("Error de conexión con el servidor");
+      await Swal.fire({
+        icon: "error",
+        title: "Error de conexión",
+        text: "No se ha podido conectar con el servidor.",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#10b981",
+      });
     } finally {
       setLoading(false);
     }
@@ -232,7 +245,13 @@ export default function RegistroEstablecimiento() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!formData.acepta_legal) {
-    alert("Debes aceptar los términos y condiciones");
+      await Swal.fire({
+        icon: "warning",
+        title: "Términos y condiciones",
+        text: "Debes aceptar la Política de Privacidad y los Términos de uso para continuar.",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#10b981",
+      });
     return;
   }
     const url = editId
@@ -248,7 +267,13 @@ export default function RegistroEstablecimiento() {
       body: JSON.stringify({ ...formData, password }),
     });
     if (res.ok) {
-      alert("Guardado correctamente");
+      await Swal.fire({
+        icon: "success",
+        title: "Datos guardados",
+        text: "Guardado correctamente.",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#10b981",
+      });
       setVista("seleccion");
     }
   };
