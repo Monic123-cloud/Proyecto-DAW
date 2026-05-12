@@ -449,7 +449,7 @@ export default function Buscador({
                 "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
               }}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ flexGrow: 1, p: 3 }}>
                 <Box
                   sx={{
                     display: "flex",
@@ -517,7 +517,7 @@ export default function Buscador({
                   }
                 />
               </CardContent>
-              <CardActions sx={{ p: 2, pt: 0 }}>
+              <CardActions sx={{ p: 3, pt: 0 }}>
                 <Button
                   size="small"
                   fullWidth
